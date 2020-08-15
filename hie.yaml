@@ -1,0 +1,13 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "cassiel:lib"
+
+    - path: "./app/Main.hs"
+      component: "cassiel:exe:cassiel-exe"
+
+    - path: "./app/Paths_cassiel.hs"
+      component: "cassiel:exe:cassiel-exe"
+
+    - path: "./test"
+      component: "cassiel:test:cassiel-test"

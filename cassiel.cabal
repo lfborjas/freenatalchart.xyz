@@ -1,0 +1,91 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 9e86a8007ceeb974ea54fd2b1685590fe8505e22faa8b1d84777facb2bea399b
+
+name:           cassiel
+version:        0.1.0.0
+description:    Please see the README on Github at <https://github.com/githubuser/cassiel#readme>
+homepage:       https://github.com/githubuser/cassiel#readme
+bug-reports:    https://github.com/githubuser/cassiel/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2020 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/cassiel
+
+library
+  exposed-modules:
+      Chart
+      Import
+      Run
+      Types
+      Util
+  other-modules:
+      Paths_cassiel
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.11 && <10
+    , diagrams
+    , diagrams-contrib
+    , diagrams-core
+    , diagrams-lib
+    , diagrams-svg
+    , rio >=0.1.12.0
+    , swiss-ephemeris >=0.1.0.2
+  default-language: Haskell2010
+
+executable cassiel-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_cassiel
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.11 && <10
+    , cassiel
+    , diagrams
+    , diagrams-contrib
+    , diagrams-core
+    , diagrams-lib
+    , diagrams-svg
+    , optparse-simple
+    , rio >=0.1.12.0
+    , swiss-ephemeris >=0.1.0.2
+  default-language: Haskell2010
+
+test-suite cassiel-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      UtilSpec
+      Paths_cassiel
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.11 && <10
+    , cassiel
+    , diagrams
+    , diagrams-contrib
+    , diagrams-core
+    , diagrams-lib
+    , diagrams-svg
+    , hspec
+    , rio >=0.1.12.0
+    , swiss-ephemeris >=0.1.0.2
+  default-language: Haskell2010
