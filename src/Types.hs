@@ -68,3 +68,24 @@ westernZodiacSigns =
     ,ZodiacSign { name = Aquarius, zodiacLongitude = 300.0, zodiacElement = Air }
     ,ZodiacSign { name = Pisces, zodiacLongitude = 330.0, zodiacElement = Water }
     ]
+
+data HouseNumber 
+  = I
+  | II
+  | III
+  | IV
+  | V
+  | VI
+  | VII
+  | VIII
+  | IX
+  | X
+  | XI
+  | XII
+  deriving (Eq, Show, Ord, Bounded)
+
+data House = House
+  {
+    houseNumber :: HouseNumber
+  , houseCusp :: Longitude
+  } deriving (Eq, Show)
