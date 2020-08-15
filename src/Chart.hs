@@ -4,7 +4,7 @@
 
 module Chart where
 
-import Import hiding ((^.))
+import Import hiding ((^.), local)
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
 import RIO.List (cycle)
@@ -33,10 +33,11 @@ zodiacBand sign@(ZodiacSign _ zLng _) =
 zodiacCircle :: (Monoid a, TrailLike a, HasStyle a, N a ~ Longitude, V a ~ V2) => a
 zodiacCircle = mconcat $ map zodiacBand westernZodiacSigns
 
-cuspBand :: (TrailLike b, HasStyle b, N b ~ Longitude, V b ~ V2) => (House, House) -> b
-cuspBand (h1@(House houseName cuspBegin), h2@(House _ cuspEnd)) =
+cuspBand :: (HasStyle b, TrailLike b, V b ~ V2, N b ~ Longitude) => (House, House) -> b
+cuspBand (House houseName cuspBegin, House _ cuspEnd) =
     w # lw thin
-      # fc (if houseName `elem` [I, III, V, VII, IX, XI] then lightgrey else white)
+      # fc (houseColor houseName) -- houseColor is for debugging, no meaning.
+                               
     where
         d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
         a = (angularDifference cuspBegin cuspEnd) @@ deg
@@ -44,16 +45,32 @@ cuspBand (h1@(House houseName cuspBegin), h2@(House _ cuspEnd)) =
 
 angularDifference :: Longitude -> Longitude -> Longitude
 angularDifference a b | (b - a) < 1 = (b + 360 - a)
-                      | otherwise = b -a
+                      | otherwise = b - a
 
-cuspsCircle :: (Monoid a, TrailLike a, HasStyle a, N a ~ Longitude, V a ~ V2) => [House] -> a
+houseColor :: HouseNumber -> Colour Double
+houseColor h =
+    case h of
+        I -> red
+        II -> green
+        III -> blue
+        IV -> yellow
+        V -> cyan
+        VI -> black
+        VII -> brown
+        VIII -> magenta
+        IX -> darkorange
+        X -> orchid
+        XI -> forestgreen
+        XII -> white
+
+cuspsCircle :: (Monoid a, HasStyle a, TrailLike a, V a ~ V2, N a ~ Longitude) => [House] -> a
 cuspsCircle c = 
     mconcat $ map cuspBand pairedC
     where
         pairedC = zip c $ rotateList 1 c
 
 quadrant :: (TrailLike b, HasStyle b, N b ~ Longitude, V b ~ V2) => (House, House) -> b
-quadrant (h1@(House _ cuspBegin), h2@(House _ cuspEnd)) =
+quadrant (House _ cuspBegin, House _ cuspEnd) =
     w # lw thin
     where 
         d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
@@ -77,18 +94,18 @@ ascendant h =  h !! 0 & houseCusp
 cusps_ :: [House]
 cusps_ 
     = [
-        (House I 112.20189657163523)
-    ,   (House II 138.4658382335878)
-    ,   (House III 167.69682489058204)
-    ,   (House IV 199.79861981778183)
-    ,   (House V 232.2797046698429)
-    ,   (House VI 263.0249102802477)
-    ,   (House VII 292.20189657163525)
-    ,   (House VIII 318.46583823358776)
-    ,   (House IX 347.69682489058204)
-    ,   (House X 19.798619817781823)
-    ,   (House XI 52.27970466984291)
-    ,   (House XII 83.02491028024768)
+        (House I $ id 112.20189657163523)
+    ,   (House II $ id 138.4658382335878)
+    ,   (House III $ id 167.69682489058204)
+    ,   (House IV $ id 199.79861981778183)
+    ,   (House V $ id 232.2797046698429)
+    ,   (House VI $ id 263.0249102802477)
+    ,   (House VII $ id 292.20189657163525)
+    ,   (House VIII $ id 318.46583823358776)
+    ,   (House IX $ id 347.69682489058204)
+    ,   (House X $ id 19.798619817781823)
+    ,   (House XI $ id 52.27970466984291)
+    ,   (House XII $ id 83.02491028024768)
     ]
 
 chart :: (Monoid a, TrailLike a, HasStyle a, N a ~ Longitude, V a ~ V2) => [House] -> a
