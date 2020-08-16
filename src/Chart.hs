@@ -10,6 +10,7 @@ import Diagrams.Backend.SVG
 import RIO.List (cycle)
 import RIO.List.Partial ((!!))
 import Diagrams.TwoD.Vector (e)
+import Diagrams.Core.Types (keyVal)
 
 --signColor :: (Ord a, Floating a) => ZodiacSign -> Colour a
 signColor :: ZodiacSign -> Colour Double
@@ -26,6 +27,9 @@ zodiacBand sign@(ZodiacSign signName zLng _) =
     w # fc (signColor sign)
       # lw thin
       # (href $ "/explanations#zodiac-" <> (show signName))
+      -- can set `title`, `id` or `class`:
+      -- https://hackage.haskell.org/package/diagrams-svg-1.4.3/docs/src/Diagrams.Backend.SVG.html
+      # (keyVal $ ("title", show signName))
     where
         d :: Direction V2 Longitude
         d = rotateBy ((zLng @@ deg) ^. turn) xDir
