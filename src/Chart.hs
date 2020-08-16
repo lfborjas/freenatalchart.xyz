@@ -19,10 +19,12 @@ signColor (ZodiacSign _ _ zElement) =
         Fire -> red
         Water -> lightblue
 
-zodiacBand :: (TrailLike b, HasStyle b, N b ~ Longitude, V b ~ V2) => ZodiacSign -> b
-zodiacBand sign@(ZodiacSign _ zLng _) = 
+
+zodiacBand :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => ZodiacSign -> QDiagram b V2 Longitude m
+zodiacBand sign@(ZodiacSign signName zLng _) = 
     w # fc (signColor sign)
       # lw thin
+      # (href $ "/explanations#zodiac-" <> (show signName))
     where
         d :: Direction V2 Longitude
         d = rotateBy ((zLng @@ deg) ^. turn) xDir
@@ -30,14 +32,13 @@ zodiacBand sign@(ZodiacSign _ zLng _) =
         a = 30 @@ deg
         w = annularWedge 1 0.8 d a
 
-zodiacCircle :: (Monoid a, TrailLike a, HasStyle a, N a ~ Longitude, V a ~ V2) => a
+zodiacCircle :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => QDiagram b V2 Longitude m
 zodiacCircle = mconcat $ map zodiacBand westernZodiacSigns
 
-cuspBand :: (HasStyle b, TrailLike b, V b ~ V2, N b ~ Longitude) => (House, House) -> b
+cuspBand :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => (House, House) -> QDiagram b V2 Longitude m
 cuspBand (House houseName cuspBegin, House _ cuspEnd) =
     w # lw thin
-      # fc (houseColor houseName) -- houseColor is for debugging, no meaning.
-                               
+      # (href $ "/explanations#house-" <> (show houseName))
     where
         d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
         a = (angularDifference cuspBegin cuspEnd) @@ deg
@@ -47,45 +48,31 @@ angularDifference :: Longitude -> Longitude -> Longitude
 angularDifference a b | (b - a) < 1 = (b + 360 - a)
                       | otherwise = b - a
 
-houseColor :: HouseNumber -> Colour Double
-houseColor h =
-    case h of
-        I -> red
-        II -> green
-        III -> blue
-        IV -> yellow
-        V -> cyan
-        VI -> black
-        VII -> brown
-        VIII -> magenta
-        IX -> darkorange
-        X -> orchid
-        XI -> forestgreen
-        XII -> white
-
-cuspsCircle :: (Monoid a, HasStyle a, TrailLike a, V a ~ V2, N a ~ Longitude) => [House] -> a
+cuspsCircle :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
 cuspsCircle c = 
     mconcat $ map cuspBand pairedC
     where
         pairedC = zip c $ rotateList 1 c
 
-quadrant :: (TrailLike b, HasStyle b, N b ~ Longitude, V b ~ V2) => (House, House) -> b
-quadrant (House _ cuspBegin, House _ cuspEnd) =
+
+quadrant :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => (House, House) -> QDiagram b V2 Longitude m
+quadrant (House houseName cuspBegin, House _ cuspEnd) =
     w # lw thin
+      # (href $ "/explanations#angle-" <> (show houseName))
     where 
         d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
         a = (angularDifference cuspBegin cuspEnd) @@ deg
         w = wedge 1 d a
 
-quadrants :: (Monoid a, TrailLike a, HasStyle a, N a ~ Longitude, V a ~ V2) => [House] -> a
+quadrants :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
 quadrants c = 
     mconcat $ map quadrant angles
     where
         angles = 
-            [(c !! 0, c !! 3)
-            ,(c !! 3, c !! 6)
-            ,(c !! 6, c !! 9)
-            ,(c !! 9, c !! 0)
+            [(c !! 0, c !! 3) -- AC
+            ,(c !! 3, c !! 6) -- IC
+            ,(c !! 6, c !! 9) -- DC
+            ,(c !! 9, c !! 0) -- MC
             ]
 
 ascendant :: [House] -> Longitude
@@ -108,7 +95,7 @@ cusps_
     ,   (House XII $ id 83.02491028024768)
     ]
 
-chart :: (Monoid a, TrailLike a, HasStyle a, N a ~ Longitude, V a ~ V2) => [House] -> a
+chart :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
 chart cusps = zodiacCircle <> cuspsCircle cusps <> quadrants cusps
 
 -- from: https://stackoverflow.com/questions/16378773/rotate-a-list-in-haskell
