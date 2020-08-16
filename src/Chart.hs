@@ -9,6 +9,7 @@ import Diagrams.Prelude
 import Diagrams.Backend.SVG
 import RIO.List (cycle)
 import RIO.List.Partial ((!!))
+import Diagrams.TwoD.Vector (e)
 
 --signColor :: (Ord a, Floating a) => ZodiacSign -> Colour a
 signColor :: ZodiacSign -> Colour Double
@@ -35,27 +36,53 @@ zodiacBand sign@(ZodiacSign signName zLng _) =
 zodiacCircle :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => QDiagram b V2 Longitude m
 zodiacCircle = mconcat $ map zodiacBand westernZodiacSigns
 
-cuspBand :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => (House, House) -> QDiagram b V2 Longitude m
+--cuspBand :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => (House, House) -> QDiagram b V2 Longitude m
+--cuspBand :: (Renderable (Path V2 Double) b, Renderable (Text Longitude) b) => (House, House) -> QDiagram b V2 Longitude Any
 cuspBand (House houseName cuspBegin, House _ cuspEnd) =
-    w # lw thin
-      # (href $ "/explanations#house-" <> (show houseName))
+    t <> w # lw thin
+           # (href $ "/explanations#house-" <> (show houseName))
     where
         d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
         a = (angularDifference cuspBegin cuspEnd) @@ deg
         w = annularWedge 0.8 0.5 d a
+        textPosition :: Point V2 Double
+        textPosition = longitudeToPoint (cuspBegin + 5) 0.6
+        t = (text $ houseLabel houseName) 
+            # moveTo textPosition
+            # fontSize (local 0.05)
+            # rotateAround textPosition (-70 @@ deg)
+
+houseLabel :: HouseNumber -> String
+houseLabel I = "AC"
+houseLabel IV = "IC"
+houseLabel VII = "DC"
+houseLabel X = "MC"
+houseLabel o = fromEnum o & (+1) & show
 
 angularDifference :: Longitude -> Longitude -> Longitude
 angularDifference a b | (b - a) < 1 = (b + 360 - a)
                       | otherwise = b - a
 
-cuspsCircle :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
+-- | Given a longitude and a magnitude (distance from origin)
+-- return a point sitting at the equivalent vector
+-- more on vectors:
+-- https://archives.haskell.org/projects.haskell.org/diagrams/doc/vector.html#vector-operations
+longitudeToPoint :: Longitude -> Double -> Point V2 Double
+longitudeToPoint longitude magnitude = 
+    origin .+^ v
+    where
+        theta = longitude @@ deg
+        v = magnitude *^ e theta
+
+
+--cuspsCircle :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
 cuspsCircle c = 
     mconcat $ map cuspBand pairedC
     where
         pairedC = zip c $ rotateList 1 c
 
 
-quadrant :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => (House, House) -> QDiagram b V2 Longitude m
+--quadrant :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => (House, House) -> QDiagram b V2 Longitude m
 quadrant (House houseName cuspBegin, House _ cuspEnd) =
     w # lw thin
       # (href $ "/explanations#angle-" <> (show houseName))
@@ -64,7 +91,7 @@ quadrant (House houseName cuspBegin, House _ cuspEnd) =
         a = (angularDifference cuspBegin cuspEnd) @@ deg
         w = wedge 1 d a
 
-quadrants :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
+--quadrants :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
 quadrants c = 
     mconcat $ map quadrant angles
     where
@@ -95,7 +122,7 @@ cusps_
     ,   (House XII $ id 83.02491028024768)
     ]
 
-chart :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
+--chart :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
 chart cusps = zodiacCircle <> cuspsCircle cusps <> quadrants cusps
 
 -- from: https://stackoverflow.com/questions/16378773/rotate-a-list-in-haskell
@@ -110,4 +137,4 @@ renderChart =
     (mkWidth 400)
     (chart cusps_ # rotateBy ascendantOffset)
    where
-       ascendantOffset = (180 - (ascendant cusps_) @@ deg) ^. turn
+       ascendantOffset =  (180 - (ascendant cusps_) @@ deg) ^. turn

@@ -82,7 +82,7 @@ data HouseNumber
   | X
   | XI
   | XII
-  deriving (Eq, Show, Ord, Bounded)
+  deriving (Eq, Show, Ord, Enum, Bounded)
 
 data House = House
   {
