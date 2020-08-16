@@ -81,12 +81,25 @@ cuspsCircle c =
 
 --quadrant :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => (House, House) -> QDiagram b V2 Longitude m
 quadrant (House houseName cuspBegin, House _ cuspEnd) =
-    w # lw thin
-      # (href $ "/explanations#angle-" <> (show houseName))
+    t <> w # lw thin
+           # (href $ "/explanations#angle-" <> (show houseName))
     where 
         d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
         a = (angularDifference cuspBegin cuspEnd) @@ deg
         w = wedge 1 d a
+        textPosition = longitudeToPoint (cuspBegin + 4) 0.75
+        t = (text $ quadrantLabel houseName) 
+            # moveTo textPosition
+            # fontSize (local 0.05)
+            # fc black
+            # rotateAround textPosition (-70 @@ deg)
+
+quadrantLabel :: HouseNumber -> String
+quadrantLabel I = "ASC"
+quadrantLabel IV = "IC"
+quadrantLabel VII = "DC"
+quadrantLabel X = "MC"
+quadrantLabel _ = ""
 
 --quadrants :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
 quadrants c = 
