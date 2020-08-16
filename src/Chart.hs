@@ -46,18 +46,15 @@ cuspBand (House houseName cuspBegin, House _ cuspEnd) =
         a = (angularDifference cuspBegin cuspEnd) @@ deg
         w = annularWedge 0.8 0.5 d a
         textPosition :: Point V2 Double
-        textPosition = longitudeToPoint (cuspBegin + 5) 0.6
+        textPosition = longitudeToPoint (cuspBegin + 5) 0.55
         t = (text $ houseLabel houseName) 
             # moveTo textPosition
             # fontSize (local 0.05)
+            # fc gray
             # rotateAround textPosition (-70 @@ deg)
 
 houseLabel :: HouseNumber -> String
-houseLabel I = "AC"
-houseLabel IV = "IC"
-houseLabel VII = "DC"
-houseLabel X = "MC"
-houseLabel o = fromEnum o & (+1) & show
+houseLabel = fromEnum >>> (+1) >>> show
 
 angularDifference :: Longitude -> Longitude -> Longitude
 angularDifference a b | (b - a) < 1 = (b + 360 - a)
@@ -122,8 +119,14 @@ cusps_
     ,   (House XII $ id 83.02491028024768)
     ]
 
+
+exampleAspect = 
+    sunPos ~~ marsPos # lc red
+    where
+        sunPos = longitudeToPoint 285.64723120365153 0.5
+        marsPos = longitudeToPoint 22.784889069947795 0.5
 --chart :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
-chart cusps = zodiacCircle <> cuspsCircle cusps <> quadrants cusps
+chart cusps = zodiacCircle <> cuspsCircle cusps <> quadrants cusps <> exampleAspect
 
 -- from: https://stackoverflow.com/questions/16378773/rotate-a-list-in-haskell
 rotateList :: Int -> [a] -> [a]
