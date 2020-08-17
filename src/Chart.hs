@@ -11,7 +11,7 @@ import RIO.List (cycle)
 import RIO.List.Partial ((!!))
 import Diagrams.TwoD.Vector (e)
 import Diagrams.Core.Types (keyVal)
-import Calculations (angularDifference, rotateList, ascendant)
+import Calculations (angularDifference, rotateList)
 
 --signColor :: (Ord a, Floating a) => ZodiacSign -> Colour a
 signColor :: ZodiacSign -> Colour Double
@@ -61,7 +61,11 @@ cuspBand (House houseName cuspBegin, House _ cuspEnd) =
 houseLabel :: HouseNumber -> String
 houseLabel = fromEnum >>> (+1) >>> show
 
+ascendant :: [House] -> House
+ascendant h =  h !! 0
 
+mc :: [House] -> House
+mc h = h !! 9
 
 -- | Given a longitude and a magnitude (distance from origin)
 -- return a point sitting at the equivalent vector

@@ -5,7 +5,6 @@ module Calculations where
 import Import
 import SwissEphemeris
 import RIO.List (cycle)
-import RIO.List.Partial ((!!))
 
 angularDifference :: Longitude -> Longitude -> Longitude
 angularDifference a b | (b - a) < 1 = (b + 360 - a)
@@ -16,17 +15,11 @@ rotateList :: Int -> [a] -> [a]
 rotateList _ [] = []
 rotateList n  xs = zipWith const (drop n (cycle xs)) xs
 
-ascendant :: [House] -> House
-ascendant h =  h !! 0
-
-mc :: [House] -> House
-mc h = h !! 9
-
 -- TODO(luis): this feels silly but orderly, maybe SwissEphemeris
 -- should just return an array? A house's number is important though,
 -- so some manner of silly unpacking and repacking would happen anyway?
-houses :: CuspsCalculation -> [House]
-houses (CuspsCalculation HouseCusps{..} _) =
+houses :: HouseCusps -> [House]
+houses HouseCusps{..} =
     [ House I i
     , House II ii
     , House III iii
@@ -40,6 +33,24 @@ houses (CuspsCalculation HouseCusps{..} _) =
     , House XI xi
     , House XII xii
     ]
+
+planetPositions :: [(Planet, Either String Coordinates)] -> [PlanetPosition]
+planetPositions ps =
+    map (\(p, c) -> if p /= SwissEphemeris.Earth then (PlanetPosition p) <$> c else Left "earth") ps & rights
+
+mkCoordinates :: Double -> Double -> Coordinates
+mkCoordinates lat' lng' = defaultCoordinates{lat = lat', lng = lng'}
+
+horoscope :: JulianTime -> Coordinates -> HoroscopeData
+horoscope time place =
+    HoroscopeData positions
+                  angles
+                  housesCalculated
+                  Placidus
+    where
+        positions = map (\p -> (p, calculateCoordinates time p)) [Sun .. Chiron] & planetPositions
+        CuspsCalculation h angles = calculateCusps time place Placidus
+        housesCalculated = houses $ h
 
 aspects' :: (HasLongitude a, HasLongitude b) => [Aspect] -> [a] -> [b] -> [HoroscopeAspect a b]
 aspects' possibleAspects bodiesA bodiesB =
@@ -63,6 +74,5 @@ aspects = aspects' defaultAspects
 planetaryAspects :: [PlanetPosition] -> [HoroscopeAspect PlanetPosition PlanetPosition]
 planetaryAspects ps = aspects ps $ rotateList 1 ps
 
--- TODO: change [House] to NonEmpty House
-celestialAspects :: [PlanetPosition] -> [House] -> [HoroscopeAspect PlanetPosition House]
-celestialAspects ps hs = aspects ps [Calculations.ascendant hs, Calculations.mc hs]
+celestialAspects :: [PlanetPosition] -> Angles -> [HoroscopeAspect PlanetPosition House]
+celestialAspects ps Angles{..} = aspects ps [House I ascendant, House X mc]

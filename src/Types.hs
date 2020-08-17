@@ -3,7 +3,7 @@ module Types where
 
 import RIO
 import RIO.Process
-import SwissEphemeris (Planet(..), Coordinates(..), HouseSystem(..))
+import SwissEphemeris (HouseSystem, Angles(..), Planet(..), Coordinates(..))
 
 -- | Command line arguments
 data Options = Options
@@ -167,3 +167,11 @@ data PlanetPosition = PlanetPosition
 
 instance HasLongitude PlanetPosition where
     getLongitude (PlanetPosition _ coords) = lng coords
+
+data HoroscopeData = HoroscopeData
+  {
+    horoscopePlanetPositions :: [PlanetPosition]
+  , horoscopeAngles :: Angles
+  , horoscopeHouses :: [House]
+  , horoscopeSystem :: HouseSystem
+  } deriving (Eq, Show)
