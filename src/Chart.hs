@@ -11,6 +11,7 @@ import RIO.List (cycle)
 import RIO.List.Partial ((!!))
 import Diagrams.TwoD.Vector (e)
 import Diagrams.Core.Types (keyVal)
+import Calculations (angularDifference, rotateList, ascendant)
 
 --signColor :: (Ord a, Floating a) => ZodiacSign -> Colour a
 signColor :: ZodiacSign -> Colour Double
@@ -60,9 +61,7 @@ cuspBand (House houseName cuspBegin, House _ cuspEnd) =
 houseLabel :: HouseNumber -> String
 houseLabel = fromEnum >>> (+1) >>> show
 
-angularDifference :: Longitude -> Longitude -> Longitude
-angularDifference a b | (b - a) < 1 = (b + 360 - a)
-                      | otherwise = b - a
+
 
 -- | Given a longitude and a magnitude (distance from origin)
 -- return a point sitting at the equivalent vector
@@ -116,8 +115,7 @@ quadrants c =
             ,(c !! 9, c !! 0) -- MC
             ]
 
-ascendant :: [House] -> Longitude
-ascendant h =  h !! 0 & houseCusp
+
 
 cusps_ :: [House]
 cusps_ 
@@ -145,11 +143,6 @@ exampleAspect =
 --chart :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
 chart cusps = zodiacCircle <> cuspsCircle cusps <> quadrants cusps <> exampleAspect
 
--- from: https://stackoverflow.com/questions/16378773/rotate-a-list-in-haskell
-rotateList :: Int -> [a] -> [a]
-rotateList _ [] = []
-rotateList n  xs = zipWith const (drop n (cycle xs)) xs
-
 renderChart :: IO ()
 renderChart =
   renderSVG
@@ -157,4 +150,4 @@ renderChart =
     (mkWidth 400)
     (chart cusps_ # rotateBy ascendantOffset)
    where
-       ascendantOffset =  (180 - (ascendant cusps_) @@ deg) ^. turn
+       ascendantOffset =  (180 - ((houseCusp . ascendant) cusps_) @@ deg) ^. turn
