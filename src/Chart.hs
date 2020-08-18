@@ -12,6 +12,7 @@ import RIO.List.Partial ((!!))
 import Diagrams.TwoD.Vector (e)
 import Diagrams.Core.Types (keyVal)
 import Calculations (angularDifference, rotateList)
+import qualified Graphics.SVGFonts as SF
 
 --signColor :: (Ord a, Floating a) => ZodiacSign -> Colour a
 signColor :: ZodiacSign -> Colour Double
@@ -22,27 +23,59 @@ signColor (ZodiacSign _ _ zElement) =
         Fire -> red
         Water -> lightblue
 
+-- TODO: this function takes forever, I believe it's because of `textSVG`
+-- having to load the font in _every_ invocation. We need a reader monad
+-- or something to provide it, so we only need to load it once:
+-- http://hackage.haskell.org/package/SVGFonts-1.7.0.1/docs/src/Graphics.SVGFonts.Text.html#line-41
+-- also, calculating each path takes quite a bit, so we may even need to have a map
+-- of pre-rendered paths.
+signGlyph :: (Read n, RealFloat n) => ZodiacSign -> n -> Path V2 n
+signGlyph (ZodiacSign zName _ _) =
+    SF.textSVG unicodeRepr
+    where
+    unicodeRepr =
+        case zName of
+            Aries  -> "♈️"
+            Taurus -> "♉️"
+            Gemini -> "♊️"
+            Cancer -> "♋️"
+            Leo    -> "♌️"
+            Virgo  -> "♍️"
+            Libra  -> "♎️"
+            Scorpio -> "♏️"
+            Sagittarius -> "♐️"
+            Capricorn -> "♑️"
+            Aquarius -> "♒️"
+            Pisces -> "♓️"
 
-zodiacBand :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => ZodiacSign -> QDiagram b V2 Longitude m
+--zodiacBand :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => ZodiacSign -> QDiagram b V2 Longitude m
 zodiacBand sign@(ZodiacSign signName zLng _) = 
-    w # fc (signColor sign)
-      # lw thin
-      # (href $ "/explanations#zodiac-" <> (show signName))
-      -- can set `title`, `id` or `class`:
-      -- https://hackage.haskell.org/package/diagrams-svg-1.4.3/docs/src/Diagrams.Backend.SVG.html
-      # (keyVal $ ("title", show signName))
+    g <> w # fc (signColor sign)
+           # lw thin
+           # (href $ "/explanations#zodiac-" <> (show signName))
+           -- can set `title`, `id` or `class`:
+           -- https://hackage.haskell.org/package/diagrams-svg-1.4.3/docs/src/Diagrams.Backend.SVG.html
+           # (keyVal $ ("title", show signName))
     where
         d :: Direction V2 Longitude
         d = rotateBy ((zLng @@ deg) ^. turn) xDir
         a :: Angle Double
         a = 30 @@ deg
         w = annularWedge 1 0.8 d a
+        glyphPosition = longitudeToPoint (zLng + 15) 0.9
+        -- TODO: these take _forever_ to render on demand. Need to pre-render
+        -- in some way! Maybe between these, settings and some images,
+        -- we need a reader monad that carries them around?
+        -- g = mempty
+        g = (stroke $ signGlyph sign 0.15)
+            # moveTo glyphPosition
+            # rotateAround glyphPosition (-70 @@ deg)
+            # fc black
+            # lw thin
 
-zodiacCircle :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => QDiagram b V2 Longitude m
+--zodiacCircle :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => QDiagram b V2 Longitude m
 zodiacCircle = mconcat $ map zodiacBand westernZodiacSigns
 
---cuspBand :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => (House, House) -> QDiagram b V2 Longitude m
---cuspBand :: (Renderable (Path V2 Double) b, Renderable (Text Longitude) b) => (House, House) -> QDiagram b V2 Longitude Any
 cuspBand (House houseName cuspBegin, House _ cuspEnd) =
     t <> w # lw thin
            # (href $ "/explanations#house-" <> (show houseName))
