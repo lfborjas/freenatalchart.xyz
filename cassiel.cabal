@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: eea958f150ea7d9a3809ea81cdd10a780117c31e5e2ea5ef5eb1f317360009fa
+-- hash: 5adbfd6fd42152a4c03b1842b016f1f16e92d50bc99335d8686514ec30311f9f
 
 name:           cassiel
 version:        0.1.0.0
@@ -39,7 +39,8 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.11 && <10
+      SVGFonts >=1.7.0.1 && <1.8
+    , base >=4.11 && <10
     , diagrams
     , diagrams-contrib
     , diagrams-core
@@ -57,7 +58,8 @@ executable cassiel-exe
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.11 && <10
+      SVGFonts >=1.7.0.1 && <1.8
+    , base >=4.11 && <10
     , cassiel
     , diagrams
     , diagrams-contrib
@@ -79,7 +81,8 @@ test-suite cassiel-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.11 && <10
+      SVGFonts >=1.7.0.1 && <1.8
+    , base >=4.11 && <10
     , cassiel
     , diagrams
     , diagrams-contrib

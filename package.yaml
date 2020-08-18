@@ -28,6 +28,7 @@ dependencies:
 - diagrams-lib
 - diagrams-contrib
 - diagrams-svg
+- SVGFonts >= 1.7.0.1 && < 1.8
 
 ghc-options:
 - -Wall
