@@ -13,8 +13,7 @@ homepage:       https://github.com/githubuser/cassiel#readme
 bug-reports:    https://github.com/githubuser/cassiel/issues
 author:         Author name here
 maintainer:     example@example.com
-copyright:      2020 Author name here
-license:        BSD3
+license:        GPL-2
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
