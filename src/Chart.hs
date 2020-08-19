@@ -19,9 +19,6 @@ import Control.Category ((<<<))
 import Prerendered as P
 import SwissEphemeris (Planet(..))
 
-defaultGlyphFont = unsafePerformIO $ SF.lin
-{-# NOINLINE defaultGlyphFont #-}
-
 --signColor :: (Ord a, Floating a) => ZodiacSign -> Colour a
 signColor :: ZodiacSign -> Colour Double
 signColor (ZodiacSign _ _ zElement) =
@@ -30,54 +27,6 @@ signColor (ZodiacSign _ _ zElement) =
         Air -> yellow
         Fire -> red
         Water -> lightblue
-
--- TODO: this function takes forever, I believe it's because of `textSVG`
--- having to load the font in _every_ invocation. We need a reader monad
--- or something to provide it, so we only need to load it once:
--- http://hackage.haskell.org/package/SVGFonts-1.7.0.1/docs/src/Graphics.SVGFonts.Text.html#line-41
--- also, calculating each path takes quite a bit, so we may even need to have a map
--- of pre-rendered paths.
-textPath :: (RealFloat n, Read n) => String -> Path V2 n
-textPath = SF.textSVG' (SF.TextOpts defaultGlyphFont SF.INSIDE_H SF.KERN False 1 1)
-
-signGlyph :: (Read n, RealFloat n) => ZodiacSignName -> Path V2 n
-signGlyph zName =
-    textPath unicodeRepr
-    where
-    unicodeRepr =
-        case zName of
-            Aries  -> "♈️"
-            Taurus -> "♉️"
-            Gemini -> "♊️"
-            Cancer -> "♋️"
-            Leo    -> "♌️"
-            Virgo  -> "♍️"
-            Libra  -> "♎️"
-            Scorpio -> "♏️"
-            Sagittarius -> "♐️"
-            Capricorn -> "♑️"
-            Aquarius -> "♒️"
-            Pisces -> "♓️"
-
-planetGlyph :: Planet -> Path V2 Double
-planetGlyph p =
-    textPath unicodeRepr
-    where
-        unicodeRepr =
-            case p of
-                Sun -> "☉"
-                Moon -> "☽"
-                Mercury -> "☿"
-                Venus -> "♀︎"
-                Mars -> "♂︎"
-                Jupiter -> "♃"
-                Saturn -> "♄"
-                Uranus -> "♅"
-                Neptune -> "♆"
-                Pluto -> "♇"
-                MeanNode -> "☊"
-                _ -> "" -- Earth, Lilith, Chiron, TrueNode, etc.
-
 
 
 --zodiacBand :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => ZodiacSign -> QDiagram b V2 Longitude m
@@ -98,7 +47,7 @@ zodiacBand sign@(ZodiacSign signName zLng _) =
         -- TODO: these take _forever_ to render on demand. Need to pre-render
         -- in some way! Maybe between these, settings and some images,
         -- we need a reader monad that carries them around?
-        g = (stroke $ P.prerenderedSignGlyph signName)
+        g = (stroke $ P.prerenderedSign signName)
             # scale 0.15
             # moveTo glyphPosition
             # rotateAround glyphPosition (-70 @@ deg)
