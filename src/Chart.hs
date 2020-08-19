@@ -13,6 +13,10 @@ import Diagrams.TwoD.Vector (e)
 import Diagrams.Core.Types (keyVal)
 import Calculations (angularDifference, rotateList)
 import qualified Graphics.SVGFonts as SF
+import System.IO.Unsafe (unsafePerformIO)
+
+defaultGlyphFont = unsafePerformIO $ SF.lin
+{-# NOINLINE defaultGlyphFont #-}
 
 --signColor :: (Ord a, Floating a) => ZodiacSign -> Colour a
 signColor :: ZodiacSign -> Colour Double
@@ -29,9 +33,9 @@ signColor (ZodiacSign _ _ zElement) =
 -- http://hackage.haskell.org/package/SVGFonts-1.7.0.1/docs/src/Graphics.SVGFonts.Text.html#line-41
 -- also, calculating each path takes quite a bit, so we may even need to have a map
 -- of pre-rendered paths.
-signGlyph :: (Read n, RealFloat n) => ZodiacSign -> n -> Path V2 n
+signGlyph :: (Read n, RealFloat n) => ZodiacSign -> Path V2 n
 signGlyph (ZodiacSign zName _ _) =
-    SF.textSVG unicodeRepr
+    SF.textSVG' (SF.TextOpts defaultGlyphFont SF.INSIDE_H SF.KERN False 1 1) unicodeRepr
     where
     unicodeRepr =
         case zName of
@@ -67,7 +71,8 @@ zodiacBand sign@(ZodiacSign signName zLng _) =
         -- in some way! Maybe between these, settings and some images,
         -- we need a reader monad that carries them around?
         -- g = mempty
-        g = (stroke $ signGlyph sign 0.15)
+        g = (stroke $ signGlyph sign)
+            # scale 0.15
             # moveTo glyphPosition
             # rotateAround glyphPosition (-70 @@ deg)
             # fc black
