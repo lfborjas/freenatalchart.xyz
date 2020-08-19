@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5adbfd6fd42152a4c03b1842b016f1f16e92d50bc99335d8686514ec30311f9f
+-- hash: a47b3423ba98a5ca4ef40f3f5edf11ee26028e8349542925a3b256038e08de63
 
 name:           cassiel
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       Calculations
       Chart
       Import
+      Prerendered
       Run
       Types
       Util
