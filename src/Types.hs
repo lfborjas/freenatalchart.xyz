@@ -174,4 +174,6 @@ data HoroscopeData = HoroscopeData
   , horoscopeAngles :: Angles
   , horoscopeHouses :: [House]
   , horoscopeSystem :: HouseSystem
+  , horoscopePlanetaryAspects :: [HoroscopeAspect PlanetPosition PlanetPosition]
+  , horoscopeAngleAspects :: [HoroscopeAspect PlanetPosition House]
   } deriving (Eq, Show)

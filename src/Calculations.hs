@@ -41,12 +41,17 @@ planetPositions ps =
 mkCoordinates :: Double -> Double -> Coordinates
 mkCoordinates lat' lng' = defaultCoordinates{lat = lat', lng = lng'}
 
+mkTime :: Int -> Int -> Int -> Double -> JulianTime
+mkTime = julianDay
+
 horoscope :: JulianTime -> Coordinates -> HoroscopeData
 horoscope time place =
     HoroscopeData positions
                   angles
                   housesCalculated
                   Placidus
+                  (planetaryAspects positions)
+                  (celestialAspects positions angles)
     where
         positions = map (\p -> (p, calculateCoordinates time p)) [Sun .. Chiron] & planetPositions
         CuspsCalculation h angles = calculateCusps time place Placidus

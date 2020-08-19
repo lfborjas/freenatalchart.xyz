@@ -1,19 +1,21 @@
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE FlexibleContexts, TypeFamilies #-}
 
 module Chart where
 
-import Import hiding ((^.), local)
+import Import hiding ((^.), local, over)
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
 import RIO.List (cycle)
 import RIO.List.Partial ((!!))
 import Diagrams.TwoD.Vector (e)
 import Diagrams.Core.Types (keyVal)
-import Calculations (angularDifference, rotateList)
+import Calculations (mkCoordinates, mkTime, horoscope, angularDifference, rotateList)
 import qualified Graphics.SVGFonts as SF
 import System.IO.Unsafe (unsafePerformIO)
+import Control.Category ((<<<))
 
 defaultGlyphFont = unsafePerformIO $ SF.lin
 {-# NOINLINE defaultGlyphFont #-}
@@ -66,17 +68,17 @@ zodiacBand sign@(ZodiacSign signName zLng _) =
         a :: Angle Double
         a = 30 @@ deg
         w = annularWedge 1 0.8 d a
-        glyphPosition = longitudeToPoint (zLng + 15) 0.9
+        glyphPosition = longitudeToPoint 0.9 (zLng + 15)
         -- TODO: these take _forever_ to render on demand. Need to pre-render
         -- in some way! Maybe between these, settings and some images,
         -- we need a reader monad that carries them around?
-        -- g = mempty
-        g = (stroke $ signGlyph sign)
-            # scale 0.15
-            # moveTo glyphPosition
-            # rotateAround glyphPosition (-70 @@ deg)
-            # fc black
-            # lw thin
+        g = mempty
+        -- g = (stroke $ signGlyph sign)
+        --     # scale 0.15
+        --     # moveTo glyphPosition
+        --     # rotateAround glyphPosition (-70 @@ deg)
+        --     # fc black
+        --     # lw thin
 
 --zodiacCircle :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => QDiagram b V2 Longitude m
 zodiacCircle = mconcat $ map zodiacBand westernZodiacSigns
@@ -89,7 +91,7 @@ cuspBand (House houseName cuspBegin, House _ cuspEnd) =
         a = (angularDifference cuspBegin cuspEnd) @@ deg
         w = annularWedge 0.8 0.5 d a
         textPosition :: Point V2 Double
-        textPosition = longitudeToPoint (cuspBegin + 5) 0.55
+        textPosition = longitudeToPoint 0.55 (cuspBegin + 5)
         t = (text $ houseLabel houseName) 
             # moveTo textPosition
             # fontSize (local 0.05)
@@ -109,8 +111,8 @@ mc h = h !! 9
 -- return a point sitting at the equivalent vector
 -- more on vectors:
 -- https://archives.haskell.org/projects.haskell.org/diagrams/doc/vector.html#vector-operations
-longitudeToPoint :: Longitude -> Double -> Point V2 Double
-longitudeToPoint longitude magnitude = 
+longitudeToPoint :: Double -> Longitude -> Point V2 Double
+longitudeToPoint magnitude longitude = 
     origin .+^ v
     where
         theta = longitude @@ deg
@@ -132,7 +134,7 @@ quadrant (House houseName cuspBegin, House _ cuspEnd) =
         d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
         a = (angularDifference cuspBegin cuspEnd) @@ deg
         w = wedge 1 d a
-        textPosition = longitudeToPoint (cuspBegin + 4) 0.75
+        textPosition = longitudeToPoint 0.75 (cuspBegin + 4)
         t = (text $ quadrantLabel houseName) 
             # moveTo textPosition
             # fontSize (local 0.05)
@@ -157,39 +159,34 @@ quadrants c =
             ,(c !! 9, c !! 0) -- MC
             ]
 
-
-
-cusps_ :: [House]
-cusps_ 
-    = [
-        (House I $ id 112.20189657163523)
-    ,   (House II $ id 138.4658382335878)
-    ,   (House III $ id 167.69682489058204)
-    ,   (House IV $ id 199.79861981778183)
-    ,   (House V $ id 232.2797046698429)
-    ,   (House VI $ id 263.0249102802477)
-    ,   (House VII $ id 292.20189657163525)
-    ,   (House VIII $ id 318.46583823358776)
-    ,   (House IX $ id 347.69682489058204)
-    ,   (House X $ id 19.798619817781823)
-    ,   (House XI $ id 52.27970466984291)
-    ,   (House XII $ id 83.02491028024768)
-    ]
-
-
-exampleAspect = 
-    sunPos ~~ marsPos # lc red
+aspectLine :: HoroscopeAspect PlanetPosition PlanetPosition -> Diagram B
+aspectLine HoroscopeAspect{..} =
+    aPos ~~ bPos # lc aspectColor
     where
-        sunPos = longitudeToPoint 285.64723120365153 0.5
-        marsPos = longitudeToPoint 22.784889069947795 0.5
---chart :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
-chart cusps = zodiacCircle <> cuspsCircle cusps <> quadrants cusps <> exampleAspect
+        (aPos, bPos) = (over each) (longitudeToPoint 0.5 <<< getLongitude) bodies
+        aspectColor = 
+            case (temperament aspect) of
+                Analytical -> red
+                Synthetic -> blue
+                Neutral -> green
 
-renderChart :: IO ()
-renderChart =
+aspects pAspects = mconcat $ map aspectLine pAspects
+
+--chart :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
+chart HoroscopeData{..} = zodiacCircle <> cuspsCircle horoscopeHouses <> quadrants horoscopeHouses <> aspects horoscopePlanetaryAspects
+
+-- TODO: probably need a reader monad context here (for pre-rendered things.)
+-- also, need to return the diagram, not render to a file.
+renderChart :: HoroscopeData -> IO ()
+renderChart z@HoroscopeData{..}=
   renderSVG
     "circle.svg"
     (mkWidth 400)
-    (chart cusps_ # rotateBy ascendantOffset)
+    (chart z # rotateBy ascendantOffset)
    where
-       ascendantOffset =  (180 - ((houseCusp . ascendant) cusps_) @@ deg) ^. turn
+       ascendantOffset =  (180 - ((houseCusp . ascendant) horoscopeHouses) @@ deg) ^. turn
+
+renderTestChart :: IO ()
+renderTestChart = do
+    let calculations = horoscope (mkTime 1989 1 6 0.0) (mkCoordinates 14.0839053 (-87.2750137))
+    renderChart calculations
