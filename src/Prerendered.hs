@@ -1,8 +1,9 @@
-module Prerendered (prerenderedSignGlyph, prerenderedPlanet) where
+module Prerendered (prerenderedSignGlyph, prerenderedPlanet, renderAll) where
 
 import Import
 import Diagrams.Prelude
 import SwissEphemeris (Planet(..))
+import Diagrams.Backend.SVG (renderSVG, B)
 
 
 {- All of these are created by calling `signGlyph` with each sign in a REPL and copy-pasting... horrible, but efficient: we pay the price of them at compile time. -}
@@ -37,3 +38,14 @@ prerenderedPlanet MeanNode = mempty
 prerenderedPlanet MeanApog = mempty -- Lilith
 prerenderedPlanet Chiron = mempty
 prerenderedPlanet _ = mempty -- Earth, TrueNode, OscuApog, etc.
+
+
+allPrerendered :: Diagram B
+allPrerendered = 
+    allSigns === allPlanets
+    where
+    allSigns = hcat $ map (\g -> stroke (prerenderedSignGlyph g) # fc black # scale 0.5) [Aries .. Pisces]
+    allPlanets = hcat $ map (\g -> stroke (prerenderedPlanet g) # fc red # scale 0.5) [Sun .. Chiron]
+
+renderAll :: IO ()
+renderAll = renderSVG "prerendered.svg" (mkWidth 400) allPrerendered
