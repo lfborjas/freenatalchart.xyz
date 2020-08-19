@@ -16,6 +16,8 @@ import Calculations (mkCoordinates, mkTime, horoscope, angularDifference, rotate
 import qualified Graphics.SVGFonts as SF
 import System.IO.Unsafe (unsafePerformIO)
 import Control.Category ((<<<))
+import Prerendered as P
+import SwissEphemeris (Planet)
 
 defaultGlyphFont = unsafePerformIO $ SF.lin
 {-# NOINLINE defaultGlyphFont #-}
@@ -35,8 +37,8 @@ signColor (ZodiacSign _ _ zElement) =
 -- http://hackage.haskell.org/package/SVGFonts-1.7.0.1/docs/src/Graphics.SVGFonts.Text.html#line-41
 -- also, calculating each path takes quite a bit, so we may even need to have a map
 -- of pre-rendered paths.
-signGlyph :: (Read n, RealFloat n) => ZodiacSign -> Path V2 n
-signGlyph (ZodiacSign zName _ _) =
+signGlyph :: (Read n, RealFloat n) => ZodiacSignName -> Path V2 n
+signGlyph zName =
     SF.textSVG' (SF.TextOpts defaultGlyphFont SF.INSIDE_H SF.KERN False 1 1) unicodeRepr
     where
     unicodeRepr =
@@ -72,13 +74,12 @@ zodiacBand sign@(ZodiacSign signName zLng _) =
         -- TODO: these take _forever_ to render on demand. Need to pre-render
         -- in some way! Maybe between these, settings and some images,
         -- we need a reader monad that carries them around?
-        g = mempty
-        -- g = (stroke $ signGlyph sign)
-        --     # scale 0.15
-        --     # moveTo glyphPosition
-        --     # rotateAround glyphPosition (-70 @@ deg)
-        --     # fc black
-        --     # lw thin
+        g = (stroke $ P.prerenderedSignGlyph signName)
+            # scale 0.15
+            # moveTo glyphPosition
+            # rotateAround glyphPosition (-70 @@ deg)
+            # fc black
+            # lw thin
 
 --zodiacCircle :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => QDiagram b V2 Longitude m
 zodiacCircle = mconcat $ map zodiacBand westernZodiacSigns
