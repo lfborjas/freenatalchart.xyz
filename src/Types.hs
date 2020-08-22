@@ -22,6 +22,38 @@ instance HasLogFunc App where
 instance HasProcessContext App where
   processContextL = lens appProcessContext (\x y -> x { appProcessContext = y })
 
+data ChartContext = ChartContext
+  {
+    chartAscendantOffset :: !Double
+  , chartZodiacCircleRadius :: !Double
+  , chartAspectCircleRadius :: !Double
+  , chartPlanetCircleRadius :: !Double
+  } deriving (Show)
+
+class HasAscendantOffset env where
+  ascendantOffsetL :: Lens' env Double
+instance HasAscendantOffset ChartContext where
+  ascendantOffsetL = lens chartAscendantOffset
+                          (\x y -> x {chartAscendantOffset = y})
+
+class HasZodiacCircleRadius env where
+  zodiacCircleRadiusL :: Lens' env Double
+instance HasZodiacCircleRadius ChartContext where
+  zodiacCircleRadiusL = lens chartZodiacCircleRadius
+                             (\x y -> x{chartZodiacCircleRadius = y})
+
+class HasAspectCircleRadius env where
+  aspectCircleRadiusL :: Lens' env Double
+instance HasAspectCircleRadius ChartContext where
+  aspectCircleRadiusL = lens chartAspectCircleRadius
+                             (\x y -> x{chartAspectCircleRadius = y})
+
+class HasPlanetCircleRadius env where
+  planetCircleRadiusL :: Lens' env Double
+instance HasPlanetCircleRadius ChartContext where
+  planetCircleRadiusL = lens chartPlanetCircleRadius
+                             (\x y -> x{chartPlanetCircleRadius = y})
+
 
 -- domain specific types
 class HasLongitude a where

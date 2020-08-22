@@ -14,8 +14,7 @@ import Diagrams.Core.Types (keyVal)
 import Calculations (mkCoordinates, mkTime, horoscope, angularDifference, rotateList)
 import Control.Category ((<<<))
 import Prerendered as P
-import SwissEphemeris (closeEphemerides, setEphemeridesPath, Planet(..))
-import Prelude (putStrLn)
+import SwissEphemeris (closeEphemerides, setEphemeridesPath)
 
 --signColor :: (Ord a, Floating a) => ZodiacSign -> Colour a
 signColor :: ZodiacSign -> Colour Double
@@ -27,46 +26,31 @@ signColor (ZodiacSign _ _ zElement) =
         Water -> lightblue
 
 
---zodiacBand :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => ZodiacSign -> QDiagram b V2 Longitude m
-zodiacBand sign@(ZodiacSign signName zLng _) = 
-    g <> w # fc (signColor sign)
-           # lw thin
-           # (href $ "/explanations#zodiac-" <> (show signName))
-           -- can set `title`, `id` or `class`:
-           -- https://hackage.haskell.org/package/diagrams-svg-1.4.3/docs/src/Diagrams.Backend.SVG.html
-           # (keyVal $ ("title", show signName))
+zodiacCircle :: ChartContext -> Diagram B
+zodiacCircle env = 
+    mconcat $ map zodiacBand westernZodiacSigns
     where
-        d :: Direction V2 Longitude
-        d = rotateBy ((zLng @@ deg) ^. turn) xDir
-        a :: Angle Double
-        a = 30 @@ deg
-        w = annularWedge 1 0.8 d a
-        glyphPosition = longitudeToPoint 0.9 (zLng + 15)
-        g = (stroke $ P.prerenderedSign signName)
-            # scale 0.15
-            # moveTo glyphPosition
-            # rotateAround glyphPosition (-70 @@ deg)
-            # fc black
-            # lw thin
-
---zodiacCircle :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => QDiagram b V2 Longitude m
-zodiacCircle = mconcat $ map zodiacBand westernZodiacSigns
-
-cuspBand (House houseName cuspBegin, House _ cuspEnd) =
-    t <> w # lw thin
-           # lc gray
-           # (href $ "/explanations#house-" <> (show houseName))
-    where
-        d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
-        a = (angularDifference cuspBegin cuspEnd) @@ deg
-        w = annularWedge 0.8 0.5 d a
-        textPosition :: Point V2 Double
-        textPosition = longitudeToPoint 0.55 (cuspBegin + 5)
-        t = (text $ houseLabel houseName) 
-            # moveTo textPosition
-            # fontSize (local 0.05)
-            # fc gray
-            # rotateAround textPosition (-70 @@ deg)
+        zodiacBand sign@(ZodiacSign signName zLng _) = 
+            g <> w # fc (signColor sign)
+                   # lw thin
+                   # (href $ "#zodiac-" <> (show signName))
+                   -- can set `title`, `id` or `class`:
+                   -- https://hackage.haskell.org/package/diagrams-svg-1.4.3/docs/src/Diagrams.Backend.SVG.html
+                   # (keyVal $ ("title", show signName))
+            where
+                onZodiacs = env ^. zodiacCircleRadiusL
+                d :: Direction V2 Longitude
+                d = rotateBy ((zLng @@ deg) ^. turn) xDir
+                a :: Angle Double
+                a = 30 @@ deg
+                w = annularWedge 1 (onZodiacs) d a
+                glyphPosition = longitudeToPoint (onZodiacs + 0.1) (zLng + 15)
+                g = (stroke $ P.prerenderedSign signName)
+                    # scale 0.15
+                    # moveTo glyphPosition
+                    # rectifyAround glyphPosition env
+                    # fc black
+                    # lw thin
 
 houseLabel :: HouseNumber -> String
 houseLabel = fromEnum >>> (+1) >>> show
@@ -89,27 +73,29 @@ longitudeToPoint magnitude longitude =
         v = magnitude *^ e theta
 
 
---cuspsCircle :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
-cuspsCircle c = 
+cuspsCircle :: ChartContext -> [House] -> Diagram B
+cuspsCircle env c = 
     mconcat $ map cuspBand pairedC
     where
+        onZodiacs = env ^. zodiacCircleRadiusL
+        onAspects = env ^. aspectCircleRadiusL
         pairedC = zip c $ rotateList 1 c
+        cuspBand (House houseName cuspBegin, House _ cuspEnd) =
+            t <> w # lw thin
+                   # lc gray
+                   # (href $ "#house-" <> (show houseName))
+            where
+                d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
+                a = (angularDifference cuspBegin cuspEnd) @@ deg
+                w = annularWedge (onZodiacs) (onAspects) d a
+                textPosition :: Point V2 Double
+                textPosition = longitudeToPoint (onAspects + 0.05) (cuspBegin + 5)
+                t = (text $ houseLabel houseName) 
+                    # moveTo textPosition
+                    # fontSize (local 0.05)
+                    # fc gray
+                    # rectifyAround textPosition env
 
-
---quadrant :: (TrailLike (QDiagram b V2 Longitude m), Semigroup m) => (House, House) -> QDiagram b V2 Longitude m
-quadrant (House houseName cuspBegin, House _ cuspEnd) =
-    t <> w # lw thin
-           # (href $ "/explanations#angle-" <> (show houseName))
-    where 
-        d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
-        a = (angularDifference cuspBegin cuspEnd) @@ deg
-        w = wedge 1 d a
-        textPosition = longitudeToPoint 0.75 (cuspBegin + 4)
-        t = (text $ quadrantLabel houseName) 
-            # moveTo textPosition
-            # fontSize (local 0.05)
-            # fc black
-            # rotateAround textPosition (-70 @@ deg)
 
 quadrantLabel :: HouseNumber -> String
 quadrantLabel I = "ASC"
@@ -118,8 +104,8 @@ quadrantLabel VII = "DC"
 quadrantLabel X = "MC"
 quadrantLabel _ = ""
 
---quadrants :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
-quadrants c = 
+quadrants :: ChartContext -> [House] -> Diagram B
+quadrants env c = 
     mconcat $ map quadrant angles
     where
         angles = 
@@ -128,64 +114,95 @@ quadrants c =
             ,(c !! 6, c !! 9) -- DC
             ,(c !! 9, c !! 0) -- MC
             ]
+        quadrant (House houseName cuspBegin, House _ cuspEnd) =
+            t <> w # lw thin
+                   # (href $ "#angle-" <> (show houseName))
+            where
+                onZodiacs = env ^. zodiacCircleRadiusL 
+                d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
+                a = (angularDifference cuspBegin cuspEnd) @@ deg
+                w = wedge 1 d a
+                textPosition = longitudeToPoint (onZodiacs - 0.05) (cuspBegin + 4)
+                t = (text $ quadrantLabel houseName) 
+                    # moveTo textPosition
+                    # fontSize (local 0.05)
+                    # fc black
+                    # rectifyAround textPosition env
 
-aspectLine :: HoroscopeAspect PlanetPosition PlanetPosition -> Diagram B
-aspectLine HoroscopeAspect{..} =
-    aPos ~~ bPos # lc aspectColor
-                 # lw thin
+aspects :: ChartContext -> [HoroscopeAspect PlanetPosition PlanetPosition] -> Diagram B
+aspects env pAspects = do
+    mconcat $ map aspectLine pAspects
     where
-        (aPos, bPos) = (over each) (longitudeToPoint 0.5 <<< getLongitude) bodies
-        aspectColor = 
-            case (temperament aspect) of
-                Analytical -> red
-                Synthetic -> blue
-                Neutral -> green
-
-aspects pAspects = mconcat $ map aspectLine pAspects
-
---drawPlanet :: PlanetPosition -> Diagram B
-drawPlanet rectifyF pos@PlanetPosition{..} =
-    (stroke $ P.prerenderedPlanet planetName)
-    # scale 0.1
-    # moveTo eclipticPosition
-    # rectifyF eclipticPosition
-    # fc black
-    # lw ultraThin
-    # (keyVal $ ("title", show planetName))
-    # (href $ "#" <> (show planetName))
-    <> guideLines
-    where
-        atEclipticPosition = flip longitudeToPoint $ getLongitude pos
-        eclipticPosition = atEclipticPosition 0.65
-        aspectCircleLine = atEclipticPosition 0.5 ~~ atEclipticPosition 0.53
-        zodiacCircleLine = atEclipticPosition 0.8 ~~ atEclipticPosition 0.78
-        guideLines = (aspectCircleLine <> zodiacCircleLine) # lw thin
+        aspectLine HoroscopeAspect{..} =
+            aPos ~~ bPos # lc aspectColor
+                         # lw thin
+            where
+                onAspect = env ^. aspectCircleRadiusL
+                (aPos, bPos) = (over each) (longitudeToPoint onAspect <<< getLongitude) bodies
+                aspectColor = 
+                    case (temperament aspect) of
+                        Analytical -> red
+                        Synthetic -> blue
+                        Neutral -> green
 
 -- TODO: group planets by latitude and lay them radially, vs. hoping they're not in the same latitude!
-planets :: [PlanetPosition] -> (Point V2 Double -> Diagram B -> Diagram B ) -> Diagram B
-planets planetPositions rectifyF = mconcat $ map (drawPlanet rectifyF) planetPositions
+planets :: ChartContext -> [PlanetPosition] -> Diagram B
+planets env planetPositions =
+    mconcat $ map drawPlanet planetPositions
+    where
+        onAspects = env ^. aspectCircleRadiusL
+        onZodiacs = env ^. zodiacCircleRadiusL
+        onPlanets = env ^. planetCircleRadiusL
+        drawPlanet pos@PlanetPosition{..} =
+            (stroke $ P.prerenderedPlanet planetName)
+            # scale 0.1
+            # moveTo eclipticPosition
+            # rectifyAround eclipticPosition env
+            # fc black
+            # lw ultraThin
+            # (keyVal $ ("title", show planetName))
+            # (href $ "#" <> (show planetName))
+            <> guideLines
+            where
+                atEclipticPosition = flip longitudeToPoint $ getLongitude pos
+                eclipticPosition = atEclipticPosition onPlanets
+                aspectCircleLine = atEclipticPosition onAspects ~~ atEclipticPosition (onAspects + 0.03)
+                zodiacCircleLine = atEclipticPosition onZodiacs ~~ atEclipticPosition (onZodiacs - 0.03)
+                guideLines = (aspectCircleLine <> zodiacCircleLine) # lw thin
+
 
 --chart :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
-chart HoroscopeData{..} rectifyF = 
-    zodiacCircle 
-    <> planets horoscopePlanetPositions rectifyF
-    <> cuspsCircle horoscopeHouses
-    <> quadrants horoscopeHouses 
-    <> aspects horoscopePlanetaryAspects
+chart :: ChartContext -> HoroscopeData -> Diagram B
+chart env HoroscopeData{..}  = do
+    (zodiacCircle env)
+    <> (planets env horoscopePlanetPositions )
+    <> (cuspsCircle env horoscopeHouses)
+    <> (quadrants env horoscopeHouses)
+    <> (aspects env horoscopePlanetaryAspects)
     -- TODO: horoscopeCelestialAspects?
+
+rectifyAround :: Point V2 Double -> ChartContext -> Diagram B -> Diagram B
+rectifyAround point env =
+    rotateAround point (negated (offset_ @@ deg))
+    where
+        offset_ = env ^. ascendantOffsetL
 
 -- TODO: probably need a reader monad context here (for pre-rendered things.)
 -- also, need to return the diagram, not render to a file.
 renderChart :: HoroscopeData -> IO ()
-renderChart z@HoroscopeData{..}=
-  renderSVG
+renderChart z@HoroscopeData{..}= do
+  let env = ChartContext{
+    chartAscendantOffset = ascendantOffset,
+    chartZodiacCircleRadius = 0.8,
+    chartAspectCircleRadius = 0.5,
+    chartPlanetCircleRadius = 0.65
+  }
+  renderSVG 
     "circle.svg"
     (mkWidth 400)
-    (chart z rectify # rotateBy (ascendantOffset ^. turn))
-   where
-       ascendantOffset =  (180 - ((houseCusp . ascendant) horoscopeHouses) @@ deg)
-       rectify :: Point V2 Double -> Diagram B -> Diagram B 
-       rectify p = rotateAround p $ negated ascendantOffset
+    (chart env z # rotateBy ((ascendantOffset @@ deg) ^. turn))
+    where
+        ascendantOffset =  (180 - ((houseCusp . ascendant) horoscopeHouses))
 
 renderTestChart :: IO ()
 renderTestChart = do
