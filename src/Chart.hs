@@ -8,16 +8,14 @@ module Chart where
 import Import hiding ((^.), local, over)
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
-import RIO.List (cycle)
 import RIO.List.Partial ((!!))
 import Diagrams.TwoD.Vector (e)
 import Diagrams.Core.Types (keyVal)
 import Calculations (mkCoordinates, mkTime, horoscope, angularDifference, rotateList)
-import qualified Graphics.SVGFonts as SF
-import System.IO.Unsafe (unsafePerformIO)
 import Control.Category ((<<<))
 import Prerendered as P
-import SwissEphemeris (Planet(..))
+import SwissEphemeris (closeEphemerides, setEphemeridesPath, Planet(..))
+import Prelude (putStrLn)
 
 --signColor :: (Ord a, Floating a) => ZodiacSign -> Colour a
 signColor :: ZodiacSign -> Colour Double
@@ -44,9 +42,6 @@ zodiacBand sign@(ZodiacSign signName zLng _) =
         a = 30 @@ deg
         w = annularWedge 1 0.8 d a
         glyphPosition = longitudeToPoint 0.9 (zLng + 15)
-        -- TODO: these take _forever_ to render on demand. Need to pre-render
-        -- in some way! Maybe between these, settings and some images,
-        -- we need a reader monad that carries them around?
         g = (stroke $ P.prerenderedSign signName)
             # scale 0.15
             # moveTo glyphPosition
@@ -59,6 +54,7 @@ zodiacCircle = mconcat $ map zodiacBand westernZodiacSigns
 
 cuspBand (House houseName cuspBegin, House _ cuspEnd) =
     t <> w # lw thin
+           # lc gray
            # (href $ "/explanations#house-" <> (show houseName))
     where
         d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
@@ -136,6 +132,7 @@ quadrants c =
 aspectLine :: HoroscopeAspect PlanetPosition PlanetPosition -> Diagram B
 aspectLine HoroscopeAspect{..} =
     aPos ~~ bPos # lc aspectColor
+                 # lw thin
     where
         (aPos, bPos) = (over each) (longitudeToPoint 0.5 <<< getLongitude) bodies
         aspectColor = 
@@ -146,8 +143,36 @@ aspectLine HoroscopeAspect{..} =
 
 aspects pAspects = mconcat $ map aspectLine pAspects
 
+--drawPlanet :: PlanetPosition -> Diagram B
+drawPlanet rectifyF pos@PlanetPosition{..} =
+    (stroke $ P.prerenderedPlanet planetName)
+    # scale 0.1
+    # moveTo eclipticPosition
+    # rectifyF eclipticPosition
+    # fc black
+    # lw ultraThin
+    # (keyVal $ ("title", show planetName))
+    # (href $ "#" <> (show planetName))
+    <> guideLines
+    where
+        atEclipticPosition = flip longitudeToPoint $ getLongitude pos
+        eclipticPosition = atEclipticPosition 0.65
+        aspectCircleLine = atEclipticPosition 0.5 ~~ atEclipticPosition 0.53
+        zodiacCircleLine = atEclipticPosition 0.8 ~~ atEclipticPosition 0.78
+        guideLines = (aspectCircleLine <> zodiacCircleLine) # lw thin
+
+-- TODO: group planets by latitude and lay them radially, vs. hoping they're not in the same latitude!
+planets :: [PlanetPosition] -> (Point V2 Double -> Diagram B -> Diagram B ) -> Diagram B
+planets planetPositions rectifyF = mconcat $ map (drawPlanet rectifyF) planetPositions
+
 --chart :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
-chart HoroscopeData{..} = zodiacCircle <> cuspsCircle horoscopeHouses <> quadrants horoscopeHouses <> aspects horoscopePlanetaryAspects
+chart HoroscopeData{..} rectifyF = 
+    zodiacCircle 
+    <> planets horoscopePlanetPositions rectifyF
+    <> cuspsCircle horoscopeHouses
+    <> quadrants horoscopeHouses 
+    <> aspects horoscopePlanetaryAspects
+    -- TODO: horoscopeCelestialAspects?
 
 -- TODO: probably need a reader monad context here (for pre-rendered things.)
 -- also, need to return the diagram, not render to a file.
@@ -156,11 +181,17 @@ renderChart z@HoroscopeData{..}=
   renderSVG
     "circle.svg"
     (mkWidth 400)
-    (chart z # rotateBy ascendantOffset)
+    (chart z rectify # rotateBy (ascendantOffset ^. turn))
    where
-       ascendantOffset =  (180 - ((houseCusp . ascendant) horoscopeHouses) @@ deg) ^. turn
+       ascendantOffset =  (180 - ((houseCusp . ascendant) horoscopeHouses) @@ deg)
+       rectify :: Point V2 Double -> Diagram B -> Diagram B 
+       rectify p = rotateAround p $ negated ascendantOffset
 
 renderTestChart :: IO ()
 renderTestChart = do
+    -- TODO: bring in the `directory` package?
+    setEphemeridesPath "/Users/luis/code/lfborjas/cassiel/config"
+    --let calculations = horoscope 2447532.771485 (mkCoordinates 14.0839053 (-87.2750137))
     let calculations = horoscope (mkTime 1989 1 6 0.0) (mkCoordinates 14.0839053 (-87.2750137))
     renderChart calculations
+    closeEphemerides

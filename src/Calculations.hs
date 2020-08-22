@@ -2,7 +2,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module Calculations where
 
-import Import
+import Import hiding (Earth)
 import SwissEphemeris
 import RIO.List (cycle)
 
@@ -36,7 +36,15 @@ houses HouseCusps{..} =
 
 planetPositions :: [(Planet, Either String Coordinates)] -> [PlanetPosition]
 planetPositions ps =
-    map (\(p, c) -> if p /= SwissEphemeris.Earth then (PlanetPosition p) <$> c else Left "earth") ps & rights
+    map positionBuilder ps & rights
+    where
+        positionBuilder (p, c) =
+            case p of
+                Earth -> Left "Earth: not displayed by default."
+                OscuApog -> Left "Osculating Apogee (true Lilith) not displayed by default."
+                TrueNode -> Left "True node not displayed by default, using Mean Node"
+                _ -> PlanetPosition p <$> c
+
 
 mkCoordinates :: Double -> Double -> Coordinates
 mkCoordinates lat' lng' = defaultCoordinates{lat = lat', lng = lng'}
