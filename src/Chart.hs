@@ -8,30 +8,19 @@ module Chart where
 import Import hiding ((^.), local, over)
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
-import RIO.List.Partial ((!!))
 import Diagrams.TwoD.Vector (e)
 import Diagrams.Core.Types (keyVal)
 import Calculations (mkCoordinates, mkTime, horoscope, angularDifference, rotateList)
 import Control.Category ((<<<))
 import Prerendered as P
-import SwissEphemeris (closeEphemerides, setEphemeridesPath)
-
---signColor :: (Ord a, Floating a) => ZodiacSign -> Colour a
-signColor :: ZodiacSign -> Colour Double
-signColor (ZodiacSign _ _ zElement) =
-    case zElement of
-        Import.Earth -> darkgreen
-        Air -> yellow
-        Fire -> red
-        Water -> lightblue
-
+import SwissEphemeris (Planet(..), Angles(..), closeEphemerides, setEphemeridesPath)
 
 zodiacCircle :: ChartContext -> Diagram B
 zodiacCircle env = 
     mconcat $ map zodiacBand westernZodiacSigns
     where
-        zodiacBand sign@(ZodiacSign signName zLng _) = 
-            g <> w # fc (signColor sign)
+        zodiacBand (ZodiacSign signName zLng zElement) = 
+            g <> w # fc signColor
                    # lw thin
                    # (href $ "#zodiac-" <> (show signName))
                    -- can set `title`, `id` or `class`:
@@ -51,26 +40,13 @@ zodiacCircle env =
                     # rectifyAround glyphPosition env
                     # fc black
                     # lw thin
+                signColor =
+                    case zElement of
+                        Import.Earth -> darkgreen
+                        Air -> yellow
+                        Fire -> red
+                        Water -> lightblue
 
-houseLabel :: HouseNumber -> String
-houseLabel = fromEnum >>> (+1) >>> show
-
-ascendant :: [House] -> House
-ascendant h =  h !! 0
-
-mc :: [House] -> House
-mc h = h !! 9
-
--- | Given a longitude and a magnitude (distance from origin)
--- return a point sitting at the equivalent vector
--- more on vectors:
--- https://archives.haskell.org/projects.haskell.org/diagrams/doc/vector.html#vector-operations
-longitudeToPoint :: Double -> Longitude -> Point V2 Double
-longitudeToPoint magnitude longitude = 
-    origin .+^ v
-    where
-        theta = longitude @@ deg
-        v = magnitude *^ e theta
 
 
 cuspsCircle :: ChartContext -> [House] -> Diagram B
@@ -96,34 +72,17 @@ cuspsCircle env c =
                     # fc gray
                     # rectifyAround textPosition env
 
-
-quadrantLabel :: HouseNumber -> String
-quadrantLabel I = "ASC"
-quadrantLabel IV = "IC"
-quadrantLabel VII = "DC"
-quadrantLabel X = "MC"
-quadrantLabel _ = ""
-
-quadrants :: ChartContext -> [House] -> Diagram B
-quadrants env c = 
+quadrants :: ChartContext -> Angles-> Diagram B
+quadrants env Angles{..} = 
     mconcat $ map quadrant angles
     where
-        angles = 
-            [(c !! 0, c !! 3) -- AC
-            ,(c !! 3, c !! 6) -- IC
-            ,(c !! 6, c !! 9) -- DC
-            ,(c !! 9, c !! 0) -- MC
-            ]
-        quadrant (House houseName cuspBegin, House _ cuspEnd) =
-            t <> w # lw thin
-                   # (href $ "#angle-" <> (show houseName))
+        angles = [(ascendant, "Asc"), (mc, "MC")]
+        quadrant (cuspBegin, label) =
+            t
             where
                 onZodiacs = env ^. zodiacCircleRadiusL 
-                d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
-                a = (angularDifference cuspBegin cuspEnd) @@ deg
-                w = wedge 1 d a
                 textPosition = longitudeToPoint (onZodiacs - 0.05) (cuspBegin + 4)
-                t = (text $ quadrantLabel houseName) 
+                t = (text $ label) 
                     # moveTo textPosition
                     # fontSize (local 0.05)
                     # fc black
@@ -160,10 +119,14 @@ planets env planetPositions =
             # rectifyAround eclipticPosition env
             # fc black
             # lw ultraThin
-            # (keyVal $ ("title", show planetName))
-            # (href $ "#" <> (show planetName))
+            # (keyVal $ ("title", planetLabel planetName))
+            # (href $ "#" <> (planetLabel planetName))
             <> guideLines
             where
+                -- TODO: maybe `planetLabel` should be promoted more, so tables
+                -- can also refer to `MeanApog` as `Lilith`?
+                planetLabel MeanApog = "Lilith"
+                planetLabel p = show p
                 atEclipticPosition = flip longitudeToPoint $ getLongitude pos
                 eclipticPosition = atEclipticPosition onPlanets
                 aspectCircleLine = atEclipticPosition onAspects ~~ atEclipticPosition (onAspects + 0.03)
@@ -177,15 +140,34 @@ chart env HoroscopeData{..}  = do
     (zodiacCircle env)
     <> (planets env horoscopePlanetPositions )
     <> (cuspsCircle env horoscopeHouses)
-    <> (quadrants env horoscopeHouses)
+    <> (quadrants env horoscopeAngles)
     <> (aspects env horoscopePlanetaryAspects)
     -- TODO: horoscopeCelestialAspects?
+
+--
+-- CHART UTILS
+-- 
 
 rectifyAround :: Point V2 Double -> ChartContext -> Diagram B -> Diagram B
 rectifyAround point env =
     rotateAround point (negated (offset_ @@ deg))
     where
         offset_ = env ^. ascendantOffsetL
+
+houseLabel :: HouseNumber -> String
+houseLabel = fromEnum >>> (+1) >>> show
+
+-- | Given a longitude and a magnitude (distance from origin)
+-- return a point sitting at the equivalent vector
+-- more on vectors:
+-- https://archives.haskell.org/projects.haskell.org/diagrams/doc/vector.html#vector-operations
+longitudeToPoint :: Double -> Longitude -> Point V2 Double
+longitudeToPoint magnitude longitude = 
+    origin .+^ v
+    where
+        theta = longitude @@ deg
+        v = magnitude *^ e theta
+
 
 -- TODO: probably need a reader monad context here (for pre-rendered things.)
 -- also, need to return the diagram, not render to a file.
@@ -202,7 +184,7 @@ renderChart z@HoroscopeData{..}= do
     (mkWidth 400)
     (chart env z # rotateBy ((ascendantOffset @@ deg) ^. turn))
     where
-        ascendantOffset =  (180 - ((houseCusp . ascendant) horoscopeHouses))
+        ascendantOffset = 180 - (ascendant horoscopeAngles)
 
 renderTestChart :: IO ()
 renderTestChart = do
@@ -210,5 +192,6 @@ renderTestChart = do
     setEphemeridesPath "/Users/luis/code/lfborjas/cassiel/config"
     --let calculations = horoscope 2447532.771485 (mkCoordinates 14.0839053 (-87.2750137))
     let calculations = horoscope (mkTime 1989 1 6 0.0) (mkCoordinates 14.0839053 (-87.2750137))
+    --let calculations = horoscope 2447885.896491 (mkCoordinates 14.0839053 (-87.2750137))
     renderChart calculations
     closeEphemerides
