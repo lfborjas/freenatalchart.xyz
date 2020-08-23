@@ -4,10 +4,10 @@ cradle:
       component: "freenatalchart:lib"
 
     - path: "./app/Main.hs"
-      component: "freenatalchart:exe:cassiel-exe"
+      component: "freenatalchart:exe:freenatalchart-exe"
 
     - path: "./app/Paths_freenatalchart.hs"
-      component: "freenatalchart:exe:cassiel-exe"
+      component: "freenatalchart:exe:freenatalchart-exe"
 
     - path: "./test"
-      component: "freenatalchart:test:cassiel-test"
+      component: "freenatalchart:test:freenatalchart-test"

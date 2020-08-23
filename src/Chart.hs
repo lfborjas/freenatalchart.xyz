@@ -234,7 +234,7 @@ renderChart z@HoroscopeData{..}= do
 renderTestChart :: IO ()
 renderTestChart = do
     -- TODO: bring in the `directory` package?
-    setEphemeridesPath "/Users/luis/code/lfborjas/cassiel/config"
+    setEphemeridesPath "/Users/luis/code/lfborjas/freenatalchart.xyz/config"
     -- L
     -- let calculations = horoscope 2447532.771485 (mkCoordinates 14.0839053 (-87.2750137))
     -- Test
