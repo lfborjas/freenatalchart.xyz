@@ -209,3 +209,12 @@ data HoroscopeData = HoroscopeData
   , horoscopePlanetaryAspects :: [HoroscopeAspect PlanetPosition PlanetPosition]
   , horoscopeAngleAspects :: [HoroscopeAspect PlanetPosition House]
   } deriving (Eq, Show)
+
+-- TODO: ugh:
+-- introduced this newtype just to be able to test the corrections
+-- fn without constructing more intense types, maybe `Longitude`
+-- should be a newtype, too.
+newtype Lng = Lng {unLng :: Double} deriving (Show)
+
+instance HasLongitude Lng where
+  getLongitude = unLng
