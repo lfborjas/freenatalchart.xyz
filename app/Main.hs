@@ -6,12 +6,12 @@ import Import
 import Run
 import RIO.Process
 import Options.Applicative.Simple
-import qualified Paths_cassiel
+import qualified Paths_freenatalchart
 
 main :: IO ()
 main = do
   (options, ()) <- simpleOptions
-    $(simpleVersion Paths_cassiel.version)
+    $(simpleVersion Paths_freenatalchart.version)
     "Header for command line arguments"
     "Program description, also for command line arguments"
     (Options

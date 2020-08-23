@@ -4,15 +4,15 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a47b3423ba98a5ca4ef40f3f5edf11ee26028e8349542925a3b256038e08de63
+-- hash: f7d0bf307a8f38608c934408b5d4cc6cdb575b0ecea9fe4c456d905bc6e71b9a
 
-name:           cassiel
+name:           freenatalchart
 version:        0.1.0.0
-description:    Please see the README on Github at <https://github.com/githubuser/cassiel#readme>
-homepage:       https://github.com/githubuser/cassiel#readme
-bug-reports:    https://github.com/githubuser/cassiel/issues
-author:         Author name here
-maintainer:     example@example.com
+description:    Please see the README on Github at <https://github.com/lfborjas/freenatalchart#readme>
+homepage:       https://github.com/lfborjas/freenatalchart#readme
+bug-reports:    https://github.com/lfborjas/freenatalchart/issues
+author:         Luis Borjas Reyes
+maintainer:     Luis Borjas Reyes
 license:        GPL-2
 license-file:   LICENSE
 build-type:     Simple
@@ -22,7 +22,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/cassiel
+  location: https://github.com/lfborjas/freenatalchart
 
 library
   exposed-modules:
@@ -34,7 +34,7 @@ library
       Types
       Util
   other-modules:
-      Paths_cassiel
+      Paths_freenatalchart
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
@@ -50,45 +50,45 @@ library
     , swiss-ephemeris >=0.1.0.2
   default-language: Haskell2010
 
-executable cassiel-exe
+executable freenatalchart-exe
   main-is: Main.hs
   other-modules:
-      Paths_cassiel
+      Paths_freenatalchart
   hs-source-dirs:
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
     , base >=4.11 && <10
-    , cassiel
     , diagrams
     , diagrams-contrib
     , diagrams-core
     , diagrams-lib
     , diagrams-svg
+    , freenatalchart
     , optparse-simple
     , rio >=0.1.12.0
     , swiss-ephemeris >=0.1.0.2
   default-language: Haskell2010
 
-test-suite cassiel-test
+test-suite freenatalchart-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
       UtilSpec
-      Paths_cassiel
+      Paths_freenatalchart
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
     , base >=4.11 && <10
-    , cassiel
     , diagrams
     , diagrams-contrib
     , diagrams-core
     , diagrams-lib
     , diagrams-svg
+    , freenatalchart
     , hspec
     , rio >=0.1.12.0
     , swiss-ephemeris >=0.1.0.2
