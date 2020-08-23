@@ -34,6 +34,15 @@ houses HouseCusps{..} =
     , House XII xii
     ]
 
+isRetrograde :: PlanetPosition -> Bool
+isRetrograde PlanetPosition{..} = 
+    case planetName of
+        -- the nodes are never "retrograde"
+        MeanNode -> False
+        TrueNode -> False
+        _ -> (lngSpeed planetCoordinates) < 0
+
+
 planetPositions :: [(Planet, Either String Coordinates)] -> [PlanetPosition]
 planetPositions ps =
     map positionBuilder ps & rights

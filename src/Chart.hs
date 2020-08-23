@@ -10,7 +10,7 @@ import Diagrams.Prelude
 import Diagrams.Backend.SVG
 import Diagrams.TwoD.Vector (e)
 import Diagrams.Core.Types (keyVal)
-import Calculations (mkCoordinates, mkTime, horoscope, angularDifference, rotateList)
+import Calculations (isRetrograde, mkCoordinates, mkTime, horoscope, angularDifference, rotateList)
 import Control.Category ((<<<))
 import Prerendered as P
 import SwissEphemeris (Planet(..), Angles(..), closeEphemerides, setEphemeridesPath)
@@ -123,12 +123,14 @@ planets env planetPositions =
             # (href $ "#" <> (planetLabel planetName))
             <> guideLines
             <> (correctionLine # lw thin # lc darkgray)
+            <> retrogradeMark
             where
                 -- TODO: maybe `planetLabel` should be promoted more, so tables
                 -- can also refer to `MeanApog` as `Lilith`?
                 planetLabel MeanApog = "Lilith"
                 planetLabel p = show p
-                atCorrectedPosition  = flip longitudeToPoint $ maybe (getLongitude pos) id corrected
+                drawPlanetAt = maybe (getLongitude pos) id corrected 
+                atCorrectedPosition  = flip longitudeToPoint $ drawPlanetAt
                 correctedPosition = atCorrectedPosition onPlanets
                 atEclipticPosition = flip longitudeToPoint $ getLongitude pos
                 eclipticPosition = atEclipticPosition onPlanets
@@ -138,7 +140,15 @@ planets env planetPositions =
                 correctionLine = 
                     case corrected of
                         Nothing -> mempty
-                        Just _  -> (atCorrectedPosition (onPlanets + 0.02)) ~~ (atEclipticPosition (onZodiacs - 0.035)) 
+                        Just _  -> (atCorrectedPosition (onPlanets + 0.02)) ~~ (atEclipticPosition (onZodiacs - 0.035))
+                retrogradeMark =
+                    if (isRetrograde pos) then
+                        text "r"
+                        # moveTo (atCorrectedPosition (onPlanets - 0.055))
+                        # rectifyAround (atCorrectedPosition (onPlanets - 0.03)) env
+                        # fontSize (local 0.05)
+                    else
+                        mempty
 
 
 --chart :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
@@ -225,6 +235,6 @@ renderTestChart = do
     setEphemeridesPath "/Users/luis/code/lfborjas/cassiel/config"
     --let calculations = horoscope 2447532.771485 (mkCoordinates 14.0839053 (-87.2750137))
     let calculations = horoscope (mkTime 1989 1 6 0.0) (mkCoordinates 14.0839053 (-87.2750137))
-    --let calculations = horoscope 2447885.896491 (mkCoordinates 14.0839053 (-87.2750137))
+    --let calculations = horoscope 2447885.896491 (mkCoordinates 40.7831 (-73.9712))
     renderChart calculations
     closeEphemerides
