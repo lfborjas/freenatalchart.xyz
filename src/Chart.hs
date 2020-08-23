@@ -145,7 +145,7 @@ planets env planetPositions =
                     if (isRetrograde pos) then
                         text "r"
                         # moveTo (atCorrectedPosition (onPlanets - 0.055))
-                        # rectifyAround (atCorrectedPosition (onPlanets - 0.03)) env
+                        # rectifyAround (atCorrectedPosition (onPlanets - 0.055)) env
                         # fontSize (local 0.05)
                     else
                         mempty
@@ -233,8 +233,14 @@ renderTestChart :: IO ()
 renderTestChart = do
     -- TODO: bring in the `directory` package?
     setEphemeridesPath "/Users/luis/code/lfborjas/cassiel/config"
+    -- L
     --let calculations = horoscope 2447532.771485 (mkCoordinates 14.0839053 (-87.2750137))
+    -- Test
     let calculations = horoscope (mkTime 1989 1 6 0.0) (mkCoordinates 14.0839053 (-87.2750137))
+    -- T
     --let calculations = horoscope 2447885.896491 (mkCoordinates 40.7831 (-73.9712))
+    -- Home
+    --let calculations = horoscope (mkTime 2020 8 23 0.0) (mkCoordinates 40.7282 (-73.7949))
+
     renderChart calculations
     closeEphemerides
