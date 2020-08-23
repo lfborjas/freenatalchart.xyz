@@ -1,3 +1,3 @@
-# Changelog for cassiel
+# Changelog for freenatalchart.xyz
 
 ## Unreleased changes

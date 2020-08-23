@@ -1,10 +1,8 @@
-name:                cassiel
+name:                freenatalchart
 version:             0.1.0.0
-github:              githubuser/cassiel
-license:             BSD3
-author:              Author name here
-maintainer:          example@example.com
-copyright:           2020 Author name here
+github:              lfborjas/freenatalchart
+license:             GPL-2
+author:              Luis Borjas Reyes
 
 extra-source-files:
 - README.md
@@ -17,7 +15,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on Github at <https://github.com/githubuser/cassiel#readme>
+description:         Please see the README on Github at <https://github.com/lfborjas/freenatalchart#readme>
 
 dependencies:
 - base >= 4.11 && < 10
@@ -43,11 +41,11 @@ library:
   source-dirs: src
 
 executables:
-  cassiel-exe:
+  freenatalchart-exe:
     main:                Main.hs
     source-dirs:         app
     dependencies:
-    - cassiel
+    - freenatalchart
     - optparse-simple
 
     ghc-options:
@@ -56,11 +54,11 @@ executables:
     - -with-rtsopts=-N
 
 tests:
-  cassiel-test:
+  freenatalchart-test:
     main:                Spec.hs
     source-dirs:         test
     dependencies:
-    - cassiel
+    - freenatalchart
     - hspec
 
     ghc-options:

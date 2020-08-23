@@ -1,13 +1,13 @@
 cradle:
   stack:
     - path: "./src"
-      component: "cassiel:lib"
+      component: "freenatalchart:lib"
 
     - path: "./app/Main.hs"
-      component: "cassiel:exe:cassiel-exe"
+      component: "freenatalchart:exe:cassiel-exe"
 
-    - path: "./app/Paths_cassiel.hs"
-      component: "cassiel:exe:cassiel-exe"
+    - path: "./app/Paths_freenatalchart.hs"
+      component: "freenatalchart:exe:cassiel-exe"
 
     - path: "./test"
-      component: "cassiel:test:cassiel-test"
+      component: "freenatalchart:test:cassiel-test"
