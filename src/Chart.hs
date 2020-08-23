@@ -89,7 +89,7 @@ quadrants env Angles{..} =
                     # fc black
                     # rectifyAround textPosition env
 
-aspects :: ChartContext -> [HoroscopeAspect PlanetPosition PlanetPosition] -> Diagram B
+aspects :: (HasLongitude a, HasLongitude b) => ChartContext -> [HoroscopeAspect a b] -> Diagram B
 aspects env pAspects = do
     mconcat $ map aspectLine pAspects
     where
@@ -98,7 +98,8 @@ aspects env pAspects = do
                          # lw thin
             where
                 onAspect = env ^. aspectCircleRadiusL
-                (aPos, bPos) = (over each) (longitudeToPoint onAspect <<< getLongitude) bodies
+                aPos = (fst bodies) & getLongitude & (longitudeToPoint onAspect)
+                bPos = (snd bodies) & getLongitude & (longitudeToPoint onAspect)
                 aspectColor = 
                     case (temperament aspect) of
                         Analytical -> red
@@ -159,6 +160,7 @@ chart env HoroscopeData{..}  = do
     <> (cuspsCircle env horoscopeHouses)
     <> (quadrants env horoscopeAngles)
     <> (aspects env horoscopePlanetaryAspects)
+    <> (aspects env horoscopeAngleAspects)
     -- TODO: horoscopeCelestialAspects?
 
 --
@@ -234,7 +236,7 @@ renderTestChart = do
     -- TODO: bring in the `directory` package?
     setEphemeridesPath "/Users/luis/code/lfborjas/cassiel/config"
     -- L
-    --let calculations = horoscope 2447532.771485 (mkCoordinates 14.0839053 (-87.2750137))
+    -- let calculations = horoscope 2447532.771485 (mkCoordinates 14.0839053 (-87.2750137))
     -- Test
     let calculations = horoscope (mkTime 1989 1 6 0.0) (mkCoordinates 14.0839053 (-87.2750137))
     -- T
