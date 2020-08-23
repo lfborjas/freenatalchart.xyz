@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f7d0bf307a8f38608c934408b5d4cc6cdb575b0ecea9fe4c456d905bc6e71b9a
+-- hash: 50902fe66088d7aca8d2242fd1e4bf0a3161bf3336f28e69944ac00374105a77
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -46,8 +46,17 @@ library
     , diagrams-core
     , diagrams-lib
     , diagrams-svg
+    , envy
+    , http-api-data
+    , http-types
+    , lucid
     , rio >=0.1.12.0
+    , servant
+    , servant-lucid
+    , servant-server
     , swiss-ephemeris >=0.1.0.2
+    , wai
+    , warp
   default-language: Haskell2010
 
 executable freenatalchart-exe
@@ -65,10 +74,19 @@ executable freenatalchart-exe
     , diagrams-core
     , diagrams-lib
     , diagrams-svg
+    , envy
     , freenatalchart
+    , http-api-data
+    , http-types
+    , lucid
     , optparse-simple
     , rio >=0.1.12.0
+    , servant
+    , servant-lucid
+    , servant-server
     , swiss-ephemeris >=0.1.0.2
+    , wai
+    , warp
   default-language: Haskell2010
 
 test-suite freenatalchart-test
@@ -88,8 +106,17 @@ test-suite freenatalchart-test
     , diagrams-core
     , diagrams-lib
     , diagrams-svg
+    , envy
     , freenatalchart
     , hspec
+    , http-api-data
+    , http-types
+    , lucid
     , rio >=0.1.12.0
+    , servant
+    , servant-lucid
+    , servant-server
     , swiss-ephemeris >=0.1.0.2
+    , wai
+    , warp
   default-language: Haskell2010
