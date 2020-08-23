@@ -10,7 +10,7 @@ import Diagrams.Prelude
 import Diagrams.Backend.SVG
 import Diagrams.TwoD.Vector (e)
 import Diagrams.Core.Types (keyVal)
-import Calculations (mkCoordinates, mkTime, horoscope, angularDifference, rotateList)
+import Calculations (isRetrograde, mkCoordinates, mkTime, horoscope, angularDifference, rotateList)
 import Control.Category ((<<<))
 import Prerendered as P
 import SwissEphemeris (Planet(..), Angles(..), closeEphemerides, setEphemeridesPath)
@@ -89,7 +89,7 @@ quadrants env Angles{..} =
                     # fc black
                     # rectifyAround textPosition env
 
-aspects :: ChartContext -> [HoroscopeAspect PlanetPosition PlanetPosition] -> Diagram B
+aspects :: (HasLongitude a, HasLongitude b) => ChartContext -> [HoroscopeAspect a b] -> Diagram B
 aspects env pAspects = do
     mconcat $ map aspectLine pAspects
     where
@@ -98,7 +98,8 @@ aspects env pAspects = do
                          # lw thin
             where
                 onAspect = env ^. aspectCircleRadiusL
-                (aPos, bPos) = (over each) (longitudeToPoint onAspect <<< getLongitude) bodies
+                aPos = (fst bodies) & getLongitude & (longitudeToPoint onAspect)
+                bPos = (snd bodies) & getLongitude & (longitudeToPoint onAspect)
                 aspectColor = 
                     case (temperament aspect) of
                         Analytical -> red
@@ -123,12 +124,14 @@ planets env planetPositions =
             # (href $ "#" <> (planetLabel planetName))
             <> guideLines
             <> (correctionLine # lw thin # lc darkgray)
+            <> retrogradeMark
             where
                 -- TODO: maybe `planetLabel` should be promoted more, so tables
                 -- can also refer to `MeanApog` as `Lilith`?
                 planetLabel MeanApog = "Lilith"
                 planetLabel p = show p
-                atCorrectedPosition  = flip longitudeToPoint $ maybe (getLongitude pos) id corrected
+                drawPlanetAt = maybe (getLongitude pos) id corrected 
+                atCorrectedPosition  = flip longitudeToPoint $ drawPlanetAt
                 correctedPosition = atCorrectedPosition onPlanets
                 atEclipticPosition = flip longitudeToPoint $ getLongitude pos
                 eclipticPosition = atEclipticPosition onPlanets
@@ -138,7 +141,15 @@ planets env planetPositions =
                 correctionLine = 
                     case corrected of
                         Nothing -> mempty
-                        Just _  -> (atCorrectedPosition (onPlanets + 0.02)) ~~ (atEclipticPosition (onZodiacs - 0.035)) 
+                        Just _  -> (atCorrectedPosition (onPlanets + 0.02)) ~~ (atEclipticPosition (onZodiacs - 0.035))
+                retrogradeMark =
+                    if (isRetrograde pos) then
+                        text "r"
+                        # moveTo (atCorrectedPosition (onPlanets - 0.055))
+                        # rectifyAround (atCorrectedPosition (onPlanets - 0.055)) env
+                        # fontSize (local 0.05)
+                    else
+                        mempty
 
 
 --chart :: (Semigroup m, TrailLike (QDiagram b V2 Longitude m)) => [House] -> QDiagram b V2 Longitude m
@@ -149,6 +160,7 @@ chart env HoroscopeData{..}  = do
     <> (cuspsCircle env horoscopeHouses)
     <> (quadrants env horoscopeAngles)
     <> (aspects env horoscopePlanetaryAspects)
+    <> (aspects env horoscopeAngleAspects)
     -- TODO: horoscopeCelestialAspects?
 
 --
@@ -223,8 +235,14 @@ renderTestChart :: IO ()
 renderTestChart = do
     -- TODO: bring in the `directory` package?
     setEphemeridesPath "/Users/luis/code/lfborjas/cassiel/config"
-    --let calculations = horoscope 2447532.771485 (mkCoordinates 14.0839053 (-87.2750137))
+    -- L
+    -- let calculations = horoscope 2447532.771485 (mkCoordinates 14.0839053 (-87.2750137))
+    -- Test
     let calculations = horoscope (mkTime 1989 1 6 0.0) (mkCoordinates 14.0839053 (-87.2750137))
-    --let calculations = horoscope 2447885.896491 (mkCoordinates 14.0839053 (-87.2750137))
+    -- T
+    --let calculations = horoscope 2447885.896491 (mkCoordinates 40.7831 (-73.9712))
+    -- Home
+    --let calculations = horoscope (mkTime 2020 8 23 0.0) (mkCoordinates 40.7282 (-73.7949))
+
     renderChart calculations
     closeEphemerides
