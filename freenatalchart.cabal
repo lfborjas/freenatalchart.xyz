@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 50902fe66088d7aca8d2242fd1e4bf0a3161bf3336f28e69944ac00374105a77
+-- hash: 229947799443e2d7111e79182d9a74de8922714c9e0847f1f882743a92865a44
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -26,10 +26,10 @@ source-repository head
 
 library
   exposed-modules:
-      Calculations
-      Chart
+      Chart.Calculations
+      Chart.Graphics
+      Chart.Prerendered
       Import
-      Prerendered
       Run
       Types
       Util

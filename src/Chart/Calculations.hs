@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RecordWildCards #-}
-module Calculations where
+module Chart.Calculations where
 
 import Import hiding (Earth)
 import SwissEphemeris
