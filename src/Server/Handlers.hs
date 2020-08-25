@@ -8,7 +8,9 @@ import Servant
 import Lucid
 
 service :: ServerT Service AppM
-service = root
+service = 
+    root
+    :<|> (serveDirectoryWebApp "static")
 
 root :: AppM (Html ())
 root = do
