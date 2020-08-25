@@ -1,26 +1,46 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 module Types where
 
 import RIO
-import RIO.Process
 import SwissEphemeris (HouseSystem, Angles(..), Planet(..), Coordinates(..))
+import System.Envy (FromEnv)
 
--- | Command line arguments
-data Options = Options
-  { optionsVerbose :: !Bool
-  }
+-- | Reader context for the server
 
-data App = App
+data AppContext = AppContext
   { appLogFunc :: !LogFunc
-  , appProcessContext :: !ProcessContext
-  , appOptions :: !Options
+  , appPort :: !Int
+  , appEphePath :: !FilePath
+  -- TODO: add algolia and google api keys?
   -- Add other app-specific configuration information here
   }
 
-instance HasLogFunc App where
+instance HasLogFunc AppContext where
   logFuncL = lens appLogFunc (\x y -> x { appLogFunc = y })
-instance HasProcessContext App where
-  processContextL = lens appProcessContext (\x y -> x { appProcessContext = y })
+
+class HasEphePath env where
+  ephePathL :: Lens' env FilePath
+instance HasEphePath AppContext where
+  ephePathL = lens appEphePath (\x y -> x { appEphePath = y})
+
+class HasPort env where
+  portL :: Lens' env Int
+instance HasPort AppContext where
+  portL = lens appPort (\x y -> x { appPort = y})
+
+data AppOptions = AppOptions
+  {
+    port :: Int
+  , ephePath :: FilePath
+  } deriving (Generic, Show)
+
+defaultConfig :: AppOptions
+defaultConfig = AppOptions 3000 "./config"
+
+instance FromEnv AppOptions
+
+-- | Reader context for chart rendering
 
 data ChartContext = ChartContext
   {
