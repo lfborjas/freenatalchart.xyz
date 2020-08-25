@@ -6,6 +6,7 @@ import Import
 import Server.Types
 import Servant
 import Lucid
+import qualified Views.Index as Index
 
 service :: ServerT Service AppM
 service = 
@@ -13,5 +14,4 @@ service =
     :<|> (serveDirectoryWebApp "static")
 
 root :: AppM (Html ())
-root = do
-    pure $ p_ "hello world"
+root = return Index.render
