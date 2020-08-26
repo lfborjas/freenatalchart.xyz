@@ -36,6 +36,9 @@ dependencies:
 - http-api-data
 - lucid
 - servant-lucid
+- interpolate
+- cmark
+- validation-selective
 
 ghc-options:
 - -Wall

@@ -14,4 +14,6 @@ service =
     :<|> (serveDirectoryWebApp "static")
 
 root :: AppM (Html ())
-root = return Index.render
+root = do
+    env <- ask
+    return $ Index.render $ Just env

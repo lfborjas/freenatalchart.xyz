@@ -1,10 +1,11 @@
-{-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude, OverloadedStrings, QuasiQuotes#-}
 
 module Views.Index (render, renderTestIndex) where
 
 import Import hiding (for_)
 import Lucid
 import RIO.Text (pack)
+import Data.String.Interpolate.IsString
 
 stylesheets :: Html ()
 stylesheets = do
@@ -28,8 +29,8 @@ numberInput name' label (start, end) =
     where
         asText = pack . show
 
-render :: Html ()
-render = html_ $ do
+render :: (Maybe AppContext) -> Html ()
+render ctx = html_ $ do
     head_ $ do
         title_ "Free Natal Chart"
         meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1"]
@@ -97,31 +98,42 @@ render = html_ $ do
                     a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.",  class_ "btn btn-link"] "Source Code"
 
         script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
-        -- TODO: grab the appId and apiKey from context
-        script_ $ do
-            "(function() {\
-                \var placesAutocomplete = places({\
+        (geolocationScript ctx)
 
-                    \container: document.getElementById('location')\
-                \}).configure({\
-                    \type: 'city',\
-                    \aroundLatLngViaIP: false,\
-                \});\
-                \var $lat = document.getElementById('lat');\
-                \var $lng = document.getElementById('lng');\
-                \placesAutocomplete.on('change', function(e) {\
-                    \$lat.value = e.suggestion.latlng.lat;\
-                    \$lng.value = e.suggestion.latlng.lng;\
-                \});\
-                \\
-                \placesAutocomplete.on('clear', function() {\
-                    \$lat.value = '';\
-                    \$lng.value = '';\             
-                \});\
-            \})();"
+
+geolocationScript :: (Maybe AppContext) -> Html ()
+geolocationScript Nothing =
+    mempty
+
+geolocationScript (Just ctx) =
+    let appId = ctx ^. algoliaAppIdL
+        appKey = ctx ^. algoliaAppKeyL
+    in
+    script_ $ do
+        [i|(function() {
+            var placesAutocomplete = places({
+                appId: '#{appId}',
+                apiKey: '#{appKey}',
+                container: document.getElementById('location')
+            }).configure({
+                type: 'city',
+                aroundLatLngViaIP: false,
+            });
+            var $lat = document.getElementById('lat');
+            var $lng = document.getElementById('lng');
+            placesAutocomplete.on('change', function(e) {
+                $lat.value = e.suggestion.latlng.lat;
+                $lng.value = e.suggestion.latlng.lng;
+            });
+
+            placesAutocomplete.on('clear', function() {
+                $lat.value = '';
+                $lng.value = '';             
+            });
+        })();|]
         
 
 -- | Render to a file on disk, purely for debugging.
 
 renderTestIndex :: IO ()
-renderTestIndex = renderToFile "test/files/index.html" render
+renderTestIndex = renderToFile "test/files/index.html" $ render Nothing

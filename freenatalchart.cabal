@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e4041e05613e21c10718a09fcbefe4781ada9359a1d2332d1eac42f0d555b649
+-- hash: 1b720670fc8a7912e4c7d31511e02c308110b81daae1584ae417d81e1f687b9c
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -44,6 +44,7 @@ library
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
     , base >=4.11 && <10
+    , cmark
     , diagrams
     , diagrams-contrib
     , diagrams-core
@@ -52,12 +53,14 @@ library
     , envy
     , http-api-data
     , http-types
+    , interpolate
     , lucid
     , rio >=0.1.12.0
     , servant
     , servant-lucid
     , servant-server
     , swiss-ephemeris >=0.1.0.2
+    , validation-selective
     , wai
     , warp
   default-language: Haskell2010
@@ -72,6 +75,7 @@ executable freenatalchart-exe
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
     , base >=4.11 && <10
+    , cmark
     , diagrams
     , diagrams-contrib
     , diagrams-core
@@ -81,6 +85,7 @@ executable freenatalchart-exe
     , freenatalchart
     , http-api-data
     , http-types
+    , interpolate
     , lucid
     , optparse-simple
     , rio >=0.1.12.0
@@ -88,6 +93,7 @@ executable freenatalchart-exe
     , servant-lucid
     , servant-server
     , swiss-ephemeris >=0.1.0.2
+    , validation-selective
     , wai
     , warp
   default-language: Haskell2010
@@ -104,6 +110,7 @@ test-suite freenatalchart-test
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
     , base >=4.11 && <10
+    , cmark
     , diagrams
     , diagrams-contrib
     , diagrams-core
@@ -114,12 +121,14 @@ test-suite freenatalchart-test
     , hspec
     , http-api-data
     , http-types
+    , interpolate
     , lucid
     , rio >=0.1.12.0
     , servant
     , servant-lucid
     , servant-server
     , swiss-ephemeris >=0.1.0.2
+    , validation-selective
     , wai
     , warp
   default-language: Haskell2010

@@ -12,7 +12,8 @@ data AppContext = AppContext
   { appLogFunc :: !LogFunc
   , appPort :: !Int
   , appEphePath :: !FilePath
-  -- TODO: add algolia and google api keys?
+  , appAlgoliaAppId :: !String
+  , appAlgoliaAppKey :: !String
   -- Add other app-specific configuration information here
   }
 
@@ -29,14 +30,26 @@ class HasPort env where
 instance HasPort AppContext where
   portL = lens appPort (\x y -> x { appPort = y})
 
+class HasAlgoliaAppId env where
+  algoliaAppIdL :: Lens' env String
+instance HasAlgoliaAppId AppContext where
+  algoliaAppIdL = lens appAlgoliaAppId (\x y -> x { appAlgoliaAppId = y})
+
+class HasAlgoliaAppKey env where
+  algoliaAppKeyL :: Lens' env String
+instance HasAlgoliaAppKey AppContext where
+  algoliaAppKeyL = lens appAlgoliaAppKey (\x y -> x { appAlgoliaAppKey = y})
+
 data AppOptions = AppOptions
   {
     port :: Int
   , ephePath :: FilePath
+  , algoliaAppId :: String
+  , algoliaAppKey :: String
   } deriving (Generic, Show)
 
 defaultConfig :: AppOptions
-defaultConfig = AppOptions 3000 "./config"
+defaultConfig = AppOptions 3000 "./config" "" ""
 
 instance FromEnv AppOptions
 

@@ -17,6 +17,8 @@ main = do
             appLogFunc = lf
           , appPort = port env
           , appEphePath = ephePath env
+          , appAlgoliaAppId = algoliaAppId env
+          , appAlgoliaAppKey = algoliaAppKey env
           }
     in
       start ctx
