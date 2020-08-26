@@ -47,7 +47,7 @@ render = html_ $ do
             form_ [] $ do
                 div_ [class_ "form-group"] $ do
                     label_ [class_ "form-label", for_ "location"] "Born in"
-                    input_ [class_ "form-input", type_ "text", id_ "location", name_ "location", placeholder_ "City or town"]
+                    input_ [class_ "form-input", type_ "search", id_ "location", name_ "location", placeholder_ "City or town"]
 
                 -- we could use the native `date` and `time` inputs,
                 -- or even a single `datetime-local`, but browser support
@@ -92,10 +92,34 @@ render = html_ $ do
                     a_ [href_ "/about", class_ "btn btn-link", title_ "tl;dr: we won't sell you anything, or store your data."] "About"
                 section_ [class_ "navbar-center"] $ do
                     -- TODO: add a lil' icon?
-                    a_ [href_ "#"] ""
+                    span_ "Brought to you by a ♑"
                 section_ [class_ "navbar-section"] $ do
                     a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.",  class_ "btn btn-link"] "Source Code"
 
+        script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
+        -- TODO: grab the appId and apiKey from context
+        script_ $ do
+            "(function() {\
+                \var placesAutocomplete = places({\
+
+                    \container: document.getElementById('location')\
+                \}).configure({\
+                    \type: 'city',\
+                    \aroundLatLngViaIP: false,\
+                \});\
+                \var $lat = document.getElementById('lat');\
+                \var $lng = document.getElementById('lng');\
+                \placesAutocomplete.on('change', function(e) {\
+                    \$lat.value = e.suggestion.latlng.lat;\
+                    \$lng.value = e.suggestion.latlng.lng;\
+                \});\
+                \\
+                \placesAutocomplete.on('clear', function() {\
+                    \$lat.value = '';\
+                    \$lng.value = '';\             
+                \});\
+            \})();"
+        
 
 -- | Render to a file on disk, purely for debugging.
 
