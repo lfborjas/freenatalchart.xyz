@@ -11,6 +11,7 @@ import Lucid.Base (Html)
 
 type Service = 
     Get '[HTML] (Html ())
+    :<|> "about" :> Get '[HTML] (Html ())
     :<|> Raw
 
 type AppM = ReaderT AppContext Servant.Handler
