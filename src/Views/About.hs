@@ -39,7 +39,7 @@ As a software engineer interested in astrology as a tool for insight
 and individuation through understanding symbols that embody the cycles of our lives,
 I wanted to learn everything I could from my birth chart: the aspects, the positions of planets,
 and what this whole houses and house systems deal was about--and I wanted a good rendering
-of my chart, and good quality tables and lists of data. 
+of my chart, with full tables and lists of data. 
 
 This proved a bit hard to obtain easily online.
 
