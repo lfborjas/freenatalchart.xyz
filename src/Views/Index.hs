@@ -12,6 +12,14 @@ stylesheets = do
     -- https://picturepan2.github.io/spectre/getting-started/installation.html
     link_ [rel_ "stylesheet", type_ "text/css", href_ "https://unpkg.com/spectre.css@0.5.9/dist/spectre.min.css"]
 
+favicon :: Html ()
+favicon = do
+    -- from https://favicon.io/emoji-favicons/capricorn/
+    link_ [rel_ "apple-touch-icon", sizes_ "180x180", href_ "/apple-touch-icon.png"]
+    link_ [rel_ "icon", type_ "image/png", sizes_ "32x32", href_ "/favicon-32x32.png"]
+    link_ [rel_ "icon", type_ "image/png", sizes_ "16x16", href_ "/favicon-16x16.png"]
+    link_ [rel_ "manifest", href_ "/site.webmanifest"]
+
 numberInput :: Text -> Text -> (Int, Int) -> Html ()
 numberInput name' label (start, end) = 
     div_ [class_ "form-group"] $ do
@@ -26,14 +34,15 @@ render = html_ $ do
         title_ "Free Natal Chart"
         meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1"]
         meta_ [name_ "description", content_ "Get your free natal chart, with all the information you need for your own discoveries of the self!"]
+        favicon
         stylesheets
         
     body_ $ do
         div_ [id_ "main", class_ "container"] $ do
             div_ [class_ "hero hero-sm bg-primary"] $ do
                 div_ [class_ "hero-body text-center"] $ do
-                    h1_ "Free Natal Chart"
-                    p_ "Fill out the form below"
+                    h1_ "Get your free natal chart"
+                    -- TODO: maybe link to a sample?
 
             form_ [] $ do
                 div_ [class_ "form-group"] $ do
@@ -70,7 +79,13 @@ render = html_ $ do
                 input_ [id_ "lng", name_ "lng", type_ "hidden"]
 
 
-                button_ [class_ "btn btn-primary"] "Submit"
+                button_ [class_ "btn btn-primary"] "Show me my chart"
+
+                -- TODO: add checkboxes for preferences?
+                -- e.g. monochrome -- though ideally the tables would also help:
+                -- https://webaim.org/articles/visual/colorblind
+                -- audit accessibility: https://webaim.org/techniques/forms/controls
+                -- aria described by and invalid: https://webaim.org/techniques/formvalidation/
 
             footer_ [class_ "navbar bg-secondary"] $ do
                 section_ [class_ "navbar-section"] $ do
