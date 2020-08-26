@@ -33,7 +33,7 @@ render ctx = html_ $ do
             form_ [] $ do
                 div_ [class_ "form-group"] $ do
                     label_ [class_ "form-label", for_ "location"] "Born in"
-                    input_ [class_ "form-input", type_ "search", id_ "location", name_ "location", placeholder_ "City or town"]
+                    input_ [class_ "form-input", type_ "search", id_ "location", name_ "location", placeholder_ "City or town", required_ ""]
 
                 -- we could use the native `date` and `time` inputs,
                 -- or even a single `datetime-local`, but browser support

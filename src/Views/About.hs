@@ -61,6 +61,6 @@ not abuse!
 I wrote [a little library](https://github.com/lfborjas/swiss-ephemeris) to interface with 
 [the fantastic Swiss Ephemeris library made available by the scientists behind astro.com](https://www.astro.com/swisseph/swephinfo_e.htm).
 * For the styles, I drew a bit of visual inspiration (i.e. we both like purple) from the beautiful [astro-charts.com](https://astro-charts.com), and I used the excellent [spectre.css](https://github.com/picturepan2/spectre) stylesheet.
-* For geolocation and timezone data, I use Algolia and Google Places respectively. If you want to run a copy of this website, you'll have to go setup your developer
+* For geolocation and timezone data, I use [Algolia](https://community.algolia.com/places/) and [Geonames](http://www.geonames.org/export/web-services.html#timezone) respectively. If you want to run a copy of this website, you'll have to go setup your developer
   account with them!
 |]
