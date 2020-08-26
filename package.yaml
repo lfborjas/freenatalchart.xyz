@@ -27,6 +27,18 @@ dependencies:
 - diagrams-contrib
 - diagrams-svg
 - SVGFonts >= 1.7.0.1 && < 1.8
+- servant
+- servant-server
+- wai
+- warp
+- envy
+- http-types
+- http-api-data
+- lucid
+- servant-lucid
+- interpolate
+- cmark
+- validation-selective
 
 ghc-options:
 - -Wall

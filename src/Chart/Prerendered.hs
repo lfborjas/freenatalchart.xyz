@@ -1,4 +1,4 @@
-module Prerendered 
+module Chart.Prerendered 
     ( prerenderedSign
     , prerenderedPlanet
     , alternateTextPath

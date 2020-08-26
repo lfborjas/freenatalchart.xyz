@@ -3,30 +3,22 @@
 module Main (main) where
 
 import Import
-import Run
-import RIO.Process
-import Options.Applicative.Simple
-import qualified Paths_freenatalchart
+import Server.Run (start)
+import System.Envy (decodeWithDefaults)
 
 main :: IO ()
 main = do
-  (options, ()) <- simpleOptions
-    $(simpleVersion Paths_freenatalchart.version)
-    "Header for command line arguments"
-    "Program description, also for command line arguments"
-    (Options
-       <$> switch ( long "verbose"
-                 <> short 'v'
-                 <> help "Verbose output?"
-                  )
-    )
-    empty
-  lo <- logOptionsHandle stderr (optionsVerbose options)
-  pc <- mkDefaultProcessContext
-  withLogFunc lo $ \lf ->
-    let app = App
-          { appLogFunc = lf
-          , appProcessContext = pc
-          , appOptions = options
+  lo <- logOptionsHandle stderr False
+  env <- decodeWithDefaults defaultConfig
+  let logOptions = setLogUseTime True lo
+  withLogFunc logOptions $ \lf ->
+    let ctx = AppContext 
+          {
+            appLogFunc = lf
+          , appPort = port env
+          , appEphePath = ephePath env
+          , appAlgoliaAppId = algoliaAppId env
+          , appAlgoliaAppKey = algoliaAppKey env
           }
-     in runRIO app run
+    in
+      start ctx

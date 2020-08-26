@@ -2,3 +2,5 @@
 *.swp
 tarballs/
 .stack-work/
+
+.env

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f7d0bf307a8f38608c934408b5d4cc6cdb575b0ecea9fe4c456d905bc6e71b9a
+-- hash: c164e3e87b5e27228a3b0314ad4642216fd7e0102965dfee6868778247e76db1
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -26,13 +26,18 @@ source-repository head
 
 library
   exposed-modules:
-      Calculations
-      Chart
+      Chart.Calculations
+      Chart.Graphics
+      Chart.Prerendered
       Import
-      Prerendered
-      Run
+      Server.Handlers
+      Server.Run
+      Server.Types
       Types
       Util
+      Views.About
+      Views.Common
+      Views.Index
   other-modules:
       Paths_freenatalchart
   hs-source-dirs:
@@ -41,13 +46,25 @@ library
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
     , base >=4.11 && <10
+    , cmark
     , diagrams
     , diagrams-contrib
     , diagrams-core
     , diagrams-lib
     , diagrams-svg
+    , envy
+    , http-api-data
+    , http-types
+    , interpolate
+    , lucid
     , rio >=0.1.12.0
+    , servant
+    , servant-lucid
+    , servant-server
     , swiss-ephemeris >=0.1.0.2
+    , validation-selective
+    , wai
+    , warp
   default-language: Haskell2010
 
 executable freenatalchart-exe
@@ -60,15 +77,27 @@ executable freenatalchart-exe
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
     , base >=4.11 && <10
+    , cmark
     , diagrams
     , diagrams-contrib
     , diagrams-core
     , diagrams-lib
     , diagrams-svg
+    , envy
     , freenatalchart
+    , http-api-data
+    , http-types
+    , interpolate
+    , lucid
     , optparse-simple
     , rio >=0.1.12.0
+    , servant
+    , servant-lucid
+    , servant-server
     , swiss-ephemeris >=0.1.0.2
+    , validation-selective
+    , wai
+    , warp
   default-language: Haskell2010
 
 test-suite freenatalchart-test
@@ -83,13 +112,25 @@ test-suite freenatalchart-test
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
     , base >=4.11 && <10
+    , cmark
     , diagrams
     , diagrams-contrib
     , diagrams-core
     , diagrams-lib
     , diagrams-svg
+    , envy
     , freenatalchart
     , hspec
+    , http-api-data
+    , http-types
+    , interpolate
+    , lucid
     , rio >=0.1.12.0
+    , servant
+    , servant-lucid
+    , servant-server
     , swiss-ephemeris >=0.1.0.2
+    , validation-selective
+    , wai
+    , warp
   default-language: Haskell2010

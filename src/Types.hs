@@ -1,26 +1,59 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 module Types where
 
 import RIO
-import RIO.Process
 import SwissEphemeris (HouseSystem, Angles(..), Planet(..), Coordinates(..))
+import System.Envy (FromEnv)
 
--- | Command line arguments
-data Options = Options
-  { optionsVerbose :: !Bool
-  }
+-- | Reader context for the server
 
-data App = App
+data AppContext = AppContext
   { appLogFunc :: !LogFunc
-  , appProcessContext :: !ProcessContext
-  , appOptions :: !Options
+  , appPort :: !Int
+  , appEphePath :: !FilePath
+  , appAlgoliaAppId :: !String
+  , appAlgoliaAppKey :: !String
   -- Add other app-specific configuration information here
   }
 
-instance HasLogFunc App where
+instance HasLogFunc AppContext where
   logFuncL = lens appLogFunc (\x y -> x { appLogFunc = y })
-instance HasProcessContext App where
-  processContextL = lens appProcessContext (\x y -> x { appProcessContext = y })
+
+class HasEphePath env where
+  ephePathL :: Lens' env FilePath
+instance HasEphePath AppContext where
+  ephePathL = lens appEphePath (\x y -> x { appEphePath = y})
+
+class HasPort env where
+  portL :: Lens' env Int
+instance HasPort AppContext where
+  portL = lens appPort (\x y -> x { appPort = y})
+
+class HasAlgoliaAppId env where
+  algoliaAppIdL :: Lens' env String
+instance HasAlgoliaAppId AppContext where
+  algoliaAppIdL = lens appAlgoliaAppId (\x y -> x { appAlgoliaAppId = y})
+
+class HasAlgoliaAppKey env where
+  algoliaAppKeyL :: Lens' env String
+instance HasAlgoliaAppKey AppContext where
+  algoliaAppKeyL = lens appAlgoliaAppKey (\x y -> x { appAlgoliaAppKey = y})
+
+data AppOptions = AppOptions
+  {
+    port :: Int
+  , ephePath :: FilePath
+  , algoliaAppId :: String
+  , algoliaAppKey :: String
+  } deriving (Generic, Show)
+
+defaultConfig :: AppOptions
+defaultConfig = AppOptions 3000 "./config" "" ""
+
+instance FromEnv AppOptions
+
+-- | Reader context for chart rendering
 
 data ChartContext = ChartContext
   {
