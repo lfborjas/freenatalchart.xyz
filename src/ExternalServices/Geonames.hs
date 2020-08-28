@@ -108,16 +108,16 @@ data TimezoneResponse = TimezoneResponse
 
 -- inspired by: https://github.com/bos/aeson/issues/197
 -- also: https://hackage.haskell.org/package/rio-0.1.18.0/docs/RIO-Time.html#v:formatTime
-parseGeonamesTime :: String -> UTCTime
-parseGeonamesTime t =
-    case (parseTimeM True defaultTimeLocale "%Y-%-m-%-d %R" t) of
-        Just d -> d
-        Nothing -> error "unable to parse timestamp"
+parseGeonamesTime :: Parser String -> Parser UTCTime
+parseGeonamesTime s = do 
+    val <- s
+    parsed <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %R" val
+    return parsed
 
 instance FromJSON TimezoneResponse where
     parseJSON (Object v) = 
-        TimezoneResponse <$> (parseGeonamesTime <$> v .: "sunrise")
-                         <*> (parseGeonamesTime <$> v .: "sunset")
+        TimezoneResponse <$> (parseGeonamesTime $ v .: "sunrise")
+                         <*> (parseGeonamesTime $ v .: "sunset")
                          <*> v .: "lat"
                          <*> v .: "lng"
                          <*> v .: "countryCode"
@@ -126,7 +126,7 @@ instance FromJSON TimezoneResponse where
                          <*> v .: "timezoneId"
                          <*> v .: "dstOffset"
                          <*> v .: "countryName"
-                         <*> (parseGeonamesTime <$> v .: "time")
+                         <*> (parseGeonamesTime $ v .: "time")
     parseJSON _ = fail "Invalid TimezoneResponse"
 
 instance ToJSON TimezoneResponse
