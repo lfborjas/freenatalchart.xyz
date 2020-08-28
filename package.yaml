@@ -39,6 +39,8 @@ dependencies:
 - interpolate
 - cmark
 - validation-selective
+- aeson
+- req
 
 ghc-options:
 - -Wall
@@ -72,6 +74,8 @@ tests:
     dependencies:
     - freenatalchart
     - hspec
+    - hspec-wai
+    - hspec-wai-json
 
     ghc-options:
     - -threaded

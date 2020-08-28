@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving, OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 module Types where
@@ -8,12 +9,16 @@ import System.Envy (FromEnv)
 
 -- | Reader context for the server
 
+newtype GeonamesUsername = GeonamesUsername String
+  deriving (Show, Generic, IsString)
+
 data AppContext = AppContext
   { appLogFunc :: !LogFunc
   , appPort :: !Int
   , appEphePath :: !FilePath
   , appAlgoliaAppId :: !String
   , appAlgoliaAppKey :: !String
+  , appGeonamesUsername :: !GeonamesUsername
   -- Add other app-specific configuration information here
   }
 
@@ -40,16 +45,24 @@ class HasAlgoliaAppKey env where
 instance HasAlgoliaAppKey AppContext where
   algoliaAppKeyL = lens appAlgoliaAppKey (\x y -> x { appAlgoliaAppKey = y})
 
+class HasGeonamesUsername env where
+  geonamesUsernameL :: Lens' env GeonamesUsername
+instance HasGeonamesUsername AppContext where
+  geonamesUsernameL = lens appGeonamesUsername (\x y -> x { appGeonamesUsername = y})
+instance HasGeonamesUsername GeonamesUsername where
+  geonamesUsernameL = id
+
 data AppOptions = AppOptions
   {
     port :: Int
   , ephePath :: FilePath
   , algoliaAppId :: String
   , algoliaAppKey :: String
+  , geonamesUsername :: String
   } deriving (Generic, Show)
 
 defaultConfig :: AppOptions
-defaultConfig = AppOptions 3000 "./config" "" ""
+defaultConfig = AppOptions 3000 "./config" "" "" ""
 
 instance FromEnv AppOptions
 
