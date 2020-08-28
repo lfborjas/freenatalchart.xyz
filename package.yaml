@@ -41,6 +41,7 @@ dependencies:
 - validation-selective
 - aeson
 - req
+- time
 
 ghc-options:
 - -Wall
