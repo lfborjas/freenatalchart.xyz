@@ -42,6 +42,8 @@ dependencies:
 - aeson
 - req
 - time
+- timezone-series
+- timezone-olson
 
 ghc-options:
 - -Wall
