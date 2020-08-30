@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f32ab642d598484b0fedc9e947b9ece3889c9ae541eff0a4923c161943c572bc
+-- hash: 208035c03424a4d945e326cfaf61665c76e3e8b38cdaa237be31e2b092e8aef7
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -68,6 +68,7 @@ library
     , servant-server
     , swiss-ephemeris >=0.1.0.2
     , time
+    , timezone-detect
     , timezone-olson
     , timezone-series
     , validation-selective
@@ -106,6 +107,7 @@ executable freenatalchart-exe
     , servant-server
     , swiss-ephemeris >=0.1.0.2
     , time
+    , timezone-detect
     , timezone-olson
     , timezone-series
     , validation-selective
@@ -149,6 +151,7 @@ test-suite freenatalchart-test
     , servant-server
     , swiss-ephemeris >=0.1.0.2
     , time
+    , timezone-detect
     , timezone-olson
     , timezone-series
     , validation-selective

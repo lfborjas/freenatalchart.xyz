@@ -11,6 +11,13 @@ packages:
       sha256: c354c36ff7f27683107ba937f2d1779d282133c9f671d3db1f8e2333c1fb23fb
   original:
     hackage: swiss-ephemeris-0.1.0.2
+- completed:
+    hackage: timezone-detect-0.1.0.0@sha256:be9f20c46242b4777bff4cf0891e3b46e2d396b634404bd69742d07462f7e93c,1937
+    pantry-tree:
+      size: 578
+      sha256: 93d3c7e9aa3e8f4a823e0f1fb28f4b8087cbc02fe1e7853fe9301f70896ad617
+  original:
+    hackage: timezone-detect-0.1.0.0
 snapshots:
 - completed:
     size: 532380

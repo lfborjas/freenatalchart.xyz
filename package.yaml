@@ -44,6 +44,7 @@ dependencies:
 - time
 - timezone-series
 - timezone-olson
+- timezone-detect
 
 ghc-options:
 - -Wall
