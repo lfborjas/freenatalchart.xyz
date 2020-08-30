@@ -5,6 +5,7 @@ module Chart.Calculations where
 import Import hiding (Earth)
 import SwissEphemeris
 import RIO.List (cycle)
+import RIO.Time (diffTimeToPicoseconds, toGregorian, UTCTime(..))
 
 angularDifference :: Longitude -> Longitude -> Longitude
 angularDifference a b | (b - a) < 1 = (b + 360 - a)
@@ -60,6 +61,14 @@ mkCoordinates lat' lng' = defaultCoordinates{lat = lat', lng = lng'}
 
 mkTime :: Int -> Int -> Int -> Double -> JulianTime
 mkTime = julianDay
+
+-- | Convert between a UTC timestamp and the low-level JulianTime that SwissEphemeris requires.
+utcToJulian :: UTCTime -> JulianTime
+utcToJulian (UTCTime day time) = 
+    julianDay (fromIntegral $ y) m d h
+    where
+        (y, m, d) = toGregorian day
+        h         = 2.77778e-16 * (fromIntegral $ diffTimeToPicoseconds time)
 
 horoscope :: JulianTime -> Coordinates -> HoroscopeData
 horoscope time place =
