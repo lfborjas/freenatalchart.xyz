@@ -11,7 +11,6 @@ import Diagrams.Backend.SVG
 import Diagrams.TwoD.Vector (e)
 import Diagrams.Core.Types (keyVal)
 import Chart.Calculations (isRetrograde, mkCoordinates, mkTime, horoscope, angularDifference, rotateList)
-import Control.Category ((<<<))
 import Chart.Prerendered as P
 import SwissEphemeris (Planet(..), Angles(..), closeEphemerides, setEphemeridesPath)
 import RIO.List (groupBy, sortBy)

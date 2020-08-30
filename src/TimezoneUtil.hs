@@ -35,6 +35,15 @@ toUTC tz localTime = do
     series <- getTimeZoneSeries tz
     return $ localTimeToUTC' series localTime
 
+-- | Given a latitude, longitude and reference time, return the UTC time
+-- at that point in space and time:
+--
+-- >>> localTime <- (parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "2019-12-25 00:30:00" :: IO LocalTime)
+-- >>> timeAtPointToUTC 40.7831 (-73.9712) localTime
+-- Right 2019-12-25 05:30:00 UTC
+-- >>> localTimeSummer <- (parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "2019-08-25 00:30:00" :: IO LocalTime)
+-- >>> timeAtPointToUTC 40.7831 (-73.9712) localTimeSummer 
+-- Right 2019-08-25 04:30:00 UTC
 -- TODO: wrap in the RIO monad with an `env` that points to the tz db?
 timeAtPointToUTC :: Double -> Double -> LocalTime -> IO (Either String UTCTime)
 timeAtPointToUTC lat lng referenceTime = do
