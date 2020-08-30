@@ -42,9 +42,7 @@ dependencies:
 - aeson
 - req
 - time
-- timezone-series
-- timezone-olson
-- timezone-detect
+- timezone-detect >= 0.2.2.0
 
 ghc-options:
 - -Wall

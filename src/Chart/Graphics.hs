@@ -240,10 +240,11 @@ renderTestChart = do
     let calculations = horoscope (mkTime 1989 1 6 0.0) (mkCoordinates 14.0839053 (-87.2750137))
     -- T (uses the Julian Time calculated by astro.com)
     -- to get this julian from our own library, e.g.
+    -- >>  timeAtPointToUTC' = timeAtPointToUTC "./config/timezone21.bin"
     -- >>> localTime <- (parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-12-25 04:30:00" :: IO LocalTime)
-    -- >>> TsUTC <- timeAtPointToUTC 40.7831 (-73.9712) localTime
-    -- >>> Calculations.utcToJulian <$> TsUTC
-    -- Right 2447885.89583365
+    -- >>> TsUTC <- timeAtPointToUTC' 40.7831 (-73.9712) localTime
+    -- >>> Calculations.utcToJulian tsUTC
+    -- 2447885.89583365
     --let calculations = horoscope 2447885.896491 (mkCoordinates 40.7831 (-73.9712))
     -- you'll note that our number and astro.com's number differ... but it seems like
     -- ours is actually correct?
