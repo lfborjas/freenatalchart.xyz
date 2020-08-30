@@ -12,12 +12,12 @@ packages:
   original:
     hackage: swiss-ephemeris-0.1.0.2
 - completed:
-    hackage: timezone-detect-0.1.0.0@sha256:be9f20c46242b4777bff4cf0891e3b46e2d396b634404bd69742d07462f7e93c,1937
+    hackage: timezone-detect-0.2.2.0@sha256:36ab4a1068a1d3f486b1f9eed8001b271ba36bae2abeb93ffac5814fcd20ca40,2194
     pantry-tree:
-      size: 578
-      sha256: 93d3c7e9aa3e8f4a823e0f1fb28f4b8087cbc02fe1e7853fe9301f70896ad617
+      size: 601
+      sha256: 0f8d01292e8c662422410b01e6f15c26a485ca4b47af86dec97ca2bef2c2a988
   original:
-    hackage: timezone-detect-0.1.0.0
+    hackage: timezone-detect-0.2.2.0
 snapshots:
 - completed:
     size: 532380
