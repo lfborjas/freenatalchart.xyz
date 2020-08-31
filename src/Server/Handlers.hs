@@ -12,7 +12,7 @@ import Lucid
 import qualified Views.Index as Index
 import qualified Views.About as About
 import RIO.Time (defaultTimeLocale, parseTimeM, LocalTime)
-import Validation (maybeToSuccess, Validation(..))
+import Validation (Validation(..))
 import RIO.Text (pack)
 import Data.Coerce (coerce)
 
@@ -69,12 +69,3 @@ validateDate y m d h mn isAm =
             <> (show' minute) <> ":"
             <> "00" <> " "
             <> (if isMorning then "AM" else "PM")
-
--- validateDate :: 
---     DateParts -> Validation (NonEmpty (ChartFormValidationError, Text)) LocalTime
--- validateDate DateParts{..} =
---     maybe 
---         (Failure ((InvalidDateTime, (pack shown) <> " is not a valid date.") :| []))
---         Success
---         parsedTime
---     where
