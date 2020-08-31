@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
@@ -11,8 +12,9 @@ import Lucid
 import qualified Views.Index as Index
 import qualified Views.About as About
 import RIO.Time (defaultTimeLocale, parseTimeM, LocalTime)
-import Validation (Validation(..))
+import Validation (maybeToSuccess, Validation(..))
 import RIO.Text (pack)
+import Data.Coerce (coerce)
 
 service :: ServerT Service AppM
 service = 
@@ -32,41 +34,47 @@ about = return $ About.render
 
 -- params should be `Required Lenient`
 -- as per: http://hackage.haskell.org/package/servant-0.15/docs/Servant-API-Modifiers.html#t:RequestArgument
-validateDateParts :: 
+validateDate :: 
     Either Text Year 
     -> Either Text Month
     -> Either Text Day
     -> Either Text Hour
     -> Either Text Minute
     -> Either Text Bool
-    -> Validation (NonEmpty (ChartFormValidationError, Text)) DateParts
-validateDateParts y m d h mn isAm =
-    DateParts <$> validateDateComponent y 
-              <*> validateDateComponent m
-              <*> validateDateComponent d
-              <*> validateDateComponent h
-              <*> validateDateComponent mn
-              <*> validateDateComponent isAm
+    -> Validation (NonEmpty (ChartFormValidationError, Text)) LocalTime
+validateDate y m d h mn isAm =
+    parseTime dateParts
     where
         invalidDateTimeFailure err = 
             Failure ( (InvalidDateTime, err) :| [])
         validateDateComponent = either invalidDateTimeFailure Success
-
-validateDate :: 
-    DateParts -> Validation (NonEmpty (ChartFormValidationError, Text)) LocalTime
-validateDate DateParts{..} =
-    maybe 
-        (Failure ((InvalidDateTime, (pack shown) <> " is not a valid date.") :| []))
-        Success
-        parsedTime
-    where
-        parsedTime :: Maybe LocalTime
-        parsedTime = parseTimeM True defaultTimeLocale "%Y-%-m-%-d %l:%-M:%-S %p" shown
-        shown = 
-            (show year) <> "-"
-            <> (show month) <> "-"
-            <> (show day) <> " "
-            <> (show hour) <> ":"
-            <> (show minute) <> ":"
+        dateParts = DateParts <$> validateDateComponent y 
+                              <*> validateDateComponent m
+                              <*> validateDateComponent d
+                              <*> validateDateComponent h
+                              <*> validateDateComponent mn
+                              <*> validateDateComponent isAm
+        parseTime (Failure e) = Failure e
+        parseTime (Success dp) = 
+            maybe 
+                (Failure ((InvalidDateTime, (pack $ shown dp) <> " is not a valid date.") :| []))
+                Success
+                (parseTimeM True defaultTimeLocale "%Y-%-m-%-d %l:%-M:%-S %p" (shown dp))
+        show' x = show $ (coerce x :: Integer) 
+        shown DateParts{..}= 
+            (show' year) <> "-"
+            <> (show' month) <> "-"
+            <> (show' day) <> " "
+            <> (show' hour) <> ":"
+            <> (show' minute) <> ":"
             <> "00" <> " "
             <> (if isMorning then "AM" else "PM")
+
+-- validateDate :: 
+--     DateParts -> Validation (NonEmpty (ChartFormValidationError, Text)) LocalTime
+-- validateDate DateParts{..} =
+--     maybe 
+--         (Failure ((InvalidDateTime, (pack shown) <> " is not a valid date.") :| []))
+--         Success
+--         parsedTime
+--     where
