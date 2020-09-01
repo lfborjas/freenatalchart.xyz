@@ -49,7 +49,7 @@ validateDate y m d h mn isAm =
     where
         -- TODO: do we need a different ChartFormValidationError for _each part_? possible here,
         -- just tedious.
-        invalidDateTimeFailure err = Failure ((InvalidDateTime, err) :| [])
+        invalidDateTimeFailure err = failure (InvalidDateTime, err)
         validateDateComponent = either invalidDateTimeFailure Success
         dateParts = DateParts <$> validateDateComponent y 
                               <*> validateDateComponent m
@@ -62,7 +62,7 @@ parseTime :: ChartFormValidation DateParts -> ChartFormValidation LocalTime
 parseTime (Failure e) = Failure e
 parseTime (Success dp) = 
     maybe 
-        (Failure ((InvalidDateTime, (pack $ formatDateParts dp) <> " is not a valid date.") :| []))
+        (failure (InvalidDateTime, (pack $ formatDateParts dp) <> " is not a valid date."))
         Success
         (parseTimeM True defaultTimeLocale "%Y-%-m-%-d %l:%-M:%-S %p" (formatDateParts dp))
 
@@ -88,7 +88,7 @@ validateLocation loc lt lng =
         (failure (InvalidLocation, "Unable to determine location coordinates."))
         (mkLocation)
     where
-        invalidLocationFailure e  = Failure ((InvalidLocation, e) :| [])
+        invalidLocationFailure e  = failure (InvalidLocation, e)
         validateLocationComponent = either invalidLocationFailure Success
         -- TODO: validate location to not be empty? Since we're not doing
         -- a fallback to a server-side lookup right now, that's not necessary.
