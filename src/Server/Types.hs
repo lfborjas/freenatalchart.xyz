@@ -191,10 +191,9 @@ data ChartForm = ChartForm
     ,   formDayPart :: ParsedParameter DayPart
     } deriving (Eq, Show)
 
-data PartialChartForm = PartialChartForm
+data ValidatedChartForm = ValidatedChartForm
     {
-        filledDateParts :: Maybe DateParts
-    ,   filledLocationInfo :: Maybe Location
+        parsedForm :: ChartForm
     ,   validationErrors :: ChartFormErrors
     } deriving (Eq, Show)
 

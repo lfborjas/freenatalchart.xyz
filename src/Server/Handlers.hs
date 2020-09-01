@@ -57,14 +57,12 @@ validateDateParts y m d h mn isAm =
               <*> validateDateComponent InvalidMinute mn
               <*> validateDateComponent InvalidDayPart isAm
     where
-        -- TODO: do we need a different ChartFormValidationError for _each part_? possible here,
-        -- just tedious.
         invalidDateTimeFailure f err = failure (f, err)
         validateDateComponent e = either (invalidDateTimeFailure e) Success
 
-parseTime :: ChartFormValidation DateParts -> ChartFormValidation LocalTime
-parseTime (Failure e) = Failure e
-parseTime (Success dp) = 
+validateDateTime :: ChartFormValidation DateParts -> ChartFormValidation LocalTime
+validateDateTime (Failure e) = Failure e
+validateDateTime (Success dp) = 
     maybe 
         (failure (InvalidDateTime, (pack $ formatDateParts dp) <> " is not a valid date."))
         Success
@@ -118,16 +116,14 @@ getTimeZone lt lng = do
 -- | Given the form as it comes from the request, apply all possible validations to ensure:
 -- we have legitimate coordinates, timezone and a local time. If we succeed, a `BirthData`
 -- is produced with necessary data for calculations. If not, a partial form will be returned.
-validateChartForm :: ChartForm -> Either PartialChartForm BirthData
-validateChartForm ChartForm{..} = do
+validateChartForm :: ChartForm -> Either ValidatedChartForm BirthData
+validateChartForm original@(ChartForm{..}) = do
     let validatedLocation = validateLocation formLocation formLatitude formLongitude
         validatedDateParts = validateDateParts formYear formMonth formDay formHour formMinute formDayPart
-        validatedTime = parseTime validatedDateParts
+        validatedTime = validateDateTime validatedDateParts
         validatedForm = BirthData <$> validatedLocation <*> validatedTime
     case validatedForm of
-        Failure errs -> Left $ PartialChartForm (successToMaybe validatedDateParts)
-                                                (successToMaybe validatedLocation) 
-                                                errs
+        Failure errs -> Left $ ValidatedChartForm original errs
         Success bData -> Right bData
 
 -- TODO: does this belong here?

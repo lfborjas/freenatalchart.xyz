@@ -52,9 +52,8 @@ spec = do
                 formDayPart = Right "PM"
               }
           partialForm =
-            PartialChartForm
-              { filledDateParts = Nothing,
-                filledLocationInfo = Nothing,
+            ValidatedChartForm
+              { parsedForm = form,
                 validationErrors = ((InvalidLocation, "Unable to determine location coordinates.") :| [(InvalidMinute, "invalid minute")])
               }
           parsed = validateChartForm form
