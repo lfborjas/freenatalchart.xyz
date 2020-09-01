@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b5d3cd503a94badfbb7e914e13cee8eb9ce08ee3b30d3d05a04c48461c315d09
+-- hash: 8e33112746109337c53d09a3441f55dbeafbd1ebdb48ecdb25614edbe47c622e
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -30,7 +30,6 @@ library
       Chart.Graphics
       Chart.Prerendered
       ExternalServices.Geonames
-      ExternalServices.TimezoneDB
       Import
       Server.Handlers
       Server.Run
@@ -116,7 +115,6 @@ test-suite freenatalchart-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      UtilSpec
       ValidationSpec
       Paths_freenatalchart
   hs-source-dirs:
