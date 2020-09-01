@@ -28,7 +28,7 @@ spec = do
                 formDay = Right $ Day 31,
                 formHour = Right $ Hour 8,
                 formMinute = Right $ Minute 30,
-                formIsAm = Right False
+                formDayPart = Right "PM"
               }
           expectedBirthData =
             BirthData
@@ -49,13 +49,13 @@ spec = do
                 formDay = Right $ Day 31,
                 formHour = Right $ Hour 8,
                 formMinute = Left "invalid minute",
-                formIsAm = Right False
+                formDayPart = Right "PM"
               }
           partialForm =
             PartialChartForm
               { filledDateParts = Nothing,
                 filledLocationInfo = Nothing,
-                validationErrors = ((InvalidLocation, "Unable to determine location coordinates.") :| [(InvalidDateTime, "invalid minute")])
+                validationErrors = ((InvalidLocation, "Unable to determine location coordinates.") :| [(InvalidMinute, "invalid minute")])
               }
           parsed = validateChartForm form
       parsed `shouldBe` (Left partialForm)

@@ -2,6 +2,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 
 module Server.Types where
 
@@ -10,9 +12,10 @@ import Servant
 import Servant.HTML.Lucid
 import Lucid.Base (Html)
 import Validation (Validation)
-import RIO.Text (pack)
+import RIO.Text (intercalate, pack)
 import Data.Time.LocalTime.TimeZone.Detect (TimeZoneName)
 import Data.Time.LocalTime (LocalTime)
+import RIO.List (nub)
 
 type Service = 
     Get '[HTML] (Html ())
@@ -97,6 +100,17 @@ mkMinute a = do
         Nothing -> Left $ pack $ s <> " is not a valid minute."
         Just m -> return $ Minute m
 
+newtype DayPart = DayPart { unDayPart :: String}
+    deriving (Eq, Show, IsString)
+
+mkDayPart :: Text -> Either Text DayPart
+mkDayPart a = do
+    s <- parseUrlPiece a
+    if (s `elem` ["AM", "PM"]) then
+        return $ DayPart s
+    else
+        Left $ pack "Please choose part of day (AM or PM)"
+
 -- TODO(luis): replace the `Longitude` in `types` with this newtype!
 newtype Latitude = Latitude {unLatitude :: Double}
     deriving (Eq, Show, Num)
@@ -120,7 +134,7 @@ mkLongitude :: Text -> Either Text Server.Types.Longitude
 mkLongitude a = do
     s <- parseUrlPiece a
     case readInRange (-180.0, 180.0) s of
-        Nothing -> Left $ pack $ s <> " is an nvalid longitude.)"
+        Nothing -> Left $ pack $ s <> " is an invalid longitude.)"
         Just l -> return $ Longitude l
 
 -- Form types:
@@ -132,7 +146,7 @@ data DateParts = DateParts
     ,   day :: Day
     ,   hour :: Hour
     ,   minute :: Minute
-    ,   isMorning :: Bool
+    ,   dayPart :: DayPart
     } deriving (Eq, Show)
 
 data Location = Location
@@ -146,6 +160,12 @@ data Location = Location
 data ChartFormValidationError 
     = InvalidLocation
     | InvalidDateTime
+    | InvalidYear
+    | InvalidMonth
+    | InvalidDay
+    | InvalidHour
+    | InvalidMinute
+    | InvalidDayPart
     deriving (Eq, Show)
 
 type ChartFormErrors = NonEmpty (ChartFormValidationError, Text)
@@ -168,7 +188,7 @@ data ChartForm = ChartForm
     ,   formDay :: ParsedParameter Day
     ,   formHour :: ParsedParameter Hour
     ,   formMinute :: ParsedParameter Minute
-    ,   formIsAm :: ParsedParameter Bool
+    ,   formDayPart :: ParsedParameter DayPart
     } deriving (Eq, Show)
 
 data PartialChartForm = PartialChartForm
@@ -177,3 +197,16 @@ data PartialChartForm = PartialChartForm
     ,   filledLocationInfo :: Maybe Location
     ,   validationErrors :: ChartFormErrors
     } deriving (Eq, Show)
+
+-- | Given a specific error (e.g. InvalidDateTime,) find any applicable error messages.
+errorMessagesFor :: ChartFormErrors -> ChartFormValidationError -> Maybe Text
+errorMessagesFor errors errorT =
+    if (null allErrors) then
+        Nothing
+    else
+        Just $ intercalate ", " allErrors
+    where
+        allErrors = 
+            filter (\(e, _) -> e == errorT) (toList errors)
+                & map snd
+                & nub

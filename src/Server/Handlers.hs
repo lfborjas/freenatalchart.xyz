@@ -47,20 +47,20 @@ validateDateParts :: ParsedParameter Year
     -> ParsedParameter Day
     -> ParsedParameter Hour
     -> ParsedParameter Minute
-    -> ParsedParameter Bool
+    -> ParsedParameter DayPart
     -> ChartFormValidation DateParts
 validateDateParts y m d h mn isAm =
-    DateParts <$> validateDateComponent y 
-              <*> validateDateComponent m
-              <*> validateDateComponent d
-              <*> validateDateComponent h
-              <*> validateDateComponent mn
-              <*> validateDateComponent isAm
+    DateParts <$> validateDateComponent InvalidYear y 
+              <*> validateDateComponent InvalidMonth m
+              <*> validateDateComponent InvalidDay d
+              <*> validateDateComponent InvalidHour h
+              <*> validateDateComponent InvalidMinute mn
+              <*> validateDateComponent InvalidDayPart isAm
     where
         -- TODO: do we need a different ChartFormValidationError for _each part_? possible here,
         -- just tedious.
-        invalidDateTimeFailure err = failure (InvalidDateTime, err)
-        validateDateComponent = either invalidDateTimeFailure Success
+        invalidDateTimeFailure f err = failure (f, err)
+        validateDateComponent e = either (invalidDateTimeFailure e) Success
 
 parseTime :: ChartFormValidation DateParts -> ChartFormValidation LocalTime
 parseTime (Failure e) = Failure e
@@ -78,7 +78,7 @@ formatDateParts DateParts{..} =
     <> (show' hour) <> ":"
     <> (show' minute) <> ":"
     <> "00" <> " "
-    <> (if isMorning then "AM" else "PM")
+    <> (unDayPart dayPart)
     where
         show' x = show $ (coerce x :: Integer)
 
@@ -100,6 +100,7 @@ validateLocation loc lt lng =
         validateLocationComponent = either invalidLocationFailure Success
         -- TODO: validate location to not be empty? Since we're not doing
         -- a fallback to a server-side lookup right now, that's not necessary.
+        -- TODO: pre-fill timezone?
         mkLocation = Location <$> validateLocationComponent loc
                               <*> validateLocationComponent lt
                               <*> validateLocationComponent lng
@@ -120,7 +121,7 @@ getTimeZone lt lng = do
 validateChartForm :: ChartForm -> Either PartialChartForm BirthData
 validateChartForm ChartForm{..} = do
     let validatedLocation = validateLocation formLocation formLatitude formLongitude
-        validatedDateParts = validateDateParts formYear formMonth formDay formHour formMinute formIsAm
+        validatedDateParts = validateDateParts formYear formMonth formDay formHour formMinute formDayPart
         validatedTime = parseTime validatedDateParts
         validatedForm = BirthData <$> validatedLocation <*> validatedTime
     case validatedForm of
