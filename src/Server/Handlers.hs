@@ -109,9 +109,9 @@ getTimeZone lt lng = do
 -- | Given the form as it comes from the request, apply all possible validations to ensure:
 -- we have legitimate coordinates, timezone and a local time. If at any point we fail,
 -- a nonempty list of validation errors will be produced, which we should deal with in the form.
-validateChartForm :: ChartForm -> ChartFormValidation ChartData
+validateChartForm :: ChartForm -> ChartFormValidation BirthData
 validateChartForm ChartForm{..} =
-    ChartData <$> validatedLocation
+    BirthData <$> validatedLocation
               <*> validatedDateTime
     where
         validatedLocation = 

@@ -150,7 +150,7 @@ type ChartFormErrors = NonEmpty (ChartFormValidationError, Text)
 type ChartFormValidation a = Validation ChartFormErrors a
 type ParsedParameter a = Either Text a
 
-data ChartData = ChartData
+data BirthData = BirthData
     {
         chartLocation :: Location
     ,   chartLocalTime :: LocalTime
