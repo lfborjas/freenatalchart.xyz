@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 56c80eca8c808db57e4391861019c8a07c237670096b71585a4f4f6b31283278
+-- hash: d6eab4faac76dd817ab232b13ab30fed1de250a7561d8d36b80916f146a91889
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -62,6 +62,7 @@ library
     , lucid
     , req
     , rio >=0.1.12.0
+    , selective
     , servant
     , servant-lucid
     , servant-server
@@ -99,6 +100,7 @@ executable freenatalchart-exe
     , optparse-simple
     , req
     , rio >=0.1.12.0
+    , selective
     , servant
     , servant-lucid
     , servant-server
@@ -141,6 +143,7 @@ test-suite freenatalchart-test
     , lucid
     , req
     , rio >=0.1.12.0
+    , selective
     , servant
     , servant-lucid
     , servant-server

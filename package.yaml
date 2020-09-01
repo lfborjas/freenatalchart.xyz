@@ -39,6 +39,7 @@ dependencies:
 - interpolate
 - cmark
 - validation-selective
+- selective
 - aeson
 - req
 - time
