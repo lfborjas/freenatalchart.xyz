@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d6eab4faac76dd817ab232b13ab30fed1de250a7561d8d36b80916f146a91889
+-- hash: b5d3cd503a94badfbb7e914e13cee8eb9ce08ee3b30d3d05a04c48461c315d09
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -116,8 +116,8 @@ test-suite freenatalchart-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      GeonamesSpec
       UtilSpec
+      ValidationSpec
       Paths_freenatalchart
   hs-source-dirs:
       test

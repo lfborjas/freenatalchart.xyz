@@ -152,8 +152,8 @@ type ParsedParameter a = Either Text a
 
 data BirthData = BirthData
     {
-        chartLocation :: Location
-    ,   chartLocalTime :: LocalTime
+        birthLocation :: Location
+    ,   birthLocalTime :: LocalTime
     } deriving (Eq, Show)
 
 data ChartForm = ChartForm
