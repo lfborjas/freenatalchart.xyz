@@ -4,7 +4,7 @@ module Views.Index (render, renderTestIndex) where
 
 import Import hiding (for_)
 import Lucid
-import RIO.Text (intercalate, pack)
+import RIO.Text (null, intercalate, pack)
 import Data.String.Interpolate.IsString
 import Views.Common
 import Server.Types
@@ -12,13 +12,7 @@ import RIO.List (nub)
 import Servant (toQueryParam, ToHttpApiData)
 
 
-numberInput :: Text -> Text -> (Int, Int) -> Html ()
-numberInput name' label (start, end) = 
-    div_ [class_ "form-group"] $ do
-        label_ [class_ "form-label", for_ name'] (toHtml label)
-        input_ [class_ "form-input", type_ "number", id_ name', name_ name', required_ "", min_ (asText start), max_ (asText end)]
-    where
-        asText = pack . show
+
 
 render :: (Maybe AppContext) -> (Maybe FailedChartForm) -> Html ()
 render ctx maybeForm = html_ $ do
@@ -34,9 +28,17 @@ render ctx maybeForm = html_ $ do
                     -- TODO: maybe link to a sample?
 
             form_ [] $ do
-                div_ [class_ "form-group"] $ do
+                div_ [class_ (formGroupClass (val formLocation) (err InvalidLocation))] $ do
                     label_ [class_ "form-label", for_ "location"] "Born in"
-                    input_ [class_ "form-input", type_ "search", id_ "location", name_ "location", placeholder_ "City or town", required_ ""]
+                    input_ [ class_ "form-input"
+                           , type_ "search"
+                           , id_ "location"
+                           , name_ "location"
+                           , placeholder_ "City or town"
+                           , required_ ""
+                           , value_ (val formLocation)
+                           ]
+                    errorHint (err InvalidLocation)
 
                 -- we could use the native `date` and `time` inputs,
                 -- or even a single `datetime-local`, but browser support
@@ -46,26 +48,26 @@ render ctx maybeForm = html_ $ do
                 -- if we want them tho, e.g.:
                 -- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date
                 fieldset_ $ do
-                    numberInput "day" "Day" (1, 31)
-                    numberInput "month" "Month" (1, 12)
-                    numberInput "year" "Year" (1800, 2399)
-                    numberInput "hour" "Hour" (1, 12)
-                    numberInput "minute" "Minute" (0, 60)
+                    numberInput "day" "Day" (1, 31) (val formDay) (err InvalidDay)
+                    numberInput "month" "Month" (1, 12) (val formMonth) (err InvalidMonth)
+                    numberInput "year" "Year" (1800, 2399) (val formYear) (err InvalidYear)
+                    numberInput "hour" "Hour" (1, 12) (val formHour) (err InvalidHour)
+                    numberInput "minute" "Minute" (0, 60) (val formMinute) (err InvalidMinute)
                 
                     div_ [class_ "form-group"] $ do
                         label_ [class_ "form-radio form-inline"] $ do
-                            input_ [type_ "radio", name_ "am-or-pm", value_ "am", checked_]
+                            input_ $ [type_ "radio", name_ "am-or-pm", value_ "am"] <> (isChecked "AM")
                             i_ [class_ "form-icon"] ""
                             "AM"
                         label_ [class_ "form-radio form-inline"] $ do
-                            input_ [type_ "radio", name_ "am-or-pm", value_ "pm"]
+                            input_ $ [type_ "radio", name_ "am-or-pm", value_ "pm"] <> (isChecked "PM")
                             i_ [class_ "form-icon"] ""
                             "PM"
 
                 -- meant to be filled by the JS for geolocation,
                 -- the server should fall back to "best effort" location if these aren't available.
-                input_ [id_ "lat", name_ "lat", type_ "hidden"]
-                input_ [id_ "lng", name_ "lng", type_ "hidden"]
+                input_ [id_ "lat", name_ "lat", type_ "hidden", value_ (val formLatitude)]
+                input_ [id_ "lng", name_ "lng", type_ "hidden", value_ (val formLongitude)]
 
 
                 button_ [class_ "btn btn-primary"] "Show me my chart"
@@ -88,7 +90,16 @@ render ctx maybeForm = html_ $ do
         -- TODO: host this ourselves.
         script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
         (geolocationScript ctx)
-
+    where
+        val :: ToHttpApiData a => (ChartForm -> ParsedParameter a) -> Text
+        val = val' maybeForm
+        err :: ChartFormValidationError -> Maybe Text
+        err = err' maybeForm
+        isChecked :: Text -> [Attribute]
+        isChecked dayP
+            | (not $ isEmpty $ val formDayPart) && (val formDayPart) == dayP = [checked_]
+            | (isEmpty $ val formDayPart) && dayP == "AM" = [checked_]
+            | otherwise = []
 
 geolocationScript :: (Maybe AppContext) -> Html ()
 geolocationScript Nothing =
@@ -121,8 +132,37 @@ geolocationScript (Just ctx) =
             });
         })();|]
 
-val :: ToHttpApiData a => Maybe FailedChartForm -> (ChartForm -> ParsedParameter a) -> Text
-val f = asInputValue . (valueFromForm f)
+isEmpty :: Text -> Bool
+isEmpty = RIO.Text.null
+
+numberInput :: Text -> Text -> (Int, Int) -> Text -> (Maybe Text) -> Html ()
+numberInput name' label (start, end) value e = 
+    div_ [class_ (formGroupClass value e)] $ do
+        label_ [class_ "form-label", for_ name'] (toHtml label)
+        input_ [ class_ "form-input"
+               , type_ "number"
+               , id_ name'
+               , name_ name'
+               , required_ ""
+               , min_ (asText start)
+               , max_ (asText end)
+               , value_ value
+               ]
+        errorHint e
+    where
+        asText = pack . show
+
+errorHint :: Maybe Text -> Html ()
+errorHint = maybe mempty (\e -> p_ [class_ "form-input-hint"] (toHtml e))
+
+formGroupClass :: Text -> Maybe Text -> Text
+formGroupClass value e
+    | (isEmpty value) && (isJust e) = "form-group has-error"
+    | (not . isEmpty $ value) && (isNothing e) = "form-group has-success"
+    | otherwise = "form-group"
+
+val' :: ToHttpApiData a => Maybe FailedChartForm -> (ChartForm -> ParsedParameter a) -> Text
+val' f = asInputValue . (valueFromForm f)
 
 asInputValue :: ToHttpApiData a => Maybe a -> Text
 asInputValue Nothing = ""
@@ -135,15 +175,15 @@ valueFromForm (Just failedForm) valueFn =
            Just 
            (failedForm & originalForm & valueFn)
 
-err :: Maybe FailedChartForm -> ChartFormValidationError -> Maybe Text
-err Nothing _ = Nothing
-err (Just failedForm) errorType =
+err' :: Maybe FailedChartForm -> ChartFormValidationError -> Maybe Text
+err' Nothing _ = Nothing
+err' (Just failedForm) errorType =
     errorMessagesFor (failedForm & validationErrors) errorType
 
 -- | Given a specific error (e.g. InvalidDateTime,) find any applicable error messages.
 errorMessagesFor :: ChartFormErrors -> ChartFormValidationError -> Maybe Text
 errorMessagesFor errors errorT =
-    if (null allErrors) then
+    if (Import.null allErrors) then
         Nothing
     else
         Just $ intercalate ", " allErrors
