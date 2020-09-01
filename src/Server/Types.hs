@@ -12,6 +12,7 @@ import Lucid.Base (Html)
 import Validation (Validation)
 import RIO.Text (pack)
 import Data.Time.LocalTime.TimeZone.Detect (TimeZoneName)
+import Data.Time.LocalTime (LocalTime)
 
 type Service = 
     Get '[HTML] (Html ())
@@ -37,6 +38,9 @@ newtype Year = Year Integer
 mkYear :: Text -> Either Text Year
 mkYear a = do
     s <- parseUrlPiece a
+    -- this year range is for the only years between which we have ephemerides data;
+    -- astro.com offers larger files for wider ranges, but we're good with
+    -- these for now. Don't pretend you know Jesus's birth time!
     case readInRange (1800, 2399) s of
         Nothing -> Left $ pack $ s <> " is not a valid year."
         Just y -> return $ Year y
@@ -142,4 +146,25 @@ data ChartFormValidationError
     | InvalidDateTime
     deriving (Eq, Show)
 
-type ChartFormValidation a = Validation (NonEmpty (ChartFormValidationError, Text)) a
+type ChartFormErrors = NonEmpty (ChartFormValidationError, Text)
+type ChartFormValidation a = Validation ChartFormErrors a
+type ParsedParameter a = Either Text a
+
+data ChartData = ChartData
+    {
+        chartLocation :: Location
+    ,   chartLocalTime :: LocalTime
+    } deriving (Eq, Show)
+
+data ChartForm = ChartForm
+    {
+        formLocation :: ParsedParameter Text
+    ,   formLatitude :: ParsedParameter Latitude
+    ,   formLongitude :: ParsedParameter Server.Types.Longitude
+    ,   formYear :: ParsedParameter Year
+    ,   formMonth :: ParsedParameter Month
+    ,   formDay :: ParsedParameter Day
+    ,   formHour :: ParsedParameter Hour
+    ,   formMinute :: ParsedParameter Minute
+    ,   formIsAm :: ParsedParameter Bool
+    } deriving (Eq, Show)

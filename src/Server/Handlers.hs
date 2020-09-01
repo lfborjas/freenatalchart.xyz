@@ -37,18 +37,19 @@ about = return $ About.render
 -- params should be `Required Lenient`
 -- as per: http://hackage.haskell.org/package/servant-0.15/docs/Servant-API-Modifiers.html#t:RequestArgument
 validateDate :: 
-    Either Text Year 
-    -> Either Text Month
-    -> Either Text Day
-    -> Either Text Hour
-    -> Either Text Minute
-    -> Either Text Bool
+    ParsedParameter Year 
+    -> ParsedParameter Month
+    -> ParsedParameter Day
+    -> ParsedParameter Hour
+    -> ParsedParameter Minute
+    -> ParsedParameter Bool
     -> ChartFormValidation LocalTime
 validateDate y m d h mn isAm =
     parseTime dateParts
     where
-        invalidDateTimeFailure err = 
-            Failure ( (InvalidDateTime, err) :| [])
+        -- TODO: do we need a different ChartFormValidationError for _each part_? possible here,
+        -- just tedious.
+        invalidDateTimeFailure err = Failure ((InvalidDateTime, err) :| [])
         validateDateComponent = either invalidDateTimeFailure Success
         dateParts = DateParts <$> validateDateComponent y 
                               <*> validateDateComponent m
@@ -56,48 +57,74 @@ validateDate y m d h mn isAm =
                               <*> validateDateComponent h
                               <*> validateDateComponent mn
                               <*> validateDateComponent isAm
-        parseTime (Failure e) = Failure e
-        parseTime (Success dp) = 
-            maybe 
-                (Failure ((InvalidDateTime, (pack $ shown dp) <> " is not a valid date.") :| []))
-                Success
-                (parseTimeM True defaultTimeLocale "%Y-%-m-%-d %l:%-M:%-S %p" (shown dp))
-        show' x = show $ (coerce x :: Integer) 
-        shown DateParts{..} = 
-            (show' year) <> "-"
-            <> (show' month) <> "-"
-            <> (show' day) <> " "
-            <> (show' hour) <> ":"
-            <> (show' minute) <> ":"
-            <> "00" <> " "
-            <> (if isMorning then "AM" else "PM")
+
+parseTime :: ChartFormValidation DateParts -> ChartFormValidation LocalTime
+parseTime (Failure e) = Failure e
+parseTime (Success dp) = 
+    maybe 
+        (Failure ((InvalidDateTime, (pack $ formatDateParts dp) <> " is not a valid date.") :| []))
+        Success
+        (parseTimeM True defaultTimeLocale "%Y-%-m-%-d %l:%-M:%-S %p" (formatDateParts dp))
+
+formatDateParts :: DateParts -> String
+formatDateParts DateParts{..} =
+    (show' year) <> "-"
+    <> (show' month) <> "-"
+    <> (show' day) <> " "
+    <> (show' hour) <> ":"
+    <> (show' minute) <> ":"
+    <> "00" <> " "
+    <> (if isMorning then "AM" else "PM")
+    where
+        show' x = show $ (coerce x :: Integer)
 
 validateLocation ::
-    Either Text Text -- raw location input
-    -> Either Text Latitude
-    -> Either Text Server.Types.Longitude
+    ParsedParameter Text -- raw location input
+    -> ParsedParameter Latitude
+    -> ParsedParameter Server.Types.Longitude
     -> ChartFormValidation Location
 validateLocation loc lt lng = 
-    ifS
-    (Success $ isLeft lt && isLeft lng)
-    (failure (InvalidLocation, "Unable to determine location coordinates"))
-    (mkLocation)
+    ifS (Success $ isLeft lt && isLeft lng)
+        (failure (InvalidLocation, "Unable to determine location coordinates."))
+        (mkLocation)
     where
         invalidLocationFailure e  = Failure ((InvalidLocation, e) :| [])
         validateLocationComponent = either invalidLocationFailure Success
-        tz :: Either Text TimeZoneName
-        tz = do
-            la <- lt
-            lo <- lng
-            let tzName = lookupTimeZoneName' (unLatitude la) (unLongitude lo)
-            case tzName of
-                Nothing -> Left "Unable to determine timezone for your location"
-                Just t -> Right t
-
+        -- TODO: validate location to not be empty? Since we're not doing
+        -- a fallback to a server-side lookup right now, that's not necessary.
         mkLocation = Location <$> validateLocationComponent loc
                               <*> validateLocationComponent lt
                               <*> validateLocationComponent lng
-                              <*> validateLocationComponent tz
+                              <*> validateLocationComponent (getTimeZone lt lng)
+
+getTimeZone :: ParsedParameter Latitude -> ParsedParameter Server.Types.Longitude -> ParsedParameter TimeZoneName
+getTimeZone lt lng = do
+    la <- lt
+    lo <- lng
+    let tzName = lookupTimeZoneName' (unLatitude la) (unLongitude lo)
+    case tzName of
+        Nothing -> Left "Unable to determine timezone for your location."
+        Just t -> Right t
+
+-- | Given the form as it comes from the request, apply all possible validations to ensure:
+-- we have legitimate coordinates, timezone and a local time. If at any point we fail,
+-- a nonempty list of validation errors will be produced, which we should deal with in the form.
+validateChartForm :: ChartForm -> ChartFormValidation ChartData
+validateChartForm ChartForm{..} =
+    ChartData <$> validatedLocation
+              <*> validatedDateTime
+    where
+        validatedLocation = 
+            validateLocation formLocation 
+                             formLatitude
+                             formLongitude
+        validatedDateTime =
+            validateDate formYear
+                         formMonth
+                         formDay
+                         formHour
+                         formMinute
+                         formIsAm
 
 -- TODO: does this belong here?
 lookupTimeZoneName' :: Double -> Double -> Maybe TimeZoneName
