@@ -16,6 +16,7 @@ import RIO.Text (pack)
 import Data.Coerce (coerce)
 import Data.Time.LocalTime.TimeZone.Detect (TimeZoneName, lookupTimeZoneName)
 import Control.Selective (ifS)
+import Validation.Combinators (successToMaybe)
 
 service :: ServerT Service AppM
 service = 
@@ -36,27 +37,30 @@ about = return $ About.render
 -- TODO: should these participate in the AppM monad so they can log and such?
 -- params should be `Required Lenient`
 -- as per: http://hackage.haskell.org/package/servant-0.15/docs/Servant-API-Modifiers.html#t:RequestArgument
-validateDate :: 
-    ParsedParameter Year 
+
+---
+--- DATE VALIDATION
+---
+
+validateDateParts :: ParsedParameter Year 
     -> ParsedParameter Month
     -> ParsedParameter Day
     -> ParsedParameter Hour
     -> ParsedParameter Minute
     -> ParsedParameter Bool
-    -> ChartFormValidation LocalTime
-validateDate y m d h mn isAm =
-    parseTime dateParts
+    -> ChartFormValidation DateParts
+validateDateParts y m d h mn isAm =
+    DateParts <$> validateDateComponent y 
+              <*> validateDateComponent m
+              <*> validateDateComponent d
+              <*> validateDateComponent h
+              <*> validateDateComponent mn
+              <*> validateDateComponent isAm
     where
         -- TODO: do we need a different ChartFormValidationError for _each part_? possible here,
         -- just tedious.
         invalidDateTimeFailure err = failure (InvalidDateTime, err)
         validateDateComponent = either invalidDateTimeFailure Success
-        dateParts = DateParts <$> validateDateComponent y 
-                              <*> validateDateComponent m
-                              <*> validateDateComponent d
-                              <*> validateDateComponent h
-                              <*> validateDateComponent mn
-                              <*> validateDateComponent isAm
 
 parseTime :: ChartFormValidation DateParts -> ChartFormValidation LocalTime
 parseTime (Failure e) = Failure e
@@ -77,6 +81,10 @@ formatDateParts DateParts{..} =
     <> (if isMorning then "AM" else "PM")
     where
         show' x = show $ (coerce x :: Integer)
+
+---
+--- LOCATION VALIDATION
+---
 
 validateLocation ::
     ParsedParameter Text -- raw location input
@@ -107,24 +115,19 @@ getTimeZone lt lng = do
         Just t -> Right t
 
 -- | Given the form as it comes from the request, apply all possible validations to ensure:
--- we have legitimate coordinates, timezone and a local time. If at any point we fail,
--- a nonempty list of validation errors will be produced, which we should deal with in the form.
-validateChartForm :: ChartForm -> ChartFormValidation BirthData
-validateChartForm ChartForm{..} =
-    BirthData <$> validatedLocation
-              <*> validatedDateTime
-    where
-        validatedLocation = 
-            validateLocation formLocation 
-                             formLatitude
-                             formLongitude
-        validatedDateTime =
-            validateDate formYear
-                         formMonth
-                         formDay
-                         formHour
-                         formMinute
-                         formIsAm
+-- we have legitimate coordinates, timezone and a local time. If we succeed, a `BirthData`
+-- is produced with necessary data for calculations. If not, a partial form will be returned.
+validateChartForm :: ChartForm -> Either PartialChartForm BirthData
+validateChartForm ChartForm{..} = do
+    let validatedLocation = validateLocation formLocation formLatitude formLongitude
+        validatedDateParts = validateDateParts formYear formMonth formDay formHour formMinute formIsAm
+        validatedTime = parseTime validatedDateParts
+        validatedForm = BirthData <$> validatedLocation <*> validatedTime
+    case validatedForm of
+        Failure errs -> Left $ PartialChartForm (successToMaybe validatedDateParts)
+                                                (successToMaybe validatedLocation) 
+                                                errs
+        Success bData -> Right bData
 
 -- TODO: does this belong here?
 lookupTimeZoneName' :: Double -> Double -> Maybe TimeZoneName

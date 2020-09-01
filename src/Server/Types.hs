@@ -170,3 +170,10 @@ data ChartForm = ChartForm
     ,   formMinute :: ParsedParameter Minute
     ,   formIsAm :: ParsedParameter Bool
     } deriving (Eq, Show)
+
+data PartialChartForm = PartialChartForm
+    {
+        filledDateParts :: Maybe DateParts
+    ,   filledLocationInfo :: Maybe Location
+    ,   validationErrors :: ChartFormErrors
+    } deriving (Eq, Show)
