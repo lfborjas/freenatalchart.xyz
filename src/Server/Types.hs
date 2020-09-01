@@ -101,6 +101,8 @@ mkMinute a = do
 newtype Latitude = Latitude {unLatitude :: Double}
     deriving (Eq, Show, Num)
 
+-- ranges from this wrong answer that turned out to be right for me:
+-- https://stackoverflow.com/a/23914607
 mkLatitude :: Text -> Either Text Latitude
 mkLatitude a = do
     s <- parseUrlPiece a
