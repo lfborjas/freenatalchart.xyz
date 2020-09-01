@@ -191,9 +191,9 @@ data ChartForm = ChartForm
     ,   formDayPart :: ParsedParameter DayPart
     } deriving (Eq, Show)
 
-data ValidatedChartForm = ValidatedChartForm
+data FailedChartForm = FailedChartForm
     {
-        parsedForm :: ChartForm
+        originalForm :: ChartForm
     ,   validationErrors :: ChartFormErrors
     } deriving (Eq, Show)
 

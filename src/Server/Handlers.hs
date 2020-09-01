@@ -116,14 +116,14 @@ getTimeZone lt lng = do
 -- | Given the form as it comes from the request, apply all possible validations to ensure:
 -- we have legitimate coordinates, timezone and a local time. If we succeed, a `BirthData`
 -- is produced with necessary data for calculations. If not, a partial form will be returned.
-validateChartForm :: ChartForm -> Either ValidatedChartForm BirthData
+validateChartForm :: ChartForm -> Either FailedChartForm BirthData
 validateChartForm original@(ChartForm{..}) = do
     let validatedLocation = validateLocation formLocation formLatitude formLongitude
         validatedDateParts = validateDateParts formYear formMonth formDay formHour formMinute formDayPart
         validatedTime = validateDateTime validatedDateParts
         validatedForm = BirthData <$> validatedLocation <*> validatedTime
     case validatedForm of
-        Failure errs -> Left $ ValidatedChartForm original errs
+        Failure errs -> Left $ FailedChartForm original errs
         Success bData -> Right bData
 
 -- TODO: does this belong here?
