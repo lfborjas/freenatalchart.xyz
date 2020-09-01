@@ -16,7 +16,6 @@ import RIO.Text (pack)
 import Data.Coerce (coerce)
 import Data.Time.LocalTime.TimeZone.Detect (TimeZoneName, lookupTimeZoneName)
 import Control.Selective (ifS)
-import Validation.Combinators (successToMaybe)
 
 service :: ServerT Service AppM
 service = 
@@ -27,7 +26,7 @@ service =
 root :: AppM (Html ())
 root = do
     env <- ask
-    return $ Index.render $ Just env
+    return $ Index.render (Just env) Nothing
 
 about :: AppM (Html ())
 about = return $ About.render

@@ -7,15 +7,14 @@
 
 module Server.Types where
 
-import Import
+import Import hiding (Longitude)
 import Servant
 import Servant.HTML.Lucid
 import Lucid.Base (Html)
 import Validation (Validation)
-import RIO.Text (intercalate, pack)
+import RIO.Text (pack)
 import Data.Time.LocalTime.TimeZone.Detect (TimeZoneName)
 import Data.Time.LocalTime (LocalTime)
-import RIO.List (nub)
 
 type Service = 
     Get '[HTML] (Html ())
@@ -51,6 +50,9 @@ mkYear a = do
 instance FromHttpApiData Year where
     parseUrlPiece = mkYear
 
+instance ToHttpApiData Year where
+    toUrlPiece (Year v) = pack $ show v
+
 newtype Month = Month Integer
     deriving (Eq, Show, Num)
 
@@ -63,6 +65,9 @@ mkMonth a = do
 
 instance FromHttpApiData Month where
     parseUrlPiece = mkMonth
+
+instance ToHttpApiData Month where
+    toUrlPiece (Month m) = pack $ show m
 
 newtype Day = Day Integer
     deriving (Eq, Show, Num)
@@ -77,6 +82,9 @@ mkDay a = do
 instance FromHttpApiData Day where
     parseUrlPiece = mkDay
 
+instance ToHttpApiData Day where
+    toUrlPiece (Day d) = pack $ show d
+
 newtype Hour = Hour Integer
     deriving (Eq, Show, Num)
 
@@ -90,6 +98,9 @@ mkHour a = do
 instance FromHttpApiData Hour where
     parseUrlPiece = mkHour
 
+instance ToHttpApiData Hour where
+    toUrlPiece (Hour h) = pack $ show h
+
 newtype Minute = Minute Integer
     deriving (Eq, Show, Num)
 
@@ -100,7 +111,13 @@ mkMinute a = do
         Nothing -> Left $ pack $ s <> " is not a valid minute."
         Just m -> return $ Minute m
 
-newtype DayPart = DayPart { unDayPart :: String}
+instance FromHttpApiData Minute where
+    parseUrlPiece = mkMinute
+
+instance ToHttpApiData Minute where
+    toUrlPiece (Minute m) = pack $ show m
+
+newtype DayPart = DayPart { unDayPart :: String }
     deriving (Eq, Show, IsString)
 
 mkDayPart :: Text -> Either Text DayPart
@@ -110,6 +127,12 @@ mkDayPart a = do
         return $ DayPart s
     else
         Left $ pack "Please choose part of day (AM or PM)"
+
+instance FromHttpApiData DayPart where
+    parseUrlPiece = mkDayPart
+
+instance ToHttpApiData DayPart where
+    toUrlPiece = pack . unDayPart 
 
 -- TODO(luis): replace the `Longitude` in `types` with this newtype!
 newtype Latitude = Latitude {unLatitude :: Double}
@@ -127,14 +150,23 @@ mkLatitude a = do
 instance FromHttpApiData Latitude where
     parseUrlPiece = mkLatitude
 
+instance ToHttpApiData Latitude where
+    toUrlPiece = pack . show . unLatitude
+
 newtype Longitude = Longitude {unLongitude :: Double}
     deriving (Eq, Show, Num)
+
+instance FromHttpApiData Longitude where
+    parseUrlPiece = mkLongitude
+
+instance ToHttpApiData Longitude where
+    toUrlPiece = pack . show . unLongitude
 
 mkLongitude :: Text -> Either Text Server.Types.Longitude
 mkLongitude a = do
     s <- parseUrlPiece a
     case readInRange (-180.0, 180.0) s of
-        Nothing -> Left $ pack $ s <> " is an invalid longitude.)"
+        Nothing -> Left $ pack $ s <> " is an invalid longitude."
         Just l -> return $ Longitude l
 
 -- Form types:
@@ -196,16 +228,3 @@ data FailedChartForm = FailedChartForm
         originalForm :: ChartForm
     ,   validationErrors :: ChartFormErrors
     } deriving (Eq, Show)
-
--- | Given a specific error (e.g. InvalidDateTime,) find any applicable error messages.
-errorMessagesFor :: ChartFormErrors -> ChartFormValidationError -> Maybe Text
-errorMessagesFor errors errorT =
-    if (null allErrors) then
-        Nothing
-    else
-        Just $ intercalate ", " allErrors
-    where
-        allErrors = 
-            filter (\(e, _) -> e == errorT) (toList errors)
-                & map snd
-                & nub

@@ -4,9 +4,12 @@ module Views.Index (render, renderTestIndex) where
 
 import Import hiding (for_)
 import Lucid
-import RIO.Text (pack)
+import RIO.Text (intercalate, pack)
 import Data.String.Interpolate.IsString
 import Views.Common
+import Server.Types
+import RIO.List (nub)
+import Servant (toQueryParam, ToHttpApiData)
 
 
 numberInput :: Text -> Text -> (Int, Int) -> Html ()
@@ -17,8 +20,8 @@ numberInput name' label (start, end) =
     where
         asText = pack . show
 
-render :: (Maybe AppContext) -> Html ()
-render ctx = html_ $ do
+render :: (Maybe AppContext) -> (Maybe FailedChartForm) -> Html ()
+render ctx maybeForm = html_ $ do
     head_ $ do
         title_ "Free Natal Chart"
         metaCeremony
@@ -82,6 +85,7 @@ render ctx = html_ $ do
                 section_ [class_ "navbar-section"] $ do
                     a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.",  class_ "btn btn-link"] "Source Code"
 
+        -- TODO: host this ourselves.
         script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
         (geolocationScript ctx)
 
@@ -116,9 +120,40 @@ geolocationScript (Just ctx) =
                 $lng.value = '';             
             });
         })();|]
-        
+
+val :: ToHttpApiData a => Maybe FailedChartForm -> (ChartForm -> ParsedParameter a) -> Text
+val f = asInputValue . (valueFromForm f)
+
+asInputValue :: ToHttpApiData a => Maybe a -> Text
+asInputValue Nothing = ""
+asInputValue (Just x) = toQueryParam x
+
+valueFromForm :: Maybe FailedChartForm -> (ChartForm -> ParsedParameter a) -> Maybe a
+valueFromForm Nothing _ = Nothing
+valueFromForm (Just failedForm) valueFn =
+    either (const Nothing)
+           Just 
+           (failedForm & originalForm & valueFn)
+
+err :: Maybe FailedChartForm -> ChartFormValidationError -> Maybe Text
+err Nothing _ = Nothing
+err (Just failedForm) errorType =
+    errorMessagesFor (failedForm & validationErrors) errorType
+
+-- | Given a specific error (e.g. InvalidDateTime,) find any applicable error messages.
+errorMessagesFor :: ChartFormErrors -> ChartFormValidationError -> Maybe Text
+errorMessagesFor errors errorT =
+    if (null allErrors) then
+        Nothing
+    else
+        Just $ intercalate ", " allErrors
+    where
+        allErrors = 
+            filter (\(e, _) -> e == errorT) (toList errors)
+                & map snd
+                & nub
 
 -- | Render to a file on disk, purely for debugging.
 
 renderTestIndex :: IO ()
-renderTestIndex = renderToFile "test/files/index.html" $ render Nothing
+renderTestIndex = renderToFile "test/files/index.html" $ render Nothing Nothing
