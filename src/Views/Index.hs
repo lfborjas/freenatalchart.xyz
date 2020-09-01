@@ -27,7 +27,7 @@ render ctx maybeForm = html_ $ do
                     h1_ "Get your free natal chart"
                     -- TODO: maybe link to a sample?
 
-            form_ [] $ do
+            form_ [action_ "/full-chart", method_ "get"] $ do
                 div_ [class_ (formGroupClass (val formLocation) (err InvalidLocation))] $ do
                     label_ [class_ "form-label", for_ "location"] "Born in"
                     input_ [ class_ "form-input"
@@ -39,6 +39,8 @@ render ctx maybeForm = html_ $ do
                            , value_ (val formLocation)
                            ]
                     errorHint (err InvalidLocation)
+                    noscript_ [class_ "bg-warning"] 
+                              "You seem to have disabled JavaScript. We use a little bit of scripting to determine your birth location based on what you type in this box, without scripting, we're unable to!"
 
                 -- we could use the native `date` and `time` inputs,
                 -- or even a single `datetime-local`, but browser support

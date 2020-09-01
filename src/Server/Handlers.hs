@@ -4,29 +4,53 @@
 
 module Server.Handlers where
 
-import Import
+import Import hiding (Longitude)
 import Server.Types
 import Servant
 import Lucid
-import qualified Views.Index as Index
-import qualified Views.About as About
 import RIO.Time (defaultTimeLocale, parseTimeM, LocalTime)
 import Validation (failure, Validation(..))
 import RIO.Text (pack)
 import Data.Coerce (coerce)
 import Data.Time.LocalTime.TimeZone.Detect (TimeZoneName, lookupTimeZoneName)
 import Control.Selective (ifS)
+import qualified Views.Index as Index
+import qualified Views.About as About
+import qualified Views.Chart as ChartPage
 
 service :: ServerT Service AppM
 service = 
     root
     :<|> about
+    :<|> chart
     :<|> (serveDirectoryWebApp "static")
 
 root :: AppM (Html ())
 root = do
     env <- ask
     return $ Index.render (Just env) Nothing
+
+chart :: ParsedParameter Text ->
+    ParsedParameter Day ->
+    ParsedParameter Month ->
+    ParsedParameter Year ->
+    ParsedParameter Hour ->
+    ParsedParameter Minute ->
+    ParsedParameter DayPart ->
+    ParsedParameter Latitude ->
+    ParsedParameter Longitude ->
+    AppM (Html ())
+chart loc d m y h min dp lt lng = do
+    let form = ChartForm loc lt lng y m d h min dp
+        validated = validateChartForm form
+    case validated of
+        Left f -> do 
+            env <- ask
+            logInfo $ fromString $ show f
+            return $ Index.render (Just env) (Just f)
+        Right birthData -> do
+            return $ ChartPage.render birthData
+
 
 about :: AppM (Html ())
 about = return $ About.render
@@ -65,7 +89,7 @@ validateDateTime (Success dp) =
     maybe 
         (failure (InvalidDateTime, (pack $ formatDateParts dp) <> " is not a valid date."))
         Success
-        (parseTimeM True defaultTimeLocale "%Y-%-m-%-d %l:%-M:%-S %p" (formatDateParts dp))
+        (parseTimeM True defaultTimeLocale "%Y-%-m-%-d %l:%-M:%-S %P" (formatDateParts dp))
 
 formatDateParts :: DateParts -> String
 formatDateParts DateParts{..} =

@@ -16,9 +16,22 @@ import RIO.Text (pack)
 import Data.Time.LocalTime.TimeZone.Detect (TimeZoneName)
 import Data.Time.LocalTime (LocalTime)
 
+type Param' = QueryParam' '[Required, Lenient]
+
 type Service = 
     Get '[HTML] (Html ())
     :<|> "about" :> Get '[HTML] (Html ())
+    :<|> "full-chart" 
+        :> Param' "location" Text
+        :> Param' "day" Day
+        :> Param' "month" Month
+        :> Param' "year" Year
+        :> Param' "hour" Hour
+        :> Param' "minute" Minute
+        :> Param' "am-or-pm" DayPart
+        :> Param' "lat" Latitude
+        :> Param' "lng" Longitude
+        :> Get '[HTML] (Html ())
     :<|> Raw
 
 type AppM = ReaderT AppContext Servant.Handler
@@ -123,7 +136,7 @@ newtype DayPart = DayPart { unDayPart :: String }
 mkDayPart :: Text -> Either Text DayPart
 mkDayPart a = do
     s <- parseUrlPiece a
-    if (s `elem` ["AM", "PM"]) then
+    if (s `elem` ["am", "pm"]) then
         return $ DayPart s
     else
         Left $ pack "Please choose part of day (AM or PM)"
