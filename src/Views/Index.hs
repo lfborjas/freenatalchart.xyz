@@ -24,7 +24,8 @@ render ctx maybeForm = html_ $ do
         div_ [id_ "main", class_ "container"] $ do
             div_ [class_ "hero hero-sm bg-primary"] $ do
                 div_ [class_ "hero-body text-center"] $ do
-                    h1_ "Get your free natal chart"
+                    h1_ $ do
+                        a_ [href_ "/"] "Get your free natal chart"
                     -- TODO: maybe link to a sample?
 
             form_ [action_ "/full-chart", method_ "get"] $ do
