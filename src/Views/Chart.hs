@@ -17,6 +17,7 @@ render BirthData{..} = html_ $ do
 
     body_ $ do
         div_ [id_ "main", class_ "container"] $ do
+            -- TODO: add a navbar/header?
             div_ [class_ "columns"] $ do
                 div_ [class_ "column col-8"] $ do
                     dl_ [] $ do

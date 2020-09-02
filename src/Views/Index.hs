@@ -24,9 +24,7 @@ render ctx maybeForm = html_ $ do
         div_ [id_ "main", class_ "container"] $ do
             div_ [class_ "hero hero-sm bg-primary"] $ do
                 div_ [class_ "hero-body text-center"] $ do
-                    h1_ $ do
-                        a_ [href_ "/"] "Get your free natal chart"
-                    -- TODO: maybe link to a sample?
+                    h1_ "Get your free natal chart"
 
             form_ [action_ "/full-chart", method_ "get"] $ do
                 div_ [class_ (formGroupClass (val formLocation) (err InvalidLocation))] $ do
@@ -76,6 +74,7 @@ render ctx maybeForm = html_ $ do
 
 
                 button_ [class_ "btn btn-primary"] "Show me my chart"
+                a_ [class_ "btn btn-link", href_ "/"] "Start Over"
 
                 -- TODO: add checkboxes for preferences?
                 -- e.g. monochrome -- though ideally the tables would also help:
