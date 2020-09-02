@@ -28,7 +28,7 @@ type Service =
         :> Param' "year" Year
         :> Param' "hour" Hour
         :> Param' "minute" Minute
-        :> Param' "am-or-pm" DayPart
+        :> Param' "day-part" DayPart
         :> Param' "lat" Latitude
         :> Param' "lng" Longitude
         :> Get '[HTML] (Html ())

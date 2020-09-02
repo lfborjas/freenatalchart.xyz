@@ -49,22 +49,24 @@ render ctx maybeForm = html_ $ do
                 -- today, not ~30 years in the past! (showing ma age, heh)
                 -- if we want them tho, e.g.:
                 -- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date
-                fieldset_ $ do
-                    numberInput "day" "Day" (1, 31) (val formDay) (err InvalidDay)
+                fieldset_ [class_ isDateInvalidClass ] $ do
                     numberInput "month" "Month" (1, 12) (val formMonth) (err InvalidMonth)
+                    numberInput "day" "Day" (1, 31) (val formDay) (err InvalidDay)
                     numberInput "year" "Year" (1800, 2399) (val formYear) (err InvalidYear)
                     numberInput "hour" "Hour" (1, 12) (val formHour) (err InvalidHour)
                     numberInput "minute" "Minute" (0, 60) (val formMinute) (err InvalidMinute)
                 
                     div_ [class_ "form-group"] $ do
                         label_ [class_ "form-radio form-inline"] $ do
-                            input_ $ [type_ "radio", name_ "am-or-pm", value_ "am"] <> (isChecked "AM")
+                            input_ $ [type_ "radio", name_ "day-part", value_ "am"] <> (isChecked "am")
                             i_ [class_ "form-icon"] ""
                             "AM"
                         label_ [class_ "form-radio form-inline"] $ do
-                            input_ $ [type_ "radio", name_ "am-or-pm", value_ "pm"] <> (isChecked "PM")
+                            input_ $ [type_ "radio", name_ "day-part", value_ "pm"] <> (isChecked "pm")
                             i_ [class_ "form-icon"] ""
                             "PM"
+
+                    errorHint (err InvalidDateTime)
 
                 -- meant to be filled by the JS for geolocation,
                 -- the server should fall back to "best effort" location if these aren't available.
@@ -93,6 +95,8 @@ render ctx maybeForm = html_ $ do
         script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
         (geolocationScript ctx)
     where
+        isDateInvalidClass =
+            maybe "" (const "has-error") (err InvalidDateTime)
         val :: ToHttpApiData a => (ChartForm -> ParsedParameter a) -> Text
         val = val' maybeForm
         err :: ChartFormValidationError -> Maybe Text
@@ -100,7 +104,7 @@ render ctx maybeForm = html_ $ do
         isChecked :: Text -> [Attribute]
         isChecked dayP
             | (not $ isEmpty $ val formDayPart) && (val formDayPart) == dayP = [checked_]
-            | (isEmpty $ val formDayPart) && dayP == "AM" = [checked_]
+            | (isEmpty $ val formDayPart) && dayP == "am" = [checked_]
             | otherwise = []
 
 geolocationScript :: (Maybe AppContext) -> Html ()
@@ -159,7 +163,7 @@ errorHint = maybe mempty (\e -> p_ [class_ "form-input-hint"] (toHtml e))
 
 formGroupClass :: Text -> Maybe Text -> Text
 formGroupClass value e
-    | (isEmpty value) && (isJust e) = "form-group has-error"
+    | (isJust e) = "form-group has-error"
     | (not . isEmpty $ value) && (isNothing e) = "form-group has-success"
     | otherwise = "form-group"
 
