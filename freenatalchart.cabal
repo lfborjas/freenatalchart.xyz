@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8ad821800e57fc71c7467a05c19f928100f79ebe6044c9173795c79fb46c7193
+-- hash: cbe0dac05f572cc615bd2999dd0ee58e96e25ed778dd0cb48c460b564d338621
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -29,7 +29,6 @@ library
       Chart.Calculations
       Chart.Graphics
       Chart.Prerendered
-      ExternalServices.Geonames
       Import
       Server.Handlers
       Server.Run
