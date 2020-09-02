@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c164e3e87b5e27228a3b0314ad4642216fd7e0102965dfee6868778247e76db1
+-- hash: cbe0dac05f572cc615bd2999dd0ee58e96e25ed778dd0cb48c460b564d338621
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
       Types
       Util
       Views.About
+      Views.Chart
       Views.Common
       Views.Index
   other-modules:
@@ -45,6 +46,7 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
+    , aeson
     , base >=4.11 && <10
     , cmark
     , diagrams
@@ -57,11 +59,15 @@ library
     , http-types
     , interpolate
     , lucid
+    , req
     , rio >=0.1.12.0
+    , selective
     , servant
     , servant-lucid
     , servant-server
     , swiss-ephemeris >=0.1.0.2
+    , time
+    , timezone-detect >=0.2.2.0
     , validation-selective
     , wai
     , warp
@@ -76,6 +82,7 @@ executable freenatalchart-exe
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
+    , aeson
     , base >=4.11 && <10
     , cmark
     , diagrams
@@ -90,11 +97,15 @@ executable freenatalchart-exe
     , interpolate
     , lucid
     , optparse-simple
+    , req
     , rio >=0.1.12.0
+    , selective
     , servant
     , servant-lucid
     , servant-server
     , swiss-ephemeris >=0.1.0.2
+    , time
+    , timezone-detect >=0.2.2.0
     , validation-selective
     , wai
     , warp
@@ -104,13 +115,14 @@ test-suite freenatalchart-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      UtilSpec
+      ValidationSpec
       Paths_freenatalchart
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
+    , aeson
     , base >=4.11 && <10
     , cmark
     , diagrams
@@ -121,15 +133,21 @@ test-suite freenatalchart-test
     , envy
     , freenatalchart
     , hspec
+    , hspec-wai
+    , hspec-wai-json
     , http-api-data
     , http-types
     , interpolate
     , lucid
+    , req
     , rio >=0.1.12.0
+    , selective
     , servant
     , servant-lucid
     , servant-server
     , swiss-ephemeris >=0.1.0.2
+    , time
+    , timezone-detect >=0.2.2.0
     , validation-selective
     , wai
     , warp

@@ -39,6 +39,11 @@ dependencies:
 - interpolate
 - cmark
 - validation-selective
+- selective
+- aeson
+- req
+- time
+- timezone-detect >= 0.2.2.0
 
 ghc-options:
 - -Wall
@@ -72,6 +77,8 @@ tests:
     dependencies:
     - freenatalchart
     - hspec
+    - hspec-wai
+    - hspec-wai-json
 
     ghc-options:
     - -threaded

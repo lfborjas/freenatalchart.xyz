@@ -1,5 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell #-}
+
 module Main (main) where
 
 import Import
@@ -19,6 +19,7 @@ main = do
           , appEphePath = ephePath env
           , appAlgoliaAppId = algoliaAppId env
           , appAlgoliaAppKey = algoliaAppKey env
+          , appGeonamesUsername = GeonamesUsername (geonamesUsername env)
           }
     in
       start ctx
