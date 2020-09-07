@@ -106,6 +106,23 @@ utcToJulian (UTCTime day time) =
     where
         (y, m, d) = toGregorian day
         h         = 2.77778e-16 * (fromIntegral $ diffTimeToPicoseconds time)
+    -- T (uses the Julian Time calculated by astro.com)
+    -- to get this julian from our own library, e.g.
+    -- >>  timeAtPointToUTC' = timeAtPointToUTC "./config/timezone21.bin"
+    -- >>> localTime <- (parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-12-25 04:30:00" :: IO LocalTime)
+    -- >>> TsUTC <- timeAtPointToUTC' 40.7831 (-73.9712) localTime
+    -- >>> Calculations.utcToJulian tsUTC
+    -- 2447885.89583365
+    --let calculations = horoscope 2447885.896491 (mkCoordinates 40.7831 (-73.9712))
+    -- you'll note that our number and astro.com's number differ... but it seems like
+    -- ours is actually correct?
+    -- e.g. inputting T's date on these sites:
+    -- http://www.csgnetwork.com/juliandatetodaycalc.html
+    -- https://ssd.jpl.nasa.gov/tc.cgi#top
+    -- yields the 1989-12-15 9:30:00 for our number, but 9:30:**57** for astro.com's??
+    -- I'm sure they have a good reason, but it's cool we didn't mess up too much!
+    -- Home
+    --let calculations = horoscope (mkTime 2020 8 23 0.0) (mkCoordinates 40.7282 (-73.7949))
 
 aspects' :: (HasLongitude a, HasLongitude b) => [Aspect] -> [a] -> [b] -> [HoroscopeAspect a b]
 aspects' possibleAspects bodiesA bodiesB =
