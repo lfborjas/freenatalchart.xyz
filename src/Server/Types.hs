@@ -93,7 +93,7 @@ parseBounded ctr err a=
 -- astro.com offers larger files for wider ranges, but we're good with
 -- these for now. Don't pretend you know Jesus's birth time!
 instance FromHttpApiData Year where
-    parseUrlPiece = parseBounded mkYear " is not a valid year." 
+    parseUrlPiece = parseBounded mkYear " is not a valid year (we only have astronomical data for the years 1800 AD to 2399 AD.)" 
 
 instance ToHttpApiData Year where
     toUrlPiece (Year v) = pack $ show v
