@@ -4,7 +4,7 @@
 
 module Server.Handlers where
 
-import Import hiding (Longitude)
+import Import
 import Server.Types
 import Servant
 import Lucid
@@ -109,7 +109,7 @@ formatDateParts DateParts{..} =
 validateLocation ::
     ParsedParameter Text -- raw location input
     -> ParsedParameter Latitude
-    -> ParsedParameter Server.Types.Longitude
+    -> ParsedParameter Longitude
     -> ChartFormValidation Location
 validateLocation loc lt lng = 
     ifS (Success $ isLeft lt && isLeft lng)

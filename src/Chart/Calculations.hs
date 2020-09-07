@@ -4,11 +4,12 @@ module Chart.Calculations where
 
 import Import hiding (Earth)
 import SwissEphemeris
+import Data.Time.LocalTime.TimeZone.Detect
 import RIO.List (cycle)
 import RIO.Time (diffTimeToPicoseconds, toGregorian, UTCTime(..))
 
 
--- "main" fn
+-- "main" fns
 
 horoscope :: JulianTime -> Coordinates -> IO HoroscopeData
 horoscope time place = do
@@ -26,10 +27,9 @@ horoscope time place = do
                            (planetaryAspects positions)
                            (celestialAspects positions angles')
 
-
 -- PURE FNs
 
-angularDifference :: Longitude -> Longitude -> Longitude
+angularDifference :: Double -> Double -> Double
 angularDifference a b | (b - a) < 1 = (b + 360 - a)
                       | otherwise = b - a
 
@@ -58,7 +58,7 @@ houses cusps =
         , House XII
         ]
         cusps
-    & map (\(ctr, cusp) -> ctr cusp)
+    & map (\(ctr, cusp) -> ctr $ Longitude cusp)
 
 isRetrograde :: PlanetPosition -> Bool
 isRetrograde PlanetPosition{..} = 
@@ -108,7 +108,7 @@ aspects' possibleAspects bodiesA bodiesB =
         aspectsBetween bodyPair = map (haveAspect bodyPair) possibleAspects
         haveAspect (a,b) asp@Aspect{..} =
             let
-                angleBetween = angularDifference (getLongitude a) (getLongitude b)
+                angleBetween = angularDifference (getLongitudeRaw a) (getLongitudeRaw b)
                 orbBetween = (angle - (abs angleBetween)) & abs
             in
             if orbBetween <= maxOrb then
@@ -123,4 +123,4 @@ planetaryAspects :: [PlanetPosition] -> [HoroscopeAspect PlanetPosition PlanetPo
 planetaryAspects ps = aspects ps $ rotateList 1 ps
 
 celestialAspects :: [PlanetPosition] -> Angles -> [HoroscopeAspect PlanetPosition House]
-celestialAspects ps Angles{..} = aspects ps [House I ascendant, House X mc]
+celestialAspects ps Angles{..} = aspects ps [House I (Longitude ascendant), House X (Longitude mc)]

@@ -3,7 +3,7 @@
 
 module ValidationSpec (spec) where
 
-import Import hiding (Longitude)
+import Import
 import Data.Time
 import Server.Handlers
 import Server.Types

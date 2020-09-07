@@ -100,10 +100,18 @@ instance HasPlanetCircleRadius ChartContext where
   planetCircleRadiusL = lens chartPlanetCircleRadius
                              (\x y -> x{chartPlanetCircleRadius = y})
 
+newtype Longitude = Longitude {unLongitude :: Double}
+    deriving (Eq, Show, Num)
 
 -- domain specific types
 class HasLongitude a where
   getLongitude :: a -> Longitude
+  getLongitudeRaw :: a -> Double
+  getLongitudeRaw = unLongitude . getLongitude
+
+instance HasLongitude Longitude where
+  getLongitude = id
+  getLongitudeRaw = unLongitude
 
 data ZodiacSignName
   = Aries
@@ -127,8 +135,6 @@ data Element
   | Water
   deriving (Eq, Show, Enum, Bounded)
 
-type Longitude = Double
-
 data ZodiacSign = ZodiacSign {
   name :: ZodiacSignName
 , zodiacLongitude :: Longitude
@@ -137,18 +143,18 @@ data ZodiacSign = ZodiacSign {
 
 westernZodiacSigns :: [ZodiacSign]
 westernZodiacSigns =
-    [ZodiacSign { name = Aries, zodiacLongitude = 0.0, zodiacElement = Fire }
-    ,ZodiacSign { name = Taurus, zodiacLongitude = 30.0, zodiacElement = Types.Earth }
-    ,ZodiacSign { name = Gemini, zodiacLongitude = 60.0, zodiacElement = Air }
-    ,ZodiacSign { name = Cancer, zodiacLongitude = 90.0, zodiacElement = Water }
-    ,ZodiacSign { name = Leo, zodiacLongitude = 120.0, zodiacElement = Fire }
-    ,ZodiacSign { name = Virgo, zodiacLongitude = 150.0, zodiacElement = Types.Earth }
-    ,ZodiacSign { name = Libra, zodiacLongitude = 180.0, zodiacElement = Air }
-    ,ZodiacSign { name = Scorpio, zodiacLongitude = 210.0, zodiacElement = Water }
-    ,ZodiacSign { name = Sagittarius, zodiacLongitude = 240.0, zodiacElement = Fire }
-    ,ZodiacSign { name = Capricorn, zodiacLongitude = 270.0, zodiacElement = Types.Earth }
-    ,ZodiacSign { name = Aquarius, zodiacLongitude = 300.0, zodiacElement = Air }
-    ,ZodiacSign { name = Pisces, zodiacLongitude = 330.0, zodiacElement = Water }
+    [ZodiacSign { name = Aries, zodiacLongitude = Longitude 0.0, zodiacElement = Fire }
+    ,ZodiacSign { name = Taurus, zodiacLongitude = Longitude 30.0, zodiacElement = Types.Earth }
+    ,ZodiacSign { name = Gemini, zodiacLongitude = Longitude 60.0, zodiacElement = Air }
+    ,ZodiacSign { name = Cancer, zodiacLongitude = Longitude 90.0, zodiacElement = Water }
+    ,ZodiacSign { name = Leo, zodiacLongitude = Longitude 120.0, zodiacElement = Fire }
+    ,ZodiacSign { name = Virgo, zodiacLongitude = Longitude 150.0, zodiacElement = Types.Earth }
+    ,ZodiacSign { name = Libra, zodiacLongitude = Longitude 180.0, zodiacElement = Air }
+    ,ZodiacSign { name = Scorpio, zodiacLongitude = Longitude 210.0, zodiacElement = Water }
+    ,ZodiacSign { name = Sagittarius, zodiacLongitude = Longitude 240.0, zodiacElement = Fire }
+    ,ZodiacSign { name = Capricorn, zodiacLongitude = Longitude 270.0, zodiacElement = Types.Earth }
+    ,ZodiacSign { name = Aquarius, zodiacLongitude = Longitude 300.0, zodiacElement = Air }
+    ,ZodiacSign { name = Pisces, zodiacLongitude = Longitude 330.0, zodiacElement = Water }
     ]
 
 data HouseNumber 
@@ -173,7 +179,7 @@ data House = House
   } deriving (Eq, Show)
 
 instance HasLongitude House where
-  getLongitude = houseCusp
+  getLongitude =  houseCusp
 
 -- see: https://en.wikipedia.org/wiki/Astrological_aspect
 
@@ -244,7 +250,7 @@ data PlanetPosition = PlanetPosition
   } deriving (Eq, Show)
 
 instance HasLongitude PlanetPosition where
-    getLongitude (PlanetPosition _ coords) = lng coords
+    getLongitude (PlanetPosition _ coords) = Longitude $ lng coords
 
 data HoroscopeData = HoroscopeData
   {
@@ -255,12 +261,3 @@ data HoroscopeData = HoroscopeData
   , horoscopePlanetaryAspects :: [HoroscopeAspect PlanetPosition PlanetPosition]
   , horoscopeAngleAspects :: [HoroscopeAspect PlanetPosition House]
   } deriving (Eq, Show)
-
--- TODO: ugh:
--- introduced this newtype just to be able to test the corrections
--- fn without constructing more intense types, maybe `Longitude`
--- should be a newtype, too.
-newtype Lng = Lng {unLng :: Double} deriving (Show)
-
-instance HasLongitude Lng where
-  getLongitude = unLng

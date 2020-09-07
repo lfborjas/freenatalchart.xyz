@@ -7,7 +7,7 @@
 
 module Server.Types where
 
-import Import hiding (Longitude)
+import Import
 import Servant
 import Servant.HTML.Lucid
 import Lucid.Base (Html)
@@ -165,16 +165,13 @@ instance FromHttpApiData Latitude where
 instance ToHttpApiData Latitude where
     toUrlPiece = pack . show . unLatitude
 
-newtype Longitude = Longitude {unLongitude :: Double}
-    deriving (Eq, Show, Num)
-
 instance FromHttpApiData Longitude where
     parseUrlPiece = mkLongitude
 
 instance ToHttpApiData Longitude where
     toUrlPiece = pack . show . unLongitude
 
-mkLongitude :: Text -> Either Text Server.Types.Longitude
+mkLongitude :: Text -> Either Text Longitude
 mkLongitude a = do
     s <- parseUrlPiece a
     case readInRange (-180.0, 180.0) s of
@@ -197,7 +194,7 @@ data Location = Location
     {
         locationInput :: Text
     ,   locationLatitude :: Latitude
-    ,   locationLongitude :: Server.Types.Longitude
+    ,   locationLongitude :: Longitude
     } deriving (Eq, Show)
 
 data ChartFormValidationError 
@@ -225,7 +222,7 @@ data ChartForm = ChartForm
     {
         formLocation :: ParsedParameter Text
     ,   formLatitude :: ParsedParameter Latitude
-    ,   formLongitude :: ParsedParameter Server.Types.Longitude
+    ,   formLongitude :: ParsedParameter Longitude
     ,   formYear :: ParsedParameter Year
     ,   formMonth :: ParsedParameter Month
     ,   formDay :: ParsedParameter Day

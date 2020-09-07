@@ -19,7 +19,7 @@ zodiacCircle :: ChartContext -> Diagram B
 zodiacCircle env = 
     mconcat $ map zodiacBand westernZodiacSigns
     where
-        zodiacBand (ZodiacSign signName zLng zElement) = 
+        zodiacBand (ZodiacSign signName (Longitude z) zElement) = 
             g <> w # fc signColor
                    # lw thin
                    # (href $ "#zodiac-" <> (show signName))
@@ -28,12 +28,12 @@ zodiacCircle env =
                    # (keyVal $ ("title", show signName))
             where
                 onZodiacs = env ^. zodiacCircleRadiusL
-                d :: Direction V2 Longitude
-                d = rotateBy ((zLng @@ deg) ^. turn) xDir
+                d :: Direction V2 Double
+                d = rotateBy ((z @@ deg) ^. turn) xDir
                 a :: Angle Double
                 a = 30 @@ deg
                 w = annularWedge 1 (onZodiacs) d a
-                glyphPosition = longitudeToPoint (onZodiacs + 0.1) (zLng + 15)
+                glyphPosition = longitudeToPoint (onZodiacs + 0.1) (Longitude $ z + 15)
                 g = (stroke $ P.prerenderedSign signName)
                     # scale 0.15
                     # moveTo glyphPosition
@@ -56,7 +56,7 @@ cuspsCircle env c =
         onZodiacs = env ^. zodiacCircleRadiusL
         onAspects = env ^. aspectCircleRadiusL
         pairedC = zip c $ rotateList 1 c
-        cuspBand (House houseName cuspBegin, House _ cuspEnd) =
+        cuspBand (House houseName (Longitude cuspBegin), House _ (Longitude cuspEnd)) =
             t <> w # lw thin
                    # lc gray
                    # (href $ "#house-" <> (show houseName))
@@ -65,7 +65,7 @@ cuspsCircle env c =
                 a = (angularDifference cuspBegin cuspEnd) @@ deg
                 w = annularWedge (onZodiacs) (onAspects) d a
                 textPosition :: Point V2 Double
-                textPosition = longitudeToPoint (onAspects + 0.05) (cuspBegin + 5)
+                textPosition = longitudeToPoint (onAspects + 0.05) (Longitude $ cuspBegin + 5)
                 t = (text $ houseLabel houseName) 
                     # moveTo textPosition
                     # fontSize (local 0.05)
@@ -76,7 +76,7 @@ quadrants :: ChartContext -> Angles-> Diagram B
 quadrants env Angles{..} = 
     mconcat $ map quadrant angles
     where
-        angles = [(ascendant, "Asc"), (mc, "MC")]
+        angles = [(Longitude ascendant, "Asc"), (Longitude mc, "MC")]
         quadrant (cuspBegin, label) =
             t
             where
@@ -183,7 +183,7 @@ longitudeToPoint :: Double -> Longitude -> Point V2 Double
 longitudeToPoint magnitude longitude = 
     origin .+^ v
     where
-        theta = longitude @@ deg
+        theta = (getLongitudeRaw longitude) @@ deg
         v = magnitude *^ e theta
 
 -- TODO(luis) if the tolerance is too high (about 5 degrees,) these "corrections" may create further
@@ -197,9 +197,9 @@ correctCollisions tolerance originalPositions =
     & (flip zip) sorted
     & map (\(corrected, original) -> if corrected == (getLongitude original) then (Nothing, original) else (Just corrected, original))
     where
-        correction = tolerance / 2 
-        sorted = sortBy (\a b -> compare (getLongitude a) (getLongitude b)) originalPositions
-        proximity x y = abs (getLongitude y - getLongitude x) <= tolerance
+        correction = Longitude $ tolerance / 2 
+        sorted = sortBy (\a b -> compare (getLongitudeRaw a) (getLongitudeRaw b)) originalPositions
+        proximity x y = abs (getLongitudeRaw y - getLongitudeRaw x) <= tolerance
         -- TODO: this is naïve: it's only somewhat elegant for pairs,
         -- and for bigger clusters it just pushes them away... but it works?
         -- also, what happens when we end up negative angles?
