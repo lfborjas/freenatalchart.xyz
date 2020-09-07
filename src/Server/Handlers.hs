@@ -100,7 +100,7 @@ formatDateParts DateParts{..} =
     <> "00" <> " "
     <> (unDayPart dayPart)
     where
-        show' x = show $ (coerce x :: Integer)
+        show' x = show $ (coerce x :: Int)
 
 ---
 --- LOCATION VALIDATION

@@ -6,6 +6,10 @@ module Types where
 import RIO
 import SwissEphemeris (HouseSystem, Angles(..), Planet(..), Coordinates(..))
 import System.Envy (FromEnv)
+import Servant (ToHttpApiData(..), FromHttpApiData(..))
+import RIO.Text (pack)
+import RIO.Time (LocalTime)
+import RIO.Char (toLower)
 
 -- | Reader context for the server
 
@@ -100,18 +104,11 @@ instance HasPlanetCircleRadius ChartContext where
   planetCircleRadiusL = lens chartPlanetCircleRadius
                              (\x y -> x{chartPlanetCircleRadius = y})
 
-newtype Longitude = Longitude {unLongitude :: Double}
-    deriving (Eq, Show, Num)
-
 -- domain specific types
 class HasLongitude a where
   getLongitude :: a -> Longitude
   getLongitudeRaw :: a -> Double
   getLongitudeRaw = unLongitude . getLongitude
-
-instance HasLongitude Longitude where
-  getLongitude = id
-  getLongitudeRaw = unLongitude
 
 data ZodiacSignName
   = Aries
@@ -178,6 +175,7 @@ data House = House
   , houseCusp :: Longitude
   } deriving (Eq, Show)
 
+-- TODO(luis) fix this to be `Longitude houseCusp`?
 instance HasLongitude House where
   getLongitude =  houseCusp
 
@@ -241,7 +239,7 @@ data HoroscopeAspect a b = HoroscopeAspect
     , orb :: Double
     } deriving (Eq, Show)
 
--- additions to SwissEphemeris
+-- extensions to SwissEphemeris
 
 data PlanetPosition = PlanetPosition 
   { 
@@ -261,3 +259,104 @@ data HoroscopeData = HoroscopeData
   , horoscopePlanetaryAspects :: [HoroscopeAspect PlanetPosition PlanetPosition]
   , horoscopeAngleAspects :: [HoroscopeAspect PlanetPosition House]
   } deriving (Eq, Show)
+
+
+-- "safe by construction" newtypes
+
+between :: Ord a => (a, a) -> a -> Bool
+between (begin, end) x =
+  x >= begin && x<= end
+
+maybeBetween :: Ord a => (a, a) -> a -> Maybe a
+maybeBetween range x = 
+  if (between range x) then Just x else Nothing
+
+newtype Year = Year Int
+    deriving  (Eq, Show, Num, Read, Ord)
+
+mkYear :: Int -> Maybe Year
+mkYear y = 
+  maybeBetween (1800, 2399) y >>= (Just . Year)
+
+newtype Month = Month Int
+    deriving (Eq, Show, Read, Num, Ord)
+
+mkMonth :: Int -> Maybe Month
+mkMonth m =
+  maybeBetween (1, 12) m >>= (Just . Month)
+
+newtype Day = Day Int
+    deriving (Eq, Show, Num, Read, Ord)
+
+mkDay :: Int -> Maybe Day
+mkDay d =
+  maybeBetween (1, 31) d >>= (Just . Day)
+
+newtype Hour = Hour Int
+    deriving (Eq, Show, Num, Read, Ord)
+
+mkHour :: Int -> Maybe Hour
+mkHour h =
+  maybeBetween (1, 12) h >>= (Just . Hour)
+
+newtype Minute = Minute Int
+    deriving (Eq, Show, Num)
+
+mkMinute :: Int -> Maybe Minute
+mkMinute m =
+  maybeBetween (0, 60) m >>= (Just . Minute)
+
+newtype DayPart = DayPart { unDayPart :: String }
+    deriving (Eq, Show, IsString)
+
+mkDayPart :: String -> Maybe DayPart
+mkDayPart x = 
+  if (map toLower s) `elem` ["am", "pm"] then
+    Just $ DayPart s
+  else
+    Nothing
+  where 
+    s = take 2 x
+
+newtype Latitude = Latitude {unLatitude :: Double}
+    deriving (Eq, Show, Num)
+
+-- ranges from this wrong answer that turned out to be right for me:
+-- https://stackoverflow.com/a/23914607
+mkLatitude :: Double -> Maybe Latitude
+mkLatitude l = 
+   maybeBetween ((-90.0), 90.0) l >>= (Just . Latitude)
+
+newtype Longitude = Longitude {unLongitude :: Double}
+    deriving (Eq, Show, Num)
+
+instance HasLongitude Longitude where
+  getLongitude = id
+  getLongitudeRaw = unLongitude
+
+mkLongitude :: Double -> Maybe Longitude
+mkLongitude l =
+  maybeBetween ((-180.0), 180.0) l >>= (Just . Longitude)
+
+data DateParts = DateParts 
+    {
+        year :: Year
+    ,   month :: Month
+    ,   day :: Day
+    ,   hour :: Hour
+    ,   minute :: Minute
+    ,   dayPart :: DayPart
+    } deriving (Eq, Show)
+
+data Location = Location
+    {
+        locationInput :: Text
+    ,   locationLatitude :: Latitude
+    ,   locationLongitude :: Longitude
+    } deriving (Eq, Show)
+
+data BirthData = BirthData
+    {
+        birthLocation :: Location
+    ,   birthLocalTime :: LocalTime
+    } deriving (Eq, Show)
