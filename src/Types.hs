@@ -4,20 +4,20 @@
 module Types where
 
 import RIO
-import SwissEphemeris (HouseSystem, Angles(..), Planet(..), Coordinates(..))
+import SwissEphemeris (JulianTime, HouseSystem, Angles(..), Planet(..), Coordinates(..))
 import System.Envy (FromEnv)
-import Servant (ToHttpApiData(..), FromHttpApiData(..))
-import RIO.Text (pack)
-import RIO.Time (LocalTime)
+import RIO.Time (UTCTime, LocalTime)
 import RIO.Char (toLower)
 import Data.Time.LocalTime.TimeZone.Detect (TimeZoneDatabase)
 
 -- | Reader context for the server
 
+type EphemeridesPath = FilePath
+
 data AppContext = AppContext
   { appLogFunc :: !LogFunc
   , appPort :: !Int
-  , appEphePath :: !FilePath
+  , appEphePath :: !EphemeridesPath
   , appAlgoliaAppId :: !String
   , appAlgoliaAppKey :: !String
   , appTimeZoneDatabase :: !TimeZoneDatabase
@@ -261,6 +261,8 @@ data HoroscopeData = HoroscopeData
   , horoscopeSystem :: HouseSystem
   , horoscopePlanetaryAspects :: [HoroscopeAspect PlanetPosition PlanetPosition]
   , horoscopeAngleAspects :: [HoroscopeAspect PlanetPosition House]
+  , horoscopeUniversalTime :: UTCTime
+  , horoscopeJulianTime :: JulianTime
   } deriving (Eq, Show)
 
 

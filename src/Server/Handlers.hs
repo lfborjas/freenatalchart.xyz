@@ -45,7 +45,7 @@ chart loc d m y h min' dp lt lng = do
     case validated of
         Left f -> do 
             env <- ask
-            logInfo $ fromString $ show f
+            --logInfo $ fromString $ show f
             return $ Index.render (Just env) (Just f)
         Right birthData -> do
             return $ ChartPage.render birthData

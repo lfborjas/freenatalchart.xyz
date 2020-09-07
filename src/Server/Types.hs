@@ -15,7 +15,6 @@ import Servant.HTML.Lucid
 import Lucid.Base (Html)
 import Validation (Validation)
 import RIO.Text (pack)
-import Data.Time.LocalTime (LocalTime)
 
 type Param' = QueryParam' '[Required, Lenient]
 

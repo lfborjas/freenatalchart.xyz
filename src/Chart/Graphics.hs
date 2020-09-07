@@ -1,19 +1,21 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE FlexibleContexts, TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts, TypeFamilies, OverloadedStrings #-}
 
 module Chart.Graphics where
 
 import Import hiding ((^.), local, over)
-import Diagrams.Prelude
+import Diagrams.Prelude hiding (aspect)
 import Diagrams.Backend.SVG
 import Diagrams.TwoD.Vector (e)
 import Diagrams.Core.Types (keyVal)
-import Chart.Calculations (isRetrograde, mkCoordinates, mkTime, horoscope, angularDifference, rotateList)
+import Chart.Calculations (isRetrograde, horoscope, angularDifference, rotateList)
 import Chart.Prerendered as P
-import SwissEphemeris (Planet(..), Angles(..), closeEphemerides, setEphemeridesPath)
+import SwissEphemeris (Planet(..), Angles(..))
 import RIO.List (groupBy, sortBy)
+import RIO.Time (defaultTimeLocale, parseTimeM, LocalTime)
+import Data.Time.LocalTime.TimeZone.Detect (openTimeZoneDatabase)
 
 zodiacCircle :: ChartContext -> Diagram B
 zodiacCircle env = 
@@ -133,7 +135,7 @@ planets env planetPositions =
                 atCorrectedPosition  = flip longitudeToPoint $ drawPlanetAt
                 correctedPosition = atCorrectedPosition onPlanets
                 atEclipticPosition = flip longitudeToPoint $ getLongitude pos
-                eclipticPosition = atEclipticPosition onPlanets
+                --eclipticPosition = atEclipticPosition onPlanets
                 aspectCircleLine = atEclipticPosition onAspects ~~ atEclipticPosition (onAspects + 0.03)
                 zodiacCircleLine = atEclipticPosition onZodiacs ~~ atEclipticPosition (onZodiacs - 0.03)
                 guideLines = (aspectCircleLine <> zodiacCircleLine) # lw thin
@@ -232,12 +234,14 @@ renderChart z@HoroscopeData{..}= do
 
 renderTestChart :: IO ()
 renderTestChart = do
-    -- TODO: bring in the `directory` package?
-    setEphemeridesPath "/Users/luis/code/lfborjas/freenatalchart.xyz/config"
     -- L
     -- let calculations = horoscope 2447532.771485 (mkCoordinates 14.0839053 (-87.2750137))
     -- Test
-    calculations <- horoscope (mkTime 1989 1 6 0.0) (mkCoordinates 14.0839053 (-87.2750137))
+    tzdb <- openTimeZoneDatabase "./config/timezone21.bin"
+    ephe <- pure $ "./config"
+    birthplace <- pure $ Location "Tegucigalpa" (Latitude 14.0839053) (Longitude $ -87.2750137)
+    birthtime  <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:00:00" :: IO LocalTime
+    calculations <- horoscope tzdb ephe (BirthData birthplace birthtime)
     -- T (uses the Julian Time calculated by astro.com)
     -- to get this julian from our own library, e.g.
     -- >>  timeAtPointToUTC' = timeAtPointToUTC "./config/timezone21.bin"
@@ -257,4 +261,3 @@ renderTestChart = do
     --let calculations = horoscope (mkTime 2020 8 23 0.0) (mkCoordinates 40.7282 (-73.7949))
 
     renderChart calculations
-    closeEphemerides

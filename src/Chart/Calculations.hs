@@ -9,23 +9,33 @@ import RIO.List (cycle)
 import RIO.Time (diffTimeToPicoseconds, toGregorian, UTCTime(..))
 
 
--- "main" fns
+-- "main" fn
 
-horoscope :: JulianTime -> Coordinates -> IO HoroscopeData
-horoscope time place = do
-    positionsM <- forM [Sun .. Chiron] $ \p -> do
-        coords <- calculateCoordinates time p
-        pure $ (p, coords)
+horoscope :: TimeZoneDatabase -> EphemeridesPath -> BirthData -> IO HoroscopeData
+horoscope timezoneDB ephePath BirthData{..} = do
+    latitude   <- pure $ birthLocation & locationLatitude & unLatitude
+    longitude  <- pure $ birthLocation & locationLongitude & unLongitude
+    -- convert to what the underlying library expects: a UTC time, and a pair of raw coordinates.
+    uTime      <- timeAtPointToUTC timezoneDB latitude longitude birthLocalTime
+    time       <- pure $ utcToJulian uTime
+    place      <- pure $ mkCoordinates{lat=latitude, lng=longitude}
 
-    (CuspsCalculation cusps angles' sys) <- calculateCusps Placidus time place
-    
-    let positions = planetPositions positionsM
-    return $ HoroscopeData positions
-                           angles'
-                           (houses cusps)
-                           sys
-                           (planetaryAspects positions)
-                           (celestialAspects positions angles')
+    withEphemerides ephePath $ do
+        positionsM <- forM [Sun .. Chiron] $ \p -> do
+            coords <- calculateCoordinates time p
+            pure $ (p, coords)
+
+        (CuspsCalculation cusps angles' sys) <- calculateCusps Placidus time place
+        
+        let positions = planetPositions positionsM
+        return $ HoroscopeData positions
+                               angles'
+                               (houses cusps)
+                               sys
+                               (planetaryAspects positions)
+                               (celestialAspects positions angles')
+                               uTime
+                               time
 
 -- PURE FNs
 
@@ -85,9 +95,6 @@ planetPositions ps =
                 TrueNode -> Left "True node not displayed by default, using Mean Node"
                 _ -> PlanetPosition p <$> c
 
-
-mkCoordinates :: Double -> Double -> Coordinates
-mkCoordinates lat' lng' = defaultCoordinates{lat = lat', lng = lng'}
 
 mkTime :: Int -> Int -> Int -> Double -> JulianTime
 mkTime = julianDay

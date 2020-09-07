@@ -6,7 +6,6 @@ module Views.Chart (render) where
 import Import hiding (for_)
 import Lucid
 import Views.Common
-import Server.Types
 import RIO.Time (defaultTimeLocale, formatTime)
 
 render :: BirthData -> Html ()
