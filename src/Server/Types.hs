@@ -13,7 +13,6 @@ import Servant.HTML.Lucid
 import Lucid.Base (Html)
 import Validation (Validation)
 import RIO.Text (pack)
-import Data.Time.LocalTime.TimeZone.Detect (TimeZoneName)
 import Data.Time.LocalTime (LocalTime)
 
 type Param' = QueryParam' '[Required, Lenient]
@@ -199,7 +198,6 @@ data Location = Location
         locationInput :: Text
     ,   locationLatitude :: Latitude
     ,   locationLongitude :: Server.Types.Longitude
-    ,   locationTimeZone :: TimeZoneName
     } deriving (Eq, Show)
 
 data ChartFormValidationError 

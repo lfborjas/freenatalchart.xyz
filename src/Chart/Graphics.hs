@@ -237,7 +237,7 @@ renderTestChart = do
     -- L
     -- let calculations = horoscope 2447532.771485 (mkCoordinates 14.0839053 (-87.2750137))
     -- Test
-    let calculations = horoscope (mkTime 1989 1 6 0.0) (mkCoordinates 14.0839053 (-87.2750137))
+    calculations <- horoscope (mkTime 1989 1 6 0.0) (mkCoordinates 14.0839053 (-87.2750137))
     -- T (uses the Julian Time calculated by astro.com)
     -- to get this julian from our own library, e.g.
     -- >>  timeAtPointToUTC' = timeAtPointToUTC "./config/timezone21.bin"

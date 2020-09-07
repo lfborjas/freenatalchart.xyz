@@ -32,7 +32,7 @@ spec = do
               }
           expectedBirthData =
             BirthData
-              { birthLocation = (Location "Queens" (Latitude 40.7831) (Longitude $ -73.9712) "America/New_York"),
+              { birthLocation = (Location "Queens" (Latitude 40.7831) (Longitude $ -73.9712)),
                 birthLocalTime = (localTimeFromString "2020-08-31 20:30:00")
               }
           parsed = validateChartForm form

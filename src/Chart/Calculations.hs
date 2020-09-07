@@ -7,6 +7,28 @@ import SwissEphemeris
 import RIO.List (cycle)
 import RIO.Time (diffTimeToPicoseconds, toGregorian, UTCTime(..))
 
+
+-- "main" fn
+
+horoscope :: JulianTime -> Coordinates -> IO HoroscopeData
+horoscope time place = do
+    positionsM <- forM [Sun .. Chiron] $ \p -> do
+        coords <- calculateCoordinates time p
+        pure $ (p, coords)
+
+    (CuspsCalculation cusps angles' sys) <- calculateCusps Placidus time place
+    
+    let positions = planetPositions positionsM
+    return $ HoroscopeData positions
+                           angles'
+                           (houses cusps)
+                           sys
+                           (planetaryAspects positions)
+                           (celestialAspects positions angles')
+
+
+-- PURE FNs
+
 angularDifference :: Longitude -> Longitude -> Longitude
 angularDifference a b | (b - a) < 1 = (b + 360 - a)
                       | otherwise = b - a
@@ -19,21 +41,24 @@ rotateList n  xs = zipWith const (drop n (cycle xs)) xs
 -- TODO(luis): this feels silly but orderly, maybe SwissEphemeris
 -- should just return an array? A house's number is important though,
 -- so some manner of silly unpacking and repacking would happen anyway?
-houses :: HouseCusps -> [House]
-houses HouseCusps{..} =
-    [ House I i
-    , House II ii
-    , House III iii
-    , House IV iv
-    , House V v
-    , House VI vi
-    , House VII vii
-    , House VIII viii
-    , House IX ix
-    , House X x
-    , House XI xi
-    , House XII xii
-    ]
+houses :: [HouseCusp] -> [House]
+houses cusps =
+    zip 
+        [ House I
+        , House II
+        , House III
+        , House IV
+        , House V
+        , House VI
+        , House VII
+        , House VIII
+        , House IX
+        , House X
+        , House XI
+        , House XII
+        ]
+        cusps
+    & map (\(ctr, cusp) -> ctr cusp)
 
 isRetrograde :: PlanetPosition -> Bool
 isRetrograde PlanetPosition{..} = 
@@ -43,7 +68,12 @@ isRetrograde PlanetPosition{..} =
         TrueNode -> False
         _ -> (lngSpeed planetCoordinates) < 0
 
-
+-- | Given a celestial body and (maybe) its coordinates, apply some business logic
+-- and construct a richer `PlanetPosition`.
+-- The business logic:
+-- * If coordinates couldn't be calculated, the planet is ignored (can happen for Chiron
+--   if not using ephemeris that have data for it.)
+-- * If it's one of the "ignored" bodies (Earth, True Node, True Lilith,) we also ignore it.
 planetPositions :: [(Planet, Either String Coordinates)] -> [PlanetPosition]
 planetPositions ps =
     map positionBuilder ps & rights
@@ -69,19 +99,6 @@ utcToJulian (UTCTime day time) =
     where
         (y, m, d) = toGregorian day
         h         = 2.77778e-16 * (fromIntegral $ diffTimeToPicoseconds time)
-
-horoscope :: JulianTime -> Coordinates -> HoroscopeData
-horoscope time place =
-    HoroscopeData positions
-                  angles
-                  housesCalculated
-                  Placidus
-                  (planetaryAspects positions)
-                  (celestialAspects positions angles)
-    where
-        positions = map (\p -> (p, calculateCoordinates time p)) [Sun .. Chiron] & planetPositions
-        CuspsCalculation h angles = calculateCusps time place Placidus
-        housesCalculated = houses $ h
 
 aspects' :: (HasLongitude a, HasLongitude b) => [Aspect] -> [a] -> [b] -> [HoroscopeAspect a b]
 aspects' possibleAspects bodiesA bodiesB =

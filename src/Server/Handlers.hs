@@ -12,7 +12,6 @@ import RIO.Time (defaultTimeLocale, parseTimeM, LocalTime)
 import Validation (failure, Validation(..))
 import RIO.Text (pack)
 import Data.Coerce (coerce)
-import Data.Time.LocalTime.TimeZone.Detect (TimeZoneName, lookupTimeZoneName)
 import Control.Selective (ifS)
 import qualified Views.Index as Index
 import qualified Views.About as About
@@ -40,8 +39,8 @@ chart :: ParsedParameter Text ->
     ParsedParameter Latitude ->
     ParsedParameter Longitude ->
     AppM (Html ())
-chart loc d m y h min dp lt lng = do
-    let form = ChartForm loc lt lng y m d h min dp
+chart loc d m y h min' dp lt lng = do
+    let form = ChartForm loc lt lng y m d h min' dp
         validated = validateChartForm form
     case validated of
         Left f -> do 
@@ -119,25 +118,12 @@ validateLocation loc lt lng =
     where
         invalidLocationFailure e  = failure (InvalidLocation, e)
         validateLocationComponent = either invalidLocationFailure Success
-        -- TODO: validate location to not be empty? Since we're not doing
-        -- a fallback to a server-side lookup right now, that's not necessary.
-        -- TODO: pre-fill timezone?
         mkLocation = Location <$> validateLocationComponent loc
                               <*> validateLocationComponent lt
                               <*> validateLocationComponent lng
-                              <*> validateLocationComponent (getTimeZone lt lng)
-
-getTimeZone :: ParsedParameter Latitude -> ParsedParameter Server.Types.Longitude -> ParsedParameter TimeZoneName
-getTimeZone lt lng = do
-    la <- lt
-    lo <- lng
-    let tzName = lookupTimeZoneName' (unLatitude la) (unLongitude lo)
-    case tzName of
-        Nothing -> Left "Unable to determine timezone for your location."
-        Just t -> Right t
 
 -- | Given the form as it comes from the request, apply all possible validations to ensure:
--- we have legitimate coordinates, timezone and a local time. If we succeed, a `BirthData`
+-- we have legitimate coordinates, and a local time. If we succeed, a `BirthData`
 -- is produced with necessary data for calculations. If not, a partial form will be returned.
 validateChartForm :: ChartForm -> Either FailedChartForm BirthData
 validateChartForm original@(ChartForm{..}) = do
@@ -149,6 +135,9 @@ validateChartForm original@(ChartForm{..}) = do
         Failure errs -> Left $ FailedChartForm original errs
         Success bData -> Right bData
 
--- TODO: does this belong here?
-lookupTimeZoneName' :: Double -> Double -> Maybe TimeZoneName
-lookupTimeZoneName' = lookupTimeZoneName "./config/timezone21.bin"
+---
+--- Pièce de Résistance
+--- 
+
+--calculateHoroscope :: BirthData -> IO HoroscopeData
+--calculateHoroscope 
