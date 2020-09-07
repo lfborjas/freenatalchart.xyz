@@ -10,11 +10,9 @@ import Servant (ToHttpApiData(..), FromHttpApiData(..))
 import RIO.Text (pack)
 import RIO.Time (LocalTime)
 import RIO.Char (toLower)
+import Data.Time.LocalTime.TimeZone.Detect (TimeZoneDatabase)
 
 -- | Reader context for the server
-
-newtype GeonamesUsername = GeonamesUsername String
-  deriving (Show, Generic, IsString)
 
 data AppContext = AppContext
   { appLogFunc :: !LogFunc
@@ -22,7 +20,7 @@ data AppContext = AppContext
   , appEphePath :: !FilePath
   , appAlgoliaAppId :: !String
   , appAlgoliaAppKey :: !String
-  , appGeonamesUsername :: !GeonamesUsername
+  , appTimeZoneDatabase :: !TimeZoneDatabase
   -- Add other app-specific configuration information here
   }
 
@@ -49,12 +47,11 @@ class HasAlgoliaAppKey env where
 instance HasAlgoliaAppKey AppContext where
   algoliaAppKeyL = lens appAlgoliaAppKey (\x y -> x { appAlgoliaAppKey = y})
 
-class HasGeonamesUsername env where
-  geonamesUsernameL :: Lens' env GeonamesUsername
-instance HasGeonamesUsername AppContext where
-  geonamesUsernameL = lens appGeonamesUsername (\x y -> x { appGeonamesUsername = y})
-instance HasGeonamesUsername GeonamesUsername where
-  geonamesUsernameL = id
+class HasTimeZoneDatabase env where
+  timeZoneDatabaseL :: Lens' env TimeZoneDatabase
+instance HasTimeZoneDatabase AppContext where
+  timeZoneDatabaseL = lens appTimeZoneDatabase (\x y -> x { appTimeZoneDatabase = y})
+
 
 data AppOptions = AppOptions
   {
@@ -62,11 +59,17 @@ data AppOptions = AppOptions
   , ephePath :: FilePath
   , algoliaAppId :: String
   , algoliaAppKey :: String
-  , geonamesUsername :: String
+  , timezoneDatabaseFile :: FilePath
   } deriving (Generic, Show)
 
 defaultConfig :: AppOptions
-defaultConfig = AppOptions 3000 "./config" "" "" ""
+defaultConfig = AppOptions { 
+  port = 3000,
+  ephePath = "./config", 
+  algoliaAppId = "", 
+  algoliaAppKey = "", 
+  timezoneDatabaseFile = "./config/timezone21.bin"
+}
 
 instance FromEnv AppOptions
 
