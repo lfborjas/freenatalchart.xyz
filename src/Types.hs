@@ -341,7 +341,7 @@ mkLatitude l =
    maybeBetween ((-90.0), 90.0) l >>= (Just . Latitude)
 
 newtype Longitude = Longitude {unLongitude :: Double}
-    deriving (Eq, Show, Num)
+    deriving (Eq, Show, Num, Ord)
 
 instance HasLongitude Longitude where
   getLongitude = id

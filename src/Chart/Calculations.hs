@@ -5,7 +5,7 @@ module Chart.Calculations where
 import Import hiding (Earth)
 import SwissEphemeris
 import Data.Time.LocalTime.TimeZone.Detect
-import RIO.List (cycle)
+import RIO.List (lastMaybe, sortBy, headMaybe, cycle)
 import RIO.Time (diffTimeToPicoseconds, toGregorian, UTCTime(..))
 import RIO.Partial (toEnum)
 
@@ -174,4 +174,13 @@ zodiacPosition a =
     in
         ZodiacPosition sign degrees minutes seconds
 
---housePosition :: HasLongitude a => a -> HouseNumber
+-- | Get the house a given celestial body is "in". Note that it will
+-- /only/ "promote" to the next house if the body is exactly on the cusp.
+housePosition :: HasLongitude a => [House] -> a -> Maybe House
+housePosition houses' body =
+    span (\h -> (getLongitude h) <= (getLongitude body)) sortedHouses
+        & fst
+        & lastMaybe
+        -- & fmap houseNumber
+    where
+        sortedHouses = sortBy (\a b -> compare (getLongitude a) (getLongitude b)) houses'
