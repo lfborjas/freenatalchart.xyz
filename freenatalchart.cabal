@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d49ee3a6427b438c09e98e46ffd9244698353fee79ea6fa703a779a692485067
+-- hash: 853c95147cf33bc841570709f48f7b14ca40df0aea31aed456237c8d3cf9b73f
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -63,6 +63,7 @@ library
     , servant
     , servant-lucid
     , servant-server
+    , svg-builder
     , swiss-ephemeris >=1.0.0.0
     , time
     , timezone-detect >=0.3.0.0
@@ -99,6 +100,7 @@ executable freenatalchart-exe
     , servant
     , servant-lucid
     , servant-server
+    , svg-builder
     , swiss-ephemeris >=1.0.0.0
     , time
     , timezone-detect >=0.3.0.0
@@ -141,6 +143,7 @@ test-suite freenatalchart-test
     , servant
     , servant-lucid
     , servant-server
+    , svg-builder
     , swiss-ephemeris >=1.0.0.0
     , time
     , timezone-detect >=0.3.0.0

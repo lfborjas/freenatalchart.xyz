@@ -122,7 +122,12 @@ instance ToHttpApiData Minute where
     toUrlPiece (Minute m) = pack $ show m
 
 instance FromHttpApiData DayPart where
-    parseUrlPiece = parseBounded mkDayPart " please choose a part of day (AM or PM.)"
+    parseUrlPiece a = do 
+        s <- parseUrlPiece a
+        let parsed = mkDayPart s
+        case parsed of
+            Nothing -> Left $ pack s <> " please chooose a part of day (AM or PM)"
+            Just d  -> Right d
 
 instance ToHttpApiData DayPart where
     toUrlPiece = pack . unDayPart 

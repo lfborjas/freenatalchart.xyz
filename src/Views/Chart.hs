@@ -7,9 +7,11 @@ import Import hiding (for_)
 import Lucid
 import Views.Common
 import RIO.Time (defaultTimeLocale, formatTime)
+import Chart.Graphics (renderChart)
+import qualified Graphics.Svg as Svg
 
-render :: BirthData -> Html ()
-render BirthData{..} = html_ $ do
+render :: BirthData -> HoroscopeData-> Html ()
+render BirthData{..} h@HoroscopeData{..} = html_ $ do
     head_ $ do
         title_ "Your Natal Chart"
         metaCeremony
@@ -25,6 +27,8 @@ render BirthData{..} = html_ $ do
 
                         dt_ [] "Time of Birth:"
                         dd_ [] (toHtml $ birthLocalTime & formatTime defaultTimeLocale "%Y-%m-%d %l:%M:%S %P")
+
+                    toHtmlRaw $ Svg.renderBS $ renderChart h
 
                 div_ [class_ "column col-4"] $ do
                     div_ [class_ "accordion"] $ do

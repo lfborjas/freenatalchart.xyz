@@ -16,6 +16,7 @@ import Control.Selective (ifS)
 import qualified Views.Index as Index
 import qualified Views.About as About
 import qualified Views.Chart as ChartPage
+import Chart.Calculations (horoscope)
 
 service :: ServerT Service AppM
 service = 
@@ -40,16 +41,23 @@ chart :: ParsedParameter Text ->
     ParsedParameter Longitude ->
     AppM (Html ())
 chart loc d m y h min' dp lt lng = do
+    env <- ask
     let form = ChartForm loc lt lng y m d h min' dp
         validated = validateChartForm form
     case validated of
         Left f -> do 
-            env <- ask
-            --logInfo $ fromString $ show f
+            logInfo $ fromString $ show f
             return $ Index.render (Just env) (Just f)
         Right birthData -> do
-            return $ ChartPage.render birthData
+            renderChartPage birthData
 
+renderChartPage :: BirthData -> AppM (Html ())
+renderChartPage birthData = do
+    env <- ask
+    let ephemerides = env ^. ephePathL
+        tzDatabase  = env ^. timeZoneDatabaseL
+    horoscopeData <- liftIO $ horoscope tzDatabase ephemerides birthData
+    return $ ChartPage.render birthData horoscopeData
 
 about :: AppM (Html ())
 about = return $ About.render

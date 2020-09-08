@@ -42,6 +42,7 @@ dependencies:
 - selective
 - time
 - timezone-detect >= 0.3.0.0
+- svg-builder
 
 ghc-options:
 - -Wall

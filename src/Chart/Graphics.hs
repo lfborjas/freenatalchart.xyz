@@ -5,7 +5,7 @@
 
 module Chart.Graphics where
 
-import Import hiding ((^.), local, over)
+import Import hiding ((^.), local, over, Element)
 import Diagrams.Prelude hiding (aspect)
 import Diagrams.Backend.SVG
 import Diagrams.TwoD.Vector (e)
@@ -15,7 +15,8 @@ import Chart.Prerendered as P
 import SwissEphemeris (Planet(..), Angles(..))
 import RIO.List (groupBy, sortBy)
 import RIO.Time (defaultTimeLocale, parseTimeM, LocalTime)
-import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase, openTimeZoneDatabase)
+import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
+import qualified Graphics.Svg as Svg
 
 zodiacCircle :: ChartContext -> Diagram B
 zodiacCircle env = 
@@ -215,21 +216,17 @@ correctCollisions tolerance originalPositions =
         correctCollisions' (x:xs) = (getLongitude x) : map (\y -> (getLongitude y) + correction) xs 
         
 
--- TODO: probably need a reader monad context here (for pre-rendered things.)
--- also, need to return the diagram, not render to a file.
-renderChart :: HoroscopeData -> IO ()
-renderChart z@HoroscopeData{..}= do
-  let env = ChartContext{
-    chartAscendantOffset = ascendantOffset,
-    chartZodiacCircleRadius = 0.8,
-    chartAspectCircleRadius = 0.5,
-    chartPlanetCircleRadius = 0.65
-  }
-  renderSVG 
-    "circle.svg"
-    (mkWidth 400)
-    (chart env z # rotateBy ((ascendantOffset @@ deg) ^. turn))
+renderChart :: HoroscopeData -> Svg.Element
+renderChart z@HoroscopeData{..} =
+    renderDia SVG (SVGOptions (mkWidth 400) Nothing "" [] True) birthChart
     where
+        cfg = ChartContext{
+                chartAscendantOffset = ascendantOffset,
+                chartZodiacCircleRadius = 0.8,
+                chartAspectCircleRadius = 0.5,
+                chartPlanetCircleRadius = 0.65
+        }
+        birthChart = chart cfg z # rotateBy ((ascendantOffset @@ deg) ^. turn)
         ascendantOffset = 180 - (ascendant horoscopeAngles)
 
 renderTestChart :: IO ()
@@ -239,4 +236,4 @@ renderTestChart = do
         birthplace <- pure $ Location "Tegucigalpa" (Latitude 14.0839053) (Longitude $ -87.2750137)
         birthtime  <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:00:00" :: IO LocalTime
         calculations <- horoscope db ephe (BirthData birthplace birthtime)
-        renderChart calculations
+        Svg.renderToFile "circle.svg" $ renderChart calculations
