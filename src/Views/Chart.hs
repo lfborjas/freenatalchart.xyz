@@ -1,14 +1,16 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings, QuasiQuotes#-}
 
-module Views.Chart (render) where
+module Views.Chart (render, renderTestChartPage) where
 
 import Import hiding (for_)
 import Lucid
 import Views.Common
-import RIO.Time (defaultTimeLocale, formatTime)
+import RIO.Time (parseTimeM, LocalTime, defaultTimeLocale, formatTime)
 import Chart.Graphics (renderChart)
+import Chart.Calculations (horoscope)
 import qualified Graphics.Svg as Svg
+import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 
 render :: BirthData -> HoroscopeData-> Html ()
 render BirthData{..} h@HoroscopeData{..} = html_ $ do
@@ -25,8 +27,15 @@ render BirthData{..} h@HoroscopeData{..} = html_ $ do
                         dt_ [] "Place of Birth:"
                         dd_ [] (toHtml $ birthLocation & locationInput)
 
+                        -- TODO: include timezone?
                         dt_ [] "Time of Birth:"
                         dd_ [] (toHtml $ birthLocalTime & formatTime defaultTimeLocale "%Y-%m-%d %l:%M:%S %P")
+
+                        dt_ [] "Universal Time"
+                        dd_ [] (toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z")
+
+                        dt_ [] "Julian Day"
+                        dd_ [] (toHtml $ horoscopeJulianTime & show)
 
                     toHtmlRaw $ Svg.renderBS $ renderChart h
 
@@ -45,3 +54,14 @@ render BirthData{..} h@HoroscopeData{..} = html_ $ do
             span_ "Brought to you by a ♑"
         section_ [class_ "navbar-section"] $ do
             a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.",  class_ "btn btn-link"] "Source Code"
+
+
+renderTestChartPage :: IO ()
+renderTestChartPage = do
+    ephe <- pure $ "./config"
+    withTimeZoneDatabase "./config/timezone21.bin" $ \db -> do
+        birthplace <- pure $ Location "Tegucigalpa" (Latitude 14.0839053) (Longitude $ -87.2750137)
+        birthtime  <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:00:00" :: IO LocalTime
+        let birthdata = BirthData birthplace birthtime
+        calculations <- horoscope db ephe birthdata
+        renderToFile "test-chart.html" $ render birthdata calculations
