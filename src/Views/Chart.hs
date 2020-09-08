@@ -37,7 +37,7 @@ render BirthData{..} h@HoroscopeData{..} = html_ $ do
                         dt_ [] "Julian Day"
                         dd_ [] (toHtml $ horoscopeJulianTime & show)
 
-                    toHtmlRaw $ Svg.renderBS $ renderChart h
+                    toHtmlRaw $ Svg.renderBS $ renderChart 600 h
 
                 div_ [class_ "column col-4"] $ do
                     div_ [class_ "accordion"] $ do
