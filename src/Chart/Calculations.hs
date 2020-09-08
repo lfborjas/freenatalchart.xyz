@@ -7,6 +7,7 @@ import SwissEphemeris
 import Data.Time.LocalTime.TimeZone.Detect
 import RIO.List (cycle)
 import RIO.Time (diffTimeToPicoseconds, toGregorian, UTCTime(..))
+import RIO.Partial (toEnum)
 
 
 -- "main" fn
@@ -148,3 +149,29 @@ planetaryAspects ps = aspects ps $ rotateList 1 ps
 
 celestialAspects :: [PlanetPosition] -> Angles -> [HoroscopeAspect PlanetPosition House]
 celestialAspects ps Angles{..} = aspects ps [House I (Longitude ascendant), House X (Longitude mc)]
+
+-- NEXT:
+-- longitudeToParts :: Longitude -> ZodiacalLongitude
+-- https://github.com/lfborjas/senex/blob/master/frontend/src/Main.elm#L1687
+-- housePos :: HasLongitude a => [House] -> a
+
+-- | Given an entity with a longitude, find its position in the zodiac in
+-- sign, degrees, minutes, seconds (and fraction)
+-- based on swiss ephemeris `swe_split_deg`:
+-- https://github.com/lfborjas/swiss-ephemeris/blob/c31d31286e708537e89b857dc7f607ea8eb3b48d/csrc/swephlib.c#L4013
+zodiacPosition :: HasLongitude a => a -> ZodiacPosition
+zodiacPosition a = 
+    let longitude = getLongitudeRaw a
+        truncated :: Int
+        truncated = truncate longitude
+        zodiacNum = truncated `div` 30
+        sign :: ZodiacSignName
+        sign = if zodiacNum >= 12 then Aries else toEnum zodiacNum
+        -- the actual components
+        degrees = truncated `rem` 30 & fromIntegral 
+        minutes = truncate $ (longitude - (fromIntegral truncated)) * 60.0
+        seconds = round $ (longitude - (fromIntegral truncated) - ((fromIntegral minutes) / 60)) * 3600
+    in
+        ZodiacPosition sign degrees minutes seconds
+
+--housePosition :: HasLongitude a => a -> HouseNumber

@@ -141,6 +141,14 @@ data ZodiacSign = ZodiacSign {
 , zodiacElement :: Element
 } deriving (Eq, Show)
 
+data ZodiacPosition = ZodiacPosition 
+  {
+    positionSign :: ZodiacSignName
+  , positionDegrees :: Double
+  , positionMinutes :: Int
+  , positionSeconds :: Int
+  } deriving (Eq, Show)
+
 westernZodiacSigns :: [ZodiacSign]
 westernZodiacSigns =
     [ZodiacSign { name = Aries, zodiacLongitude = Longitude 0.0, zodiacElement = Fire }
