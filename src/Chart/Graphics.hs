@@ -1,24 +1,24 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE TypeFamilies #-}
 
 module Chart.Graphics where
 
 import Chart.Calculations (angularDifference, horoscope, isRetrograde, rotateList)
 import Chart.Prerendered as P
+import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 import Diagrams.Backend.SVG
 import Diagrams.Core.Types (keyVal)
 import Diagrams.Prelude hiding (aspect)
 import Diagrams.TwoD.Vector (e)
-import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
+import qualified Graphics.Svg as Svg
 import Import hiding (Element, (^.), local, over)
 import RIO.List (groupBy, sortBy)
 import RIO.Time (LocalTime, defaultTimeLocale, parseTimeM)
 import SwissEphemeris (Angles (..), Planet (..))
-import qualified Graphics.Svg as Svg
 
 zodiacCircle :: ChartContext -> Diagram B
 zodiacCircle env =
@@ -60,7 +60,7 @@ cuspsCircle env c =
     onZodiacs = env ^. zodiacCircleRadiusL
     onAspects = env ^. aspectCircleRadiusL
     pairedC = zip c $ rotateList 1 c
-    cuspBand (House houseName (Longitude cuspBegin), House _ (Longitude cuspEnd)) =
+    cuspBand (House houseName (Longitude cuspBegin) _, House _ (Longitude cuspEnd) _) =
       t <> w # lw thin
         # lc gray
         # (href $ "#house-" <> (show houseName))

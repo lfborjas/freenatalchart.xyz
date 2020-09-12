@@ -4,7 +4,7 @@
 module Types where
 
 import RIO
-import SwissEphemeris (JulianTime, HouseSystem, Angles(..), Planet(..), Coordinates(..))
+import SwissEphemeris
 import System.Envy (FromEnv)
 import RIO.Time (UTCTime, LocalTime)
 import RIO.Char (toLower)
@@ -113,21 +113,6 @@ class HasLongitude a where
   getLongitudeRaw :: a -> Double
   getLongitudeRaw = unLongitude . getLongitude
 
-data ZodiacSignName
-  = Aries
-  | Taurus
-  | Gemini
-  | Cancer
-  | Leo
-  | Virgo
-  | Libra
-  | Scorpio
-  | Sagittarius
-  | Capricorn
-  | Aquarius
-  | Pisces
-  deriving (Eq, Show, Enum, Bounded)
-
 data Element
   = Earth
   | Air
@@ -176,7 +161,7 @@ data House = House
   {
     houseNumber :: HouseNumber
   , houseCusp :: Longitude
-  --, houseDeclination :: Double
+  , houseDeclination :: Double
   } deriving (Eq, Show)
 
 -- TODO(luis) fix this to be `Longitude houseCusp`?
@@ -276,6 +261,9 @@ data HoroscopeData = HoroscopeData
   -- TODO: delta time?
   } deriving (Eq, Show)
 
+
+mkEcliptic :: EclipticPosition
+mkEcliptic = EclipticPosition 0 0 0 0 0 0
 
 -- "safe by construction" newtypes
 

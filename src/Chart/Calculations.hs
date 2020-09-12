@@ -1,7 +1,17 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Chart.Calculations where
+module Chart.Calculations
+  ( horoscope,
+    rotateList,
+    angularDifference,
+    isRetrograde,
+    mkTime,
+    housePosition,
+    splitDegrees,
+    splitDegreesZodiac,
+  )
+where
 
 import Data.Time.LocalTime.TimeZone.Detect
 import Import hiding (Earth)
@@ -18,32 +28,50 @@ horoscope timezoneDB ephePath BirthData {..} = do
   -- convert to what the underlying library expects: a UTC time, and a pair of raw coordinates.
   uTime <- timeAtPointToUTC timezoneDB latitude longitude birthLocalTime
   time <- pure $ utcToJulian uTime
-  place <- pure $ mkCoordinates {lat = latitude, lng = longitude}
+  place <- pure $ GeographicPosition {geoLat = latitude, geoLng = longitude}
 
   withEphemerides ephePath $ do
-    positionsM <- forM defaultPlanets $ \p -> do
-      coords <- calculateCoordinates time p
-      -- TODO: actually calculate
-      declination <- pure $ 0.0
-      case coords of
-        Left _ -> pure Nothing
-        Right c -> pure $ Just $ PlanetPosition p (Latitude . lat $ c) (Longitude . lng $ c) (lngSpeed c) declination
-
-    -- TODO: calculate ecliptic obliquity, too.
+    -- we `fail` if the obliquity couldn't be calculated, since it should be available for any moment in the supported
+    -- time range!
+    obliquity <- obliquityOrBust time
+    positions <- planetPositions obliquity time
     (CuspsCalculation cusps angles' sys) <- calculateCusps Placidus time place
-    -- TODO: calculate house positions here, with swe_house_pos.
-    -- TODO: might as well also calculate the "split degrees" with swisseph.
-    let positions = catMaybes positionsM
     return $
       HoroscopeData
         positions
         angles'
-        (houses cusps)
+        (houses obliquity cusps)
         sys
         (planetaryAspects positions)
         (celestialAspects positions angles')
         uTime
         time
+
+obliquityOrBust :: JulianTime -> IO ObliquityInformation
+obliquityOrBust time = do
+  obliquity <- calculateObliquity time
+  case obliquity of
+    Left e -> fail $ "Unable to calculate obliquity: " <> e <> " (for time: " <> (show time) <> ")"
+    Right o -> pure o
+
+planetPositions :: ObliquityInformation -> JulianTime -> IO [PlanetPosition]
+planetPositions ObliquityInformation {..} time = do
+  maybePositions <- forM defaultPlanets $ \p -> do
+    coords <- calculateEclipticPosition time p
+    case coords of
+      Left _ -> pure Nothing
+      Right c -> do
+        pure $ Just $ PlanetPosition p (Latitude . lat $ c) (Longitude . lng $ c) (lngSpeed c) eclipticObliquity
+  pure $ catMaybes maybePositions
+
+houses :: ObliquityInformation -> [HouseCusp] -> [House]
+houses obliquity cusps =
+  map buildHouse $ (zip [I .. XII] cusps)
+  where
+    buildHouse (n, c) =
+      House n (Longitude c) (declination equatorial)
+      where
+        equatorial = eclipticToEquatorial obliquity (mkEcliptic {lng = c})
 
 -- PURE FNs
 
@@ -56,28 +84,6 @@ angularDifference a b
 rotateList :: Int -> [a] -> [a]
 rotateList _ [] = []
 rotateList n xs = zipWith const (drop n (cycle xs)) xs
-
--- TODO(luis): this feels silly but orderly, maybe SwissEphemeris
--- should just return an array? A house's number is important though,
--- so some manner of silly unpacking and repacking would happen anyway?
-houses :: [HouseCusp] -> [House]
-houses cusps =
-  zip
-    [ House I,
-      House II,
-      House III,
-      House IV,
-      House V,
-      House VI,
-      House VII,
-      House VIII,
-      House IX,
-      House X,
-      House XI,
-      House XII
-    ]
-    cusps
-    & map (\(ctr, cusp) -> ctr $ Longitude cusp)
 
 isRetrograde :: PlanetPosition -> Bool
 isRetrograde PlanetPosition {..} =
@@ -118,7 +124,7 @@ planetaryAspects :: [PlanetPosition] -> [HoroscopeAspect PlanetPosition PlanetPo
 planetaryAspects ps = aspects ps $ rotateList 1 ps
 
 celestialAspects :: [PlanetPosition] -> Angles -> [HoroscopeAspect PlanetPosition House]
-celestialAspects ps Angles {..} = aspects ps [House I (Longitude ascendant), House X (Longitude mc)]
+celestialAspects ps Angles {..} = aspects ps [House I (Longitude ascendant) 0, House X (Longitude mc) 0]
 
 -- | Get the house a given celestial body is "in". Note that it will
 -- /only/ "promote" to the next house if the body is exactly on the cusp.
@@ -132,5 +138,4 @@ housePosition houses' body =
     & lastMaybe
   where
     -- & fmap houseNumber
-
     sortedHouses = sortBy (\a b -> compare (getLongitude a) (getLongitude b)) houses'
