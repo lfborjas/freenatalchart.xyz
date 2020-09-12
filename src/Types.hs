@@ -141,14 +141,6 @@ data ZodiacSign = ZodiacSign {
 , zodiacElement :: Element
 } deriving (Eq, Show)
 
-data ZodiacPosition = ZodiacPosition 
-  {
-    positionSign :: ZodiacSignName
-  , positionDegrees :: Double
-  , positionMinutes :: Int
-  , positionSeconds :: Int
-  } deriving (Eq, Show)
-
 westernZodiacSigns :: [ZodiacSign]
 westernZodiacSigns =
     [ZodiacSign { name = Aries, zodiacLongitude = Longitude 0.0, zodiacElement = Fire }
@@ -184,6 +176,7 @@ data House = House
   {
     houseNumber :: HouseNumber
   , houseCusp :: Longitude
+  --, houseDeclination :: Double
   } deriving (Eq, Show)
 
 -- TODO(luis) fix this to be `Longitude houseCusp`?
@@ -252,14 +245,23 @@ data HoroscopeAspect a b = HoroscopeAspect
 
 -- extensions to SwissEphemeris
 
+-- in addition to the traditional solar system planets (+ Pluto,)
+-- we're interested in the MeanNode, the Mean Lunar Apogee (Lilith)
+-- and the asteroid Chiron.
+defaultPlanets :: [Planet]
+defaultPlanets = [Sun .. Pluto] <> [MeanNode, MeanApog, Chiron]
+
 data PlanetPosition = PlanetPosition 
   { 
     planetName :: Planet
-  , planetCoordinates :: Coordinates
+  , planetLat :: Latitude
+  , planetLng :: Longitude
+  , planetLngSpeed :: Double
+  , planetDeclination :: Double
   } deriving (Eq, Show)
 
 instance HasLongitude PlanetPosition where
-    getLongitude (PlanetPosition _ coords) = Longitude $ lng coords
+    getLongitude = planetLng
 
 data HoroscopeData = HoroscopeData
   {
@@ -271,6 +273,7 @@ data HoroscopeData = HoroscopeData
   , horoscopeAngleAspects :: [HoroscopeAspect PlanetPosition House]
   , horoscopeUniversalTime :: UTCTime
   , horoscopeJulianTime :: JulianTime
+  -- TODO: delta time?
   } deriving (Eq, Show)
 
 
