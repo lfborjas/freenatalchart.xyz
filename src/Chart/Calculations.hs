@@ -1,12 +1,11 @@
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-{-# LANGUAGE RecordWildCards #-}
 module Chart.Calculations where
 
 import Data.Time.LocalTime.TimeZone.Detect
 import Import hiding (Earth)
-import RIO.List (cycle, headMaybe, lastMaybe, sortBy)
-import RIO.Partial (toEnum)
+import RIO.List (cycle, lastMaybe, sortBy)
 import RIO.Time (UTCTime (..), diffTimeToPicoseconds, toGregorian)
 import SwissEphemeris
 
@@ -45,7 +44,6 @@ horoscope timezoneDB ephePath BirthData {..} = do
         (celestialAspects positions angles')
         uTime
         time
-
 
 -- PURE FNs
 
