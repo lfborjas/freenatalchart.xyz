@@ -5,7 +5,7 @@
 
 module Views.Chart (render, renderTestChartPage) where
 
-import Chart.Calculations (findAspectBetweenPlanets, findSunSign, horoscope, housePosition, isRetrograde, splitDegrees, splitDegreesZodiac)
+import Chart.Calculations (findAscendant, findAspectBetweenPlanets, findAspectWithAngle, findSunSign, horoscope, housePosition, isRetrograde, splitDegrees, splitDegreesZodiac)
 import Chart.Graphics (renderChart)
 import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 import qualified Graphics.Svg as Svg
@@ -29,8 +29,13 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     div_ [id_ "main", class_ "container"] $ do
       -- TODO: add a navbar/header?
       div_ [class_ "p-centered"] $ do
-        div_ [id_ "chart", class_ "my-2"] $ do
-          toHtmlRaw $ Svg.renderBS $ renderChart 600 h
+        details_ [id_ "chart", class_ "accordion my-2", open_ ""] $ do
+          summary_ [class_ "accordion-header bg-primary"] $ do
+            headerIcon
+            sectionHeading "Your Natal Chart"
+          div_ [class_ "accordion-body"] $ do
+            div_ [class_ "my-2"] $ do
+              toHtmlRaw $ Svg.renderBS $ renderChart 600 h
 
         details_ [id_ "at-a-glance", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
@@ -40,14 +45,18 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
             dl_ [] $ do
               dt_ [] "Place of Birth:"
               -- TODO: include lat/lng?
-              dd_ [] (toHtml $ birthLocation & locationInput)
+              dd_ [] $ do
+                toHtml $ birthLocation & locationInput
+                latLngHtml birthLocation
               -- TODO: include timezone, julian time, delta time n' stuff?
-              dt_ [] "Time of Birth:"
+              dt_ [] "Local Time of Birth:"
               dd_ [] (toHtml $ birthLocalTime & formatTime defaultTimeLocale "%Y-%m-%d %l:%M:%S %P")
               dt_ [] "Universal Time:"
               dd_ [] (toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z")
               dt_ [] "Sun Sign:"
               dd_ [] (maybe mempty (toHtml . toText) (findSunSign horoscopePlanetPositions))
+              dt_ [] "Ascendant:"
+              dd_ [] (maybe mempty (toHtml . toText) (findAscendant horoscopeHouses))
 
         details_ [id_ "planet-positions", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
@@ -130,6 +139,16 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                       aspectCell $ findAspectBetweenPlanets horoscopePlanetaryAspects rowPlanet planetName
                   td_ [style_ "border-bottom: 1px solid"] $ do
                     asIcon rowPlanet
+              tr_ [] $ do
+                td_ [] "AC"
+                forM_ (horoscopePlanetPositions) $ \PlanetPosition {..} -> do
+                  td_ [style_ "border: 1px solid", class_ "text-small"] $ do
+                    aspectCell $ findAspectWithAngle horoscopeAngleAspects planetName I
+              tr_ [] $ do
+                td_ [] "MC"
+                forM_ (horoscopePlanetPositions) $ \PlanetPosition {..} -> do
+                  td_ [style_ "border: 1px solid", class_ "text-small"] $ do
+                    aspectCell $ findAspectWithAngle horoscopeAngleAspects planetName X
 
     -- the SVG font for all icons.
     -- TODO: path is wrong for server-rendered!
@@ -205,7 +224,7 @@ houseLabel VII = toHtml (" (Desc)" :: Text)
 houseLabel X = toHtml (" (MC)" :: Text)
 houseLabel _ = mempty
 
-aspectCell :: Maybe (HoroscopeAspect PlanetPosition PlanetPosition) -> Html ()
+aspectCell :: Maybe (HoroscopeAspect a b) -> Html ()
 aspectCell Nothing = mempty
 aspectCell (Just HoroscopeAspect {..}) =
   span_ [style_ ("color: " <> (aspectColor . temperament $ aspect))] $ do
@@ -217,6 +236,15 @@ aspectColor :: AspectTemperament -> Text
 aspectColor Analytical = "red"
 aspectColor Synthetic = "blue"
 aspectColor Neutral = "green"
+
+latLngHtml :: Location -> Html ()
+latLngHtml Location {..} =
+  toHtml $ " (" <> lnText <> ", " <> ltText <> ")"
+  where
+    lnSplit = splitDegrees . unLongitude $ locationLongitude
+    lnText = pack $ (show $ longitudeDegrees lnSplit) <> (if locationLongitude > 0 then "e" else "w") <> (show $ longitudeMinutes lnSplit)
+    ltSplit = splitDegrees . unLatitude $ locationLatitude
+    ltText = pack $ (show $ longitudeDegrees ltSplit) <> (if locationLatitude > 0 then "n" else "s") <> (show $ longitudeMinutes ltSplit)
 
 toText :: Show a => a -> Text
 toText = pack . show

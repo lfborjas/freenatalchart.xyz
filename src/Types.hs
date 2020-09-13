@@ -323,7 +323,7 @@ mkDayPart x =
     s = take 2 x
 
 newtype Latitude = Latitude {unLatitude :: Double}
-    deriving (Eq, Show, Num)
+    deriving (Eq, Show, Num, Ord)
 
 -- ranges from this wrong answer that turned out to be right for me:
 -- https://stackoverflow.com/a/23914607

@@ -11,7 +11,9 @@ module Chart.Calculations
     splitDegrees,
     splitDegreesZodiac,
     findAspectBetweenPlanets,
+    findAspectWithAngle,
     findSunSign,
+    findAscendant,
   )
 where
 
@@ -19,7 +21,7 @@ import Data.Time.LocalTime.TimeZone.Detect
 import Import hiding (Earth)
 import RIO.List (cycle, headMaybe, lastMaybe, sortBy)
 import RIO.Time (UTCTime (..), diffTimeToPicoseconds, toGregorian)
-import SwissEphemeris
+import SwissEphemeris hiding (houseNumber)
 
 -- "main" fn
 
@@ -148,10 +150,24 @@ findAspectBetweenPlanets aspectList pa pb =
     & filter (\HoroscopeAspect {..} -> (planetName . fst $ bodies, planetName . snd $ bodies) `elem` [(pa, pb), (pb, pa)])
     & headMaybe
 
+findAspectWithAngle :: [HoroscopeAspect PlanetPosition House] -> Planet -> HouseNumber -> Maybe (HoroscopeAspect PlanetPosition House)
+findAspectWithAngle aspectList pa hb =
+  aspectList
+    & filter (\HoroscopeAspect {..} -> (planetName . fst $ bodies, houseNumber . snd $ bodies) == (pa, hb))
+    & headMaybe
+
 findSunSign :: [PlanetPosition] -> Maybe ZodiacSignName
 findSunSign positions =
   positions
     & dropWhile (\PlanetPosition {..} -> planetName /= Sun)
     & headMaybe
     & fmap (longitudeZodiacSign . splitDegreesZodiac . getLongitudeRaw . planetLng)
+    & maybe Nothing id
+
+findAscendant :: [House] -> Maybe ZodiacSignName
+findAscendant houses' =
+  houses'
+    & dropWhile (\House {..} -> houseNumber /= I)
+    & headMaybe
+    & fmap (longitudeZodiacSign . splitDegreesZodiac . getLongitudeRaw . houseCusp)
     & maybe Nothing id
