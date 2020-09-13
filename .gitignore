@@ -5,3 +5,4 @@ tarballs/
 
 .env
 dist-newstyle
+*.DS_Store
