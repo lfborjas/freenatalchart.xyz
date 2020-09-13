@@ -10,12 +10,14 @@ module Chart.Calculations
     housePosition,
     splitDegrees,
     splitDegreesZodiac,
+    findAspectBetweenPlanets,
+    findSunSign,
   )
 where
 
 import Data.Time.LocalTime.TimeZone.Detect
 import Import hiding (Earth)
-import RIO.List (cycle, lastMaybe, sortBy)
+import RIO.List (cycle, headMaybe, lastMaybe, sortBy)
 import RIO.Time (UTCTime (..), diffTimeToPicoseconds, toGregorian)
 import SwissEphemeris
 
@@ -140,6 +142,16 @@ housePosition houses' body =
     -- & fmap houseNumber
     sortedHouses = sortBy (\a b -> compare (getLongitude a) (getLongitude b)) houses'
 
--- Next:
--- Sun sign
--- Find aspects between two `HasLongitude` instances, from the aspects list. (a,b) -> Maybe HoroscopeAspect a b
+findAspectBetweenPlanets :: [HoroscopeAspect PlanetPosition PlanetPosition] -> Planet -> Planet -> Maybe (HoroscopeAspect PlanetPosition PlanetPosition)
+findAspectBetweenPlanets aspectList pa pb =
+  aspectList
+    & filter (\HoroscopeAspect {..} -> (planetName . fst $ bodies, planetName . snd $ bodies) `elem` [(pa, pb), (pb, pa)])
+    & headMaybe
+
+findSunSign :: [PlanetPosition] -> Maybe ZodiacSignName
+findSunSign positions =
+  positions
+    & dropWhile (\PlanetPosition {..} -> planetName /= Sun)
+    & headMaybe
+    & fmap (longitudeZodiacSign . splitDegreesZodiac . getLongitudeRaw . planetLng)
+    & maybe Nothing id

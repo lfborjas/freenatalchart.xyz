@@ -108,7 +108,7 @@ instance HasPlanetCircleRadius ChartContext where
                              (\x y -> x{chartPlanetCircleRadius = y})
 
 -- domain specific types
-class HasLongitude a where
+class Eq a => HasLongitude a where
   getLongitude :: a -> Longitude
   getLongitudeRaw :: a -> Double
   getLongitudeRaw = unLongitude . getLongitude

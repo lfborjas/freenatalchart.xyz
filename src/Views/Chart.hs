@@ -5,17 +5,18 @@
 
 module Views.Chart (render, renderTestChartPage) where
 
-import Chart.Calculations (horoscope, housePosition, isRetrograde)
+import Chart.Calculations (findAspectBetweenPlanets, findSunSign, horoscope, housePosition, isRetrograde, splitDegrees, splitDegreesZodiac)
 import Chart.Graphics (renderChart)
 import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 import qualified Graphics.Svg as Svg
 import Import hiding (for_)
 import Lucid
-import RIO.Text (pack)
-import RIO.Time (LocalTime, defaultTimeLocale, formatTime, parseTimeM)
 -- TODO: re-export from Import?
 
-import SwissEphemeris
+import RIO.List (inits)
+import RIO.Text (pack)
+import RIO.Time (LocalTime, defaultTimeLocale, formatTime, parseTimeM)
+import SwissEphemeris (LongitudeComponents (..), Planet (..))
 import Views.Common
 
 render :: BirthData -> HoroscopeData -> Html ()
@@ -32,21 +33,24 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
           toHtmlRaw $ Svg.renderBS $ renderChart 600 h
 
         details_ [class_ "accordion", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-secondary"] "At a Glance"
+          summary_ [class_ "accordion-header bg-secondary"] $ do
+            h2_ [id_ "at-a-glance"] "At a Glance"
           div_ [class_ "accordion-body"] $ do
             dl_ [] $ do
               dt_ [] "Place of Birth:"
+              -- TODO: include lat/lng?
               dd_ [] (toHtml $ birthLocation & locationInput)
               -- TODO: include timezone, julian time, delta time n' stuff?
               dt_ [] "Time of Birth:"
               dd_ [] (toHtml $ birthLocalTime & formatTime defaultTimeLocale "%Y-%m-%d %l:%M:%S %P")
-              dt_ [] "Universal Time"
+              dt_ [] "Universal Time:"
               dd_ [] (toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z")
-              dt_ [] "Sun Sign"
-              dd_ [] "TODO"
+              dt_ [] "Sun Sign:"
+              dd_ [] (maybe mempty (toHtml . toText) (findSunSign horoscopePlanetPositions))
 
         details_ [class_ "accordion", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-secondary"] "Planet Positions"
+          summary_ [class_ "accordion-header bg-secondary"] $ do
+            h2_ [id_ "planet-positions"] "Planet Positions"
           div_ [class_ "accordion-body"] $ do
             table_ [class_ "table table-striped table-hover"] $ do
               thead_ [] $ do
@@ -81,7 +85,8 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                       htmlDegreesLatitude $ Latitude planetDeclination
 
         details_ [class_ "accordion", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-secondary"] "House Cusps"
+          summary_ [class_ "accordion-header bg-secondary"] $ do
+            h2_ [id_ "house-cusps"] "House Cusps"
           div_ [class_ "accordion-body"] $ do
             p_ $ do
               span_ [] "System Used: "
@@ -104,12 +109,24 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                       htmlDegreesLatitude $ Latitude houseDeclination
 
         details_ [class_ "accordion", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-secondary"] "Aspects Table"
+          summary_ [class_ "accordion-header bg-secondary"] $ do
+            h2_ [id_ "aspects-summary"] "Aspects Summary"
           div_ [class_ "accordion-body"] $ do
             -- TODO: show aspects and orbs used!
             -- NEXT: cool aspects table, scrollable!
-            table_ [class_ "table table-scroll"] $ do
-              mempty
+            table_ [class_ "table table-scroll table-hover"] $ do
+              forM_ defaultPlanets $ \rowPlanet -> do
+                tr_ [] $ do
+                  td_ [] $ do
+                    if rowPlanet == Sun
+                      then mempty
+                      else asIcon rowPlanet
+                  forM_ (takeWhile (not . (== rowPlanet) . planetName) horoscopePlanetPositions) $ \PlanetPosition {..} -> do
+                    td_ [style_ "border: 1px solid", class_ "text-small"] $ do
+                      aspectCell $ findAspectBetweenPlanets horoscopePlanetaryAspects rowPlanet planetName
+                  td_ [style_ "border-bottom: 1px solid"] $ do
+                    asIcon rowPlanet
+    -- TODO: aspects with ASC and MC
 
     -- the SVG font for all icons.
     -- TODO: path is wrong for server-rendered!
@@ -124,7 +141,10 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
       a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.", class_ "btn btn-link"] "Source Code"
 
 asIcon :: Show a => a -> Html ()
-asIcon z = i_ [class_ (pack $ "fnc-" <> (show z)), title_ (pack $ show z)] ""
+asIcon z =
+  i_ [class_ ("fnc-" <> shown <> " tooltip"), title_ shown, data_ "tooltip" shown] ""
+  where
+    shown = toText z
 
 htmlDegreesZodiac :: HasLongitude a => a -> Html ()
 htmlDegreesZodiac p =
@@ -177,6 +197,19 @@ houseLabel IV = toHtml (" (IC)" :: Text)
 houseLabel VII = toHtml (" (Desc)" :: Text)
 houseLabel X = toHtml (" (MC)" :: Text)
 houseLabel _ = mempty
+
+aspectCell :: Maybe (HoroscopeAspect PlanetPosition PlanetPosition) -> Html ()
+aspectCell Nothing = mempty
+aspectCell (Just HoroscopeAspect {..}) =
+  span_ [style_ ("color: " <> (aspectColor . temperament $ aspect))] $ do
+    asIcon . aspectName $ aspect
+    " "
+    htmlDegrees orb
+
+aspectColor :: AspectTemperament -> Text
+aspectColor Analytical = "red"
+aspectColor Synthetic = "blue"
+aspectColor Neutral = "green"
 
 toText :: Show a => a -> Text
 toText = pack . show
