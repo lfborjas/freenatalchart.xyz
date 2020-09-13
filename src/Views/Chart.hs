@@ -118,8 +118,6 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
             headerIcon
             sectionHeading "Aspects Summary"
           div_ [class_ "accordion-body"] $ do
-            -- TODO: show aspects and orbs used!
-            -- NEXT: cool aspects table, scrollable!
             table_ [class_ "table table-scroll table-hover"] $ do
               forM_ defaultPlanets $ \rowPlanet -> do
                 tr_ [] $ do
@@ -132,7 +130,6 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                       aspectCell $ findAspectBetweenPlanets horoscopePlanetaryAspects rowPlanet planetName
                   td_ [style_ "border-bottom: 1px solid"] $ do
                     asIcon rowPlanet
-    -- TODO: aspects with ASC and MC
 
     -- the SVG font for all icons.
     -- TODO: path is wrong for server-rendered!
@@ -229,7 +226,7 @@ renderTestChartPage = do
   ephe <- pure $ "./config"
   withTimeZoneDatabase "./config/timezone21.bin" $ \db -> do
     birthplace <- pure $ Location "Tegucigalpa" (Latitude 14.0839053) (Longitude $ -87.2750137)
-    birthtime <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:00:00" :: IO LocalTime
+    birthtime <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:30:00" :: IO LocalTime
     let birthdata = BirthData birthplace birthtime
     calculations <- horoscope db ephe birthdata
     renderToFile "test-chart.html" $ render birthdata calculations

@@ -135,11 +135,11 @@ celestialAspects ps Angles {..} = aspects ps [House I (Longitude ascendant) 0, H
 -- https://groups.io/g/swisseph/message/4052
 housePosition :: HasLongitude a => [House] -> a -> Maybe House
 housePosition houses' body =
-  span (\h -> (getLongitude h) <= (getLongitude body)) sortedHouses
-    & fst
-    & lastMaybe
+  case split of
+    ([], xs) -> lastMaybe xs
+    (xs, _) -> lastMaybe xs
   where
-    -- & fmap houseNumber
+    split = span (\h -> (getLongitude h) <= (getLongitude body)) sortedHouses
     sortedHouses = sortBy (\a b -> compare (getLongitude a) (getLongitude b)) houses'
 
 findAspectBetweenPlanets :: [HoroscopeAspect PlanetPosition PlanetPosition] -> Planet -> Planet -> Maybe (HoroscopeAspect PlanetPosition PlanetPosition)
