@@ -15,6 +15,7 @@ import RIO.Text (pack)
 import RIO.Time (LocalTime, defaultTimeLocale, formatTime, parseTimeM)
 import SwissEphemeris (LongitudeComponents (..), Planet (..))
 import Views.Common
+import Text.Printf (printf)
 
 render :: BirthData -> HoroscopeData -> Html ()
 render BirthData {..} h@HoroscopeData {..} = html_ $ do
@@ -162,6 +163,8 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                 forM_ (majorAspects <> minorAspects) $ \Aspect {..} -> do
                   tr_ [] $ do
                     td_ $ do
+                      asIcon aspectName
+                      " "
                       toHtml $ toText aspectName
                     td_ $ do
                       toHtml $ toText angle
@@ -181,8 +184,14 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
       section_ [class_ "navbar-section"] $ do
         a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.", class_ "btn btn-link"] "Source Code"
   where
+    -- markup helpers
     headerIcon = i_ [class_ "icon icon-arrow-right mr-1"] ""
     sectionHeading = h3_ [class_ "d-inline"]
+    -- some data helpers
+    splitPlanets :: [LongitudeComponents]
+    splitPlanets = map (splitDegreesZodiac . getLongitudeRaw) horoscopePlanetPositions
+    splitHouses :: [LongitudeComponents]
+    splitHouses = map (splitDegreesZodiac . getLongitudeRaw) horoscopeHouses
 
 asIcon :: Show a => a -> Html ()
 asIcon z =
@@ -196,7 +205,7 @@ htmlDegreesZodiac p =
     maybe mempty asIcon (split & longitudeZodiacSign)
     toHtml $ (" " <> (toText $ longitudeDegrees split)) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
-    toHtml $ (toText $ longitudeSeconds split) <> "\""
+    toHtml $ (formattedSeconds split) <> "\""
   where
     pl = getLongitudeRaw p
     split = splitDegreesZodiac pl
@@ -206,7 +215,7 @@ htmlDegreesLatitude l =
   abbr_ [title_ (pack . show $ l)] $ do
     toHtml $ (toText $ longitudeDegrees split) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
-    toHtml $ (toText $ longitudeSeconds split) <> "\" "
+    toHtml $ (formattedSeconds split) <> "\" "
     toHtml direction
   where
     split = splitDegrees $ unLatitude l
@@ -219,11 +228,17 @@ htmlDegrees l =
     toHtml sign
     toHtml $ (toText $ longitudeDegrees split) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
-    toHtml $ (toText $ longitudeSeconds split) <> "\""
+    toHtml $ (formattedSeconds split) <> "\""
   where
     split = splitDegrees l
     sign :: Text
     sign = if l < 0 then "-" else ""
+
+formattedSeconds :: LongitudeComponents -> Text
+formattedSeconds LongitudeComponents {..} =
+  pack $ printf "%.2f" seconds
+  where
+    seconds = (fromIntegral longitudeSeconds) + longitudeSecondsFraction
 
 housePositionHtml :: Maybe House -> Html ()
 housePositionHtml Nothing = mempty
