@@ -128,9 +128,8 @@ celestialAspects ps Angles {..} = aspects ps [House I (Longitude ascendant) 0, H
 
 -- | Get the house a given celestial body is "in". Note that it will
 -- /only/ "promote" to the next house if the body is exactly on the cusp.
--- NOTE/TODO(luis) this is a naïve implementation, the more correct way to do it, to
--- account for latitudes, is to use the SwissEphemeris `swe_house_pos` function
--- <https://www.astro.com/swisseph/swephprg.htm#_Toc49847893 15. House position of a planet>
+-- it is a re-interpretation of this:
+-- https://groups.io/g/swisseph/message/4052
 housePosition :: HasLongitude a => [House] -> a -> Maybe House
 housePosition houses' body =
   span (\h -> (getLongitude h) <= (getLongitude body)) sortedHouses
