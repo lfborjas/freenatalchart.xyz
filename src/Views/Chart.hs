@@ -147,6 +147,27 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                   td_ [style_ "border: 1px solid", class_ "text-small"] $ do
                     aspectCell $ findAspectWithAngle horoscopeAngleAspects planetName X
 
+        details_ [id_ "orbs-used", class_ "accordion my-2"] $ do
+          summary_ [class_ "accordion-header bg-gray"] $ do
+            headerIcon
+            sectionHeading "Orbs used"
+          div_ [class_ "accordion-body"] $ do
+            table_ [class_ "table table-striped table-hover"] $ do
+              thead_ [] $ do
+                tr_ [] $ do
+                  th_ "Aspect"
+                  th_ "Angle"
+                  th_ "Orb"
+              tbody_ [] $ do
+                forM_ (majorAspects <> minorAspects) $ \Aspect {..} -> do
+                  tr_ [] $ do
+                    td_ $ do
+                      toHtml $ toText aspectName
+                    td_ $ do
+                      toHtml $ toText angle
+                    td_ $ do
+                      toHtml $ toText maxOrb
+
     -- the SVG font for all icons.
     -- TODO: path is wrong for server-rendered!
     link_ [rel_ "stylesheet", href_ "static/css/freenatalchart-icons.css"]
