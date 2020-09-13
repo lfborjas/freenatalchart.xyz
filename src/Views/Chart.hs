@@ -11,9 +11,6 @@ import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 import qualified Graphics.Svg as Svg
 import Import hiding (for_)
 import Lucid
--- TODO: re-export from Import?
-
-import RIO.List (inits)
 import RIO.Text (pack)
 import RIO.Time (LocalTime, defaultTimeLocale, formatTime, parseTimeM)
 import SwissEphemeris (LongitudeComponents (..), Planet (..))
