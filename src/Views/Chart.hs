@@ -42,7 +42,6 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
           div_ [class_ "accordion-body"] $ do
             dl_ [] $ do
               dt_ [] "Place of Birth:"
-              -- TODO: include lat/lng?
               dd_ [] $ do
                 toHtml $ birthLocation & locationInput
                 latLngHtml birthLocation
@@ -193,6 +192,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     splitHouses :: [LongitudeComponents]
     splitHouses = map (splitDegreesZodiac . getLongitudeRaw) horoscopeHouses
 
+-- TODO: where to catch the `MeanApog` to `Lilith` transformation?
 asIcon :: Show a => a -> Html ()
 asIcon z =
   i_ [class_ ("fnc-" <> shown <> " tooltip"), title_ shown, data_ "tooltip" shown] ""
