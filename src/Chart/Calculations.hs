@@ -55,13 +55,14 @@ obliquityOrBust time = do
     Right o -> pure o
 
 planetPositions :: ObliquityInformation -> JulianTime -> IO [PlanetPosition]
-planetPositions ObliquityInformation {..} time = do
+planetPositions o@ObliquityInformation {..} time = do
   maybePositions <- forM defaultPlanets $ \p -> do
     coords <- calculateEclipticPosition time p
     case coords of
       Left _ -> pure Nothing
       Right c -> do
-        pure $ Just $ PlanetPosition p (Latitude . lat $ c) (Longitude . lng $ c) (lngSpeed c) eclipticObliquity
+        let decl = eclipticToEquatorial o c & declination
+        pure $ Just $ PlanetPosition p (Latitude . lat $ c) (Longitude . lng $ c) (lngSpeed c) decl
   pure $ catMaybes maybePositions
 
 houses :: ObliquityInformation -> [HouseCusp] -> [House]

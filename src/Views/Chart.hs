@@ -5,7 +5,7 @@
 
 module Views.Chart (render, renderTestChartPage) where
 
-import Chart.Calculations (horoscope)
+import Chart.Calculations (horoscope, housePosition, isRetrograde)
 import Chart.Graphics (renderChart)
 import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 import qualified Graphics.Svg as Svg
@@ -13,7 +13,9 @@ import Import hiding (for_)
 import Lucid
 import RIO.Text (pack)
 import RIO.Time (LocalTime, defaultTimeLocale, formatTime, parseTimeM)
-import SwissEphemeris (ZodiacSignName (..))
+-- TODO: re-export from Import?
+
+import SwissEphemeris
 import Views.Common
 
 render :: BirthData -> HoroscopeData -> Html ()
@@ -25,29 +27,85 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
   body_ $ do
     div_ [id_ "main", class_ "container"] $ do
       -- TODO: add a navbar/header?
-      div_ [class_ "columns"] $ do
-        div_ [class_ "column col-8"] $ do
-          div_ [id_ "chart", class_ "p-centered my-2"] $ do
-            toHtmlRaw $ Svg.renderBS $ renderChart 600 h
+      div_ [class_ "p-centered"] $ do
+        div_ [id_ "chart", class_ "my-2"] $ do
+          toHtmlRaw $ Svg.renderBS $ renderChart 600 h
 
-          dl_ [] $ do
-            dt_ [] "Place of Birth:"
-            dd_ [] (toHtml $ birthLocation & locationInput)
+        details_ [class_ "accordion", open_ ""] $ do
+          summary_ [class_ "accordion-header bg-secondary"] "At a Glance"
+          div_ [class_ "accordion-body"] $ do
+            dl_ [] $ do
+              dt_ [] "Place of Birth:"
+              dd_ [] (toHtml $ birthLocation & locationInput)
+              -- TODO: include timezone, julian time, delta time n' stuff?
+              dt_ [] "Time of Birth:"
+              dd_ [] (toHtml $ birthLocalTime & formatTime defaultTimeLocale "%Y-%m-%d %l:%M:%S %P")
+              dt_ [] "Universal Time"
+              dd_ [] (toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z")
+              dt_ [] "Sun Sign"
+              dd_ [] "TODO"
 
-            dt_ [] "Sun sign"
-            dd_ [] (asIcon Capricorn)
+        details_ [class_ "accordion", open_ ""] $ do
+          summary_ [class_ "accordion-header bg-secondary"] "Planet Positions"
+          div_ [class_ "accordion-body"] $ do
+            table_ [class_ "table table-stripped table-hover"] $ do
+              thead_ [] $ do
+                tr_ [] $ do
+                  th_ [] "Planet"
+                  th_ [] "House"
+                  th_ [] "Longitude"
+                  th_ [] "Latitude"
+                  th_ [] "Speed"
+                  th_ [] "Declination"
+              tbody_ [] $ do
+                forM_ (horoscopePlanetPositions) $ \pp@PlanetPosition {..} -> do
+                  tr_ [] $ do
+                    td_ $ do
+                      asIcon planetName
+                      planetLabel planetName
+                      if isRetrograde pp then "(r)" else ""
 
-            -- TODO: include timezone?
-            dt_ [] "Time of Birth:"
-            dd_ [] (toHtml $ birthLocalTime & formatTime defaultTimeLocale "%Y-%m-%d %l:%M:%S %P")
-            dt_ [] "Universal Time"
-            dd_ [] (toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z")
+                    td_ $ do
+                      housePositionHtml $ housePosition horoscopeHouses planetLng
 
-            dt_ [] "Julian Day"
-            dd_ [] (toHtml $ horoscopeJulianTime & show)
+                    td_ $ do
+                      htmlDegreesZodiac planetLng
+
+                    td_ $ do
+                      htmlDegreesLatitude planetLat
+
+                    td_ $ do
+                      htmlDegrees planetLngSpeed
+
+                    td_ $ do
+                      htmlDegreesLatitude $ Latitude planetDeclination
+
+        details_ [class_ "accordion", open_ ""] $ do
+          summary_ [class_ "accordion-header bg-secondary"] "House Cusps"
+          div_ [class_ "accordion-body"] $ do
+            p_ $ do
+              span_ [] "System Used: "
+              mark_ $ toHtml $ toText horoscopeSystem
+            table_ [class_ "table table-striped table-hover"] $ do
+              thead_ [] $ do
+                tr_ [] $ do
+                  th_ [] "House"
+                  th_ [] "Cusp"
+                  th_ [] "Declination"
+              tbody_ [] $ do
+                forM_ (horoscopeHouses) $ \hc@House {..} -> do
+                  tr_ [] $ do
+                    td_ $ do
+                      housePositionHtml (Just hc)
+                      houseLabel houseNumber
+                    td_ $ do
+                      htmlDegreesZodiac houseCusp
+                    td_ $ do
+                      htmlDegreesLatitude $ Latitude houseDeclination
 
     -- the SVG font for all icons.
-    link_ [rel_ "stylesheet", href_ "/css/freenatalchart-icons.css"]
+    -- TODO: path is wrong for server-rendered!
+    link_ [rel_ "stylesheet", href_ "static/css/freenatalchart-icons.css"]
   footer_ [class_ "navbar bg-secondary"] $ do
     section_ [class_ "navbar-section"] $ do
       a_ [href_ "/about", class_ "btn btn-link", title_ "tl;dr: we won't sell you anything, or store your data."] "About"
@@ -57,8 +115,63 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     section_ [class_ "navbar-section"] $ do
       a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.", class_ "btn btn-link"] "Source Code"
 
-asIcon :: ZodiacSignName -> Html ()
+asIcon :: Show a => a -> Html ()
 asIcon z = i_ [class_ (pack $ "fnc-" <> (show z)), title_ (pack $ show z)] ""
+
+htmlDegreesZodiac :: HasLongitude a => a -> Html ()
+htmlDegreesZodiac p =
+  abbr_ [title_ (pack . show $ pl)] $ do
+    maybe mempty asIcon (split & longitudeZodiacSign)
+    toHtml $ (" " <> (toText $ longitudeDegrees split)) <> "° "
+    toHtml $ (toText $ longitudeMinutes split) <> "\' "
+    toHtml $ (toText $ longitudeSeconds split) <> "\""
+  where
+    pl = getLongitudeRaw p
+    split = splitDegreesZodiac pl
+
+htmlDegreesLatitude :: Latitude -> Html ()
+htmlDegreesLatitude l =
+  abbr_ [title_ (pack . show $ l)] $ do
+    toHtml $ (toText $ longitudeDegrees split) <> "° "
+    toHtml $ (toText $ longitudeMinutes split) <> "\' "
+    toHtml $ (toText $ longitudeSeconds split) <> "\" "
+    toHtml direction
+  where
+    split = splitDegrees $ unLatitude l
+    direction :: Text
+    direction = if (unLatitude l) < 0 then "S" else "N"
+
+htmlDegrees :: Double -> Html ()
+htmlDegrees l =
+  abbr_ [title_ (pack . show $ l)] $ do
+    toHtml sign
+    toHtml $ (toText $ longitudeDegrees split) <> "° "
+    toHtml $ (toText $ longitudeMinutes split) <> "\' "
+    toHtml $ (toText $ longitudeSeconds split) <> "\""
+  where
+    split = splitDegrees l
+    sign :: Text
+    sign = if l < 0 then "-" else ""
+
+housePositionHtml :: Maybe House -> Html ()
+housePositionHtml Nothing = mempty
+housePositionHtml (Just House {..}) =
+  toHtml . toText . (+ 1) . fromEnum $ houseNumber
+
+planetLabel :: Planet -> Html ()
+planetLabel MeanNode = toHtml (" Mean Node" :: Text)
+planetLabel MeanApog = toHtml (" Lilith" :: Text)
+planetLabel p = toHtml . (" " <>) . toText $ p
+
+houseLabel :: HouseNumber -> Html ()
+houseLabel I = toHtml (" (Asc)" :: Text)
+houseLabel IV = toHtml (" (IC)" :: Text)
+houseLabel VII = toHtml (" (Desc)" :: Text)
+houseLabel X = toHtml (" (MC)" :: Text)
+houseLabel _ = mempty
+
+toText :: Show a => a -> Text
+toText = pack . show
 
 renderTestChartPage :: IO ()
 renderTestChartPage = do
