@@ -139,3 +139,7 @@ housePosition houses' body =
   where
     -- & fmap houseNumber
     sortedHouses = sortBy (\a b -> compare (getLongitude a) (getLongitude b)) houses'
+
+-- Next:
+-- Sun sign
+-- Find aspects between two `HasLongitude` instances, from the aspects list. (a,b) -> Maybe HoroscopeAspect a b

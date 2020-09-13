@@ -48,7 +48,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
         details_ [class_ "accordion", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] "Planet Positions"
           div_ [class_ "accordion-body"] $ do
-            table_ [class_ "table table-stripped table-hover"] $ do
+            table_ [class_ "table table-striped table-hover"] $ do
               thead_ [] $ do
                 tr_ [] $ do
                   th_ [] "Planet"
@@ -102,6 +102,14 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                       htmlDegreesZodiac houseCusp
                     td_ $ do
                       htmlDegreesLatitude $ Latitude houseDeclination
+
+        details_ [class_ "accordion", open_ ""] $ do
+          summary_ [class_ "accordion-header bg-secondary"] "Aspects Table"
+          div_ [class_ "accordion-body"] $ do
+            -- TODO: show aspects and orbs used!
+            -- NEXT: cool aspects table, scrollable!
+            table_ [class_ "table table-scroll"] $ do
+              mempty
 
     -- the SVG font for all icons.
     -- TODO: path is wrong for server-rendered!
