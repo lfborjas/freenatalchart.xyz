@@ -32,9 +32,10 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
         div_ [id_ "chart", class_ "my-2"] $ do
           toHtmlRaw $ Svg.renderBS $ renderChart 600 h
 
-        details_ [class_ "accordion", open_ ""] $ do
+        details_ [id_ "at-a-glance", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
-            h2_ [id_ "at-a-glance"] "At a Glance"
+            headerIcon
+            sectionHeading "At a Glance"
           div_ [class_ "accordion-body"] $ do
             dl_ [] $ do
               dt_ [] "Place of Birth:"
@@ -48,9 +49,12 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
               dt_ [] "Sun Sign:"
               dd_ [] (maybe mempty (toHtml . toText) (findSunSign horoscopePlanetPositions))
 
-        details_ [class_ "accordion", open_ ""] $ do
+        details_ [id_ "planet-positions", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
-            h2_ [id_ "planet-positions"] "Planet Positions"
+            headerIcon
+            sectionHeading $ do
+              "Planet Positions"
+
           div_ [class_ "accordion-body"] $ do
             table_ [class_ "table table-striped table-hover"] $ do
               thead_ [] $ do
@@ -84,9 +88,10 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                     td_ $ do
                       htmlDegreesLatitude $ Latitude planetDeclination
 
-        details_ [class_ "accordion", open_ ""] $ do
+        details_ [id_ "house-cusps", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
-            h2_ [id_ "house-cusps"] "House Cusps"
+            headerIcon
+            sectionHeading "House Cusps"
           div_ [class_ "accordion-body"] $ do
             p_ $ do
               span_ [] "System Used: "
@@ -108,9 +113,10 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                     td_ $ do
                       htmlDegreesLatitude $ Latitude houseDeclination
 
-        details_ [class_ "accordion", open_ ""] $ do
+        details_ [id_ "aspects-summary", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
-            h2_ [id_ "aspects-summary"] "Aspects Summary"
+            headerIcon
+            sectionHeading "Aspects Summary"
           div_ [class_ "accordion-body"] $ do
             -- TODO: show aspects and orbs used!
             -- NEXT: cool aspects table, scrollable!
@@ -131,14 +137,18 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     -- the SVG font for all icons.
     -- TODO: path is wrong for server-rendered!
     link_ [rel_ "stylesheet", href_ "static/css/freenatalchart-icons.css"]
-  footer_ [class_ "navbar bg-secondary"] $ do
-    section_ [class_ "navbar-section"] $ do
-      a_ [href_ "/about", class_ "btn btn-link", title_ "tl;dr: we won't sell you anything, or store your data."] "About"
-    section_ [class_ "navbar-center"] $ do
-      -- TODO: add a lil' icon?
-      span_ "Brought to you by a ♑"
-    section_ [class_ "navbar-section"] $ do
-      a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.", class_ "btn btn-link"] "Source Code"
+    link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
+    footer_ [class_ "navbar bg-secondary"] $ do
+      section_ [class_ "navbar-section"] $ do
+        a_ [href_ "/about", class_ "btn btn-link", title_ "tl;dr: we won't sell you anything, or store your data."] "About"
+      section_ [class_ "navbar-center"] $ do
+        -- TODO: add a lil' icon?
+        span_ "Brought to you by a ♑"
+      section_ [class_ "navbar-section"] $ do
+        a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.", class_ "btn btn-link"] "Source Code"
+  where
+    headerIcon = i_ [class_ "icon icon-arrow-right mr-1"] ""
+    sectionHeading = h3_ [class_ "d-inline"]
 
 asIcon :: Show a => a -> Html ()
 asIcon z =
