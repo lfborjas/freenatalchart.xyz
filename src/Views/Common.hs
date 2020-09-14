@@ -24,5 +24,6 @@ metaCeremony :: Html ()
 metaCeremony = do
     meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1"]
     meta_ [name_ "description", content_ "Get your free natal chart, with all the information you need for your own discoveries of the self!"]
+    meta_ [charset_ "UTF-8"]
     favicon
     stylesheets

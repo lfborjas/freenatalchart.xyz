@@ -4,21 +4,23 @@
 module Types where
 
 import RIO
-import SwissEphemeris (HouseSystem, Angles(..), Planet(..), Coordinates(..))
+import SwissEphemeris
 import System.Envy (FromEnv)
+import RIO.Time (UTCTime, LocalTime)
+import RIO.Char (toLower)
+import Data.Time.LocalTime.TimeZone.Detect (TimeZoneDatabase)
 
 -- | Reader context for the server
 
-newtype GeonamesUsername = GeonamesUsername String
-  deriving (Show, Generic, IsString)
+type EphemeridesPath = FilePath
 
 data AppContext = AppContext
   { appLogFunc :: !LogFunc
   , appPort :: !Int
-  , appEphePath :: !FilePath
+  , appEphePath :: !EphemeridesPath
   , appAlgoliaAppId :: !String
   , appAlgoliaAppKey :: !String
-  , appGeonamesUsername :: !GeonamesUsername
+  , appTimeZoneDatabase :: !TimeZoneDatabase
   -- Add other app-specific configuration information here
   }
 
@@ -45,12 +47,11 @@ class HasAlgoliaAppKey env where
 instance HasAlgoliaAppKey AppContext where
   algoliaAppKeyL = lens appAlgoliaAppKey (\x y -> x { appAlgoliaAppKey = y})
 
-class HasGeonamesUsername env where
-  geonamesUsernameL :: Lens' env GeonamesUsername
-instance HasGeonamesUsername AppContext where
-  geonamesUsernameL = lens appGeonamesUsername (\x y -> x { appGeonamesUsername = y})
-instance HasGeonamesUsername GeonamesUsername where
-  geonamesUsernameL = id
+class HasTimeZoneDatabase env where
+  timeZoneDatabaseL :: Lens' env TimeZoneDatabase
+instance HasTimeZoneDatabase AppContext where
+  timeZoneDatabaseL = lens appTimeZoneDatabase (\x y -> x { appTimeZoneDatabase = y})
+
 
 data AppOptions = AppOptions
   {
@@ -58,11 +59,17 @@ data AppOptions = AppOptions
   , ephePath :: FilePath
   , algoliaAppId :: String
   , algoliaAppKey :: String
-  , geonamesUsername :: String
+  , timezoneDatabaseFile :: FilePath
   } deriving (Generic, Show)
 
 defaultConfig :: AppOptions
-defaultConfig = AppOptions 3000 "./config" "" "" ""
+defaultConfig = AppOptions { 
+  port = 3000,
+  ephePath = "./config", 
+  algoliaAppId = "", 
+  algoliaAppKey = "", 
+  timezoneDatabaseFile = "./config/timezone21.bin"
+}
 
 instance FromEnv AppOptions
 
@@ -100,25 +107,11 @@ instance HasPlanetCircleRadius ChartContext where
   planetCircleRadiusL = lens chartPlanetCircleRadius
                              (\x y -> x{chartPlanetCircleRadius = y})
 
-
 -- domain specific types
-class HasLongitude a where
+class Eq a => HasLongitude a where
   getLongitude :: a -> Longitude
-
-data ZodiacSignName
-  = Aries
-  | Taurus
-  | Gemini
-  | Cancer
-  | Leo
-  | Virgo
-  | Libra
-  | Scorpio
-  | Sagittarius
-  | Capricorn
-  | Aquarius
-  | Pisces
-  deriving (Eq, Show, Enum, Bounded)
+  getLongitudeRaw :: a -> Double
+  getLongitudeRaw = unLongitude . getLongitude
 
 data Element
   = Earth
@@ -126,8 +119,6 @@ data Element
   | Fire
   | Water
   deriving (Eq, Show, Enum, Bounded)
-
-type Longitude = Double
 
 data ZodiacSign = ZodiacSign {
   name :: ZodiacSignName
@@ -137,18 +128,18 @@ data ZodiacSign = ZodiacSign {
 
 westernZodiacSigns :: [ZodiacSign]
 westernZodiacSigns =
-    [ZodiacSign { name = Aries, zodiacLongitude = 0.0, zodiacElement = Fire }
-    ,ZodiacSign { name = Taurus, zodiacLongitude = 30.0, zodiacElement = Types.Earth }
-    ,ZodiacSign { name = Gemini, zodiacLongitude = 60.0, zodiacElement = Air }
-    ,ZodiacSign { name = Cancer, zodiacLongitude = 90.0, zodiacElement = Water }
-    ,ZodiacSign { name = Leo, zodiacLongitude = 120.0, zodiacElement = Fire }
-    ,ZodiacSign { name = Virgo, zodiacLongitude = 150.0, zodiacElement = Types.Earth }
-    ,ZodiacSign { name = Libra, zodiacLongitude = 180.0, zodiacElement = Air }
-    ,ZodiacSign { name = Scorpio, zodiacLongitude = 210.0, zodiacElement = Water }
-    ,ZodiacSign { name = Sagittarius, zodiacLongitude = 240.0, zodiacElement = Fire }
-    ,ZodiacSign { name = Capricorn, zodiacLongitude = 270.0, zodiacElement = Types.Earth }
-    ,ZodiacSign { name = Aquarius, zodiacLongitude = 300.0, zodiacElement = Air }
-    ,ZodiacSign { name = Pisces, zodiacLongitude = 330.0, zodiacElement = Water }
+    [ZodiacSign { name = Aries, zodiacLongitude = Longitude 0.0, zodiacElement = Fire }
+    ,ZodiacSign { name = Taurus, zodiacLongitude = Longitude 30.0, zodiacElement = Types.Earth }
+    ,ZodiacSign { name = Gemini, zodiacLongitude = Longitude 60.0, zodiacElement = Air }
+    ,ZodiacSign { name = Cancer, zodiacLongitude = Longitude 90.0, zodiacElement = Water }
+    ,ZodiacSign { name = Leo, zodiacLongitude = Longitude 120.0, zodiacElement = Fire }
+    ,ZodiacSign { name = Virgo, zodiacLongitude = Longitude 150.0, zodiacElement = Types.Earth }
+    ,ZodiacSign { name = Libra, zodiacLongitude = Longitude 180.0, zodiacElement = Air }
+    ,ZodiacSign { name = Scorpio, zodiacLongitude = Longitude 210.0, zodiacElement = Water }
+    ,ZodiacSign { name = Sagittarius, zodiacLongitude = Longitude 240.0, zodiacElement = Fire }
+    ,ZodiacSign { name = Capricorn, zodiacLongitude = Longitude 270.0, zodiacElement = Types.Earth }
+    ,ZodiacSign { name = Aquarius, zodiacLongitude = Longitude 300.0, zodiacElement = Air }
+    ,ZodiacSign { name = Pisces, zodiacLongitude = Longitude 330.0, zodiacElement = Water }
     ]
 
 data HouseNumber 
@@ -170,10 +161,12 @@ data House = House
   {
     houseNumber :: HouseNumber
   , houseCusp :: Longitude
+  , houseDeclination :: Double
   } deriving (Eq, Show)
 
+-- TODO(luis) fix this to be `Longitude houseCusp`?
 instance HasLongitude House where
-  getLongitude = houseCusp
+  getLongitude =  houseCusp
 
 -- see: https://en.wikipedia.org/wiki/Astrological_aspect
 
@@ -235,16 +228,25 @@ data HoroscopeAspect a b = HoroscopeAspect
     , orb :: Double
     } deriving (Eq, Show)
 
--- additions to SwissEphemeris
+-- extensions to SwissEphemeris
+
+-- in addition to the traditional solar system planets (+ Pluto,)
+-- we're interested in the MeanNode, the Mean Lunar Apogee (Lilith)
+-- and the asteroid Chiron.
+defaultPlanets :: [Planet]
+defaultPlanets = [Sun .. Pluto] <> [MeanNode, MeanApog, Chiron]
 
 data PlanetPosition = PlanetPosition 
   { 
     planetName :: Planet
-  , planetCoordinates :: Coordinates
+  , planetLat :: Latitude
+  , planetLng :: Longitude
+  , planetLngSpeed :: Double
+  , planetDeclination :: Double
   } deriving (Eq, Show)
 
 instance HasLongitude PlanetPosition where
-    getLongitude (PlanetPosition _ coords) = lng coords
+    getLongitude = planetLng
 
 data HoroscopeData = HoroscopeData
   {
@@ -254,13 +256,111 @@ data HoroscopeData = HoroscopeData
   , horoscopeSystem :: HouseSystem
   , horoscopePlanetaryAspects :: [HoroscopeAspect PlanetPosition PlanetPosition]
   , horoscopeAngleAspects :: [HoroscopeAspect PlanetPosition House]
+  , horoscopeUniversalTime :: UTCTime
+  , horoscopeJulianTime :: JulianTime
+  -- TODO: delta time?
   } deriving (Eq, Show)
 
--- TODO: ugh:
--- introduced this newtype just to be able to test the corrections
--- fn without constructing more intense types, maybe `Longitude`
--- should be a newtype, too.
-newtype Lng = Lng {unLng :: Double} deriving (Show)
 
-instance HasLongitude Lng where
-  getLongitude = unLng
+mkEcliptic :: EclipticPosition
+mkEcliptic = EclipticPosition 0 0 0 0 0 0
+
+-- "safe by construction" newtypes
+
+between :: Ord a => (a, a) -> a -> Bool
+between (begin, end) x =
+  x >= begin && x<= end
+
+maybeBetween :: Ord a => (a, a) -> a -> Maybe a
+maybeBetween range x = 
+  if (between range x) then Just x else Nothing
+
+newtype Year = Year Int
+    deriving  (Eq, Show, Num, Read, Ord)
+
+mkYear :: Int -> Maybe Year
+mkYear y = 
+  maybeBetween (1800, 2399) y >>= (Just . Year)
+
+newtype Month = Month Int
+    deriving (Eq, Show, Read, Num, Ord)
+
+mkMonth :: Int -> Maybe Month
+mkMonth m =
+  maybeBetween (1, 12) m >>= (Just . Month)
+
+newtype Day = Day Int
+    deriving (Eq, Show, Num, Read, Ord)
+
+mkDay :: Int -> Maybe Day
+mkDay d =
+  maybeBetween (1, 31) d >>= (Just . Day)
+
+newtype Hour = Hour Int
+    deriving (Eq, Show, Num, Read, Ord)
+
+mkHour :: Int -> Maybe Hour
+mkHour h =
+  maybeBetween (1, 12) h >>= (Just . Hour)
+
+newtype Minute = Minute Int
+    deriving (Eq, Show, Num)
+
+mkMinute :: Int -> Maybe Minute
+mkMinute m =
+  maybeBetween (0, 60) m >>= (Just . Minute)
+
+newtype DayPart = DayPart { unDayPart :: String }
+    deriving (Eq, Show, IsString)
+
+mkDayPart :: String -> Maybe DayPart
+mkDayPart x = 
+  if (map toLower s) `elem` ["am", "pm"] then
+    Just $ DayPart s
+  else
+    Nothing
+  where 
+    s = take 2 x
+
+newtype Latitude = Latitude {unLatitude :: Double}
+    deriving (Eq, Show, Num, Ord)
+
+-- ranges from this wrong answer that turned out to be right for me:
+-- https://stackoverflow.com/a/23914607
+mkLatitude :: Double -> Maybe Latitude
+mkLatitude l = 
+   maybeBetween ((-90.0), 90.0) l >>= (Just . Latitude)
+
+newtype Longitude = Longitude {unLongitude :: Double}
+    deriving (Eq, Show, Num, Ord)
+
+instance HasLongitude Longitude where
+  getLongitude = id
+  getLongitudeRaw = unLongitude
+
+mkLongitude :: Double -> Maybe Longitude
+mkLongitude l =
+  maybeBetween ((-180.0), 180.0) l >>= (Just . Longitude)
+
+data DateParts = DateParts 
+    {
+        year :: Year
+    ,   month :: Month
+    ,   day :: Day
+    ,   hour :: Hour
+    ,   minute :: Minute
+    ,   dayPart :: DayPart
+    } deriving (Eq, Show)
+
+data Location = Location
+    {
+        locationInput :: Text
+    ,   locationLatitude :: Latitude
+    ,   locationLongitude :: Longitude
+    } deriving (Eq, Show)
+
+data BirthData = BirthData
+    {
+        birthLocation :: Location
+    ,   birthLocalTime :: LocalTime
+    } deriving (Eq, Show)

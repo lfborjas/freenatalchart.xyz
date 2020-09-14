@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cbe0dac05f572cc615bd2999dd0ee58e96e25ed778dd0cb48c460b564d338621
+-- hash: 3c9e7366a6f6786dc3f8911b404a6f6d364d4e61629eaff926057817b1dbd127
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -46,7 +46,6 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
-    , aeson
     , base >=4.11 && <10
     , cmark
     , diagrams
@@ -59,15 +58,15 @@ library
     , http-types
     , interpolate
     , lucid
-    , req
     , rio >=0.1.12.0
     , selective
     , servant
     , servant-lucid
     , servant-server
-    , swiss-ephemeris >=0.1.0.2
+    , svg-builder
+    , swiss-ephemeris >=1.1.0.0
     , time
-    , timezone-detect >=0.2.2.0
+    , timezone-detect >=0.3.0.0
     , validation-selective
     , wai
     , warp
@@ -82,7 +81,6 @@ executable freenatalchart-exe
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
-    , aeson
     , base >=4.11 && <10
     , cmark
     , diagrams
@@ -97,15 +95,15 @@ executable freenatalchart-exe
     , interpolate
     , lucid
     , optparse-simple
-    , req
     , rio >=0.1.12.0
     , selective
     , servant
     , servant-lucid
     , servant-server
-    , swiss-ephemeris >=0.1.0.2
+    , svg-builder
+    , swiss-ephemeris >=1.1.0.0
     , time
-    , timezone-detect >=0.2.2.0
+    , timezone-detect >=0.3.0.0
     , validation-selective
     , wai
     , warp
@@ -121,8 +119,8 @@ test-suite freenatalchart-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      SVGFonts >=1.7.0.1 && <1.8
-    , aeson
+      QuickCheck
+    , SVGFonts >=1.7.0.1 && <1.8
     , base >=4.11 && <10
     , cmark
     , diagrams
@@ -133,21 +131,22 @@ test-suite freenatalchart-test
     , envy
     , freenatalchart
     , hspec
+    , hspec-golden
     , hspec-wai
     , hspec-wai-json
     , http-api-data
     , http-types
     , interpolate
     , lucid
-    , req
     , rio >=0.1.12.0
     , selective
     , servant
     , servant-lucid
     , servant-server
-    , swiss-ephemeris >=0.1.0.2
+    , svg-builder
+    , swiss-ephemeris >=1.1.0.0
     , time
-    , timezone-detect >=0.2.2.0
+    , timezone-detect >=0.3.0.0
     , validation-selective
     , wai
     , warp

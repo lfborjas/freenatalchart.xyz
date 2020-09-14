@@ -20,7 +20,7 @@ description:         Please see the README on Github at <https://github.com/lfbo
 dependencies:
 - base >= 4.11 && < 10
 - rio >= 0.1.12.0
-- swiss-ephemeris >= 0.1.0.2
+- swiss-ephemeris >= 1.1.0.0
 - diagrams
 - diagrams-core
 - diagrams-lib
@@ -40,10 +40,9 @@ dependencies:
 - cmark
 - validation-selective
 - selective
-- aeson
-- req
 - time
-- timezone-detect >= 0.2.2.0
+- timezone-detect >= 0.3.0.0
+- svg-builder
 
 ghc-options:
 - -Wall
@@ -79,6 +78,8 @@ tests:
     - hspec
     - hspec-wai
     - hspec-wai-json
+    - QuickCheck
+    - hspec-golden
 
     ghc-options:
     - -threaded
