@@ -15,7 +15,6 @@ import RIO.Text (pack)
 import RIO.Time (LocalTime, defaultTimeLocale, formatTime, parseTimeM)
 import SwissEphemeris (LongitudeComponents (..), Planet (..))
 import Views.Common
-import Text.Printf (printf)
 
 render :: BirthData -> HoroscopeData -> Html ()
 render BirthData {..} h@HoroscopeData {..} = html_ $ do
@@ -205,7 +204,7 @@ htmlDegreesZodiac p =
     maybe mempty asIcon (split & longitudeZodiacSign)
     toHtml $ (" " <> (toText $ longitudeDegrees split)) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
-    toHtml $ (formattedSeconds split) <> "\""
+    toHtml $ (toText $ longitudeSeconds split) <> "\""
   where
     pl = getLongitudeRaw p
     split = splitDegreesZodiac pl
@@ -215,7 +214,7 @@ htmlDegreesLatitude l =
   abbr_ [title_ (pack . show $ l)] $ do
     toHtml $ (toText $ longitudeDegrees split) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
-    toHtml $ (formattedSeconds split) <> "\" "
+    toHtml $ (toText $ longitudeSeconds split) <> "\" "
     toHtml direction
   where
     split = splitDegrees $ unLatitude l
@@ -228,17 +227,11 @@ htmlDegrees l =
     toHtml sign
     toHtml $ (toText $ longitudeDegrees split) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
-    toHtml $ (formattedSeconds split) <> "\""
+    toHtml $ (toText $ longitudeSeconds split) <> "\""
   where
     split = splitDegrees l
     sign :: Text
     sign = if l < 0 then "-" else ""
-
-formattedSeconds :: LongitudeComponents -> Text
-formattedSeconds LongitudeComponents {..} =
-  pack $ printf "%.2f" seconds
-  where
-    seconds = (fromIntegral longitudeSeconds) + longitudeSecondsFraction
 
 housePositionHtml :: Maybe House -> Html ()
 housePositionHtml Nothing = mempty

@@ -21,7 +21,8 @@ import Data.Time.LocalTime.TimeZone.Detect
 import Import hiding (Earth)
 import RIO.List (cycle, headMaybe, lastMaybe, sortBy)
 import RIO.Time (UTCTime (..), diffTimeToPicoseconds, toGregorian)
-import SwissEphemeris hiding (houseNumber)
+import SwissEphemeris hiding (houseNumber, splitDegrees, splitDegreesZodiac)
+import qualified SwissEphemeris as SWE
 
 -- "main" fn
 
@@ -171,3 +172,11 @@ findAscendant houses' =
     & headMaybe
     & fmap (longitudeZodiacSign . splitDegreesZodiac . getLongitudeRaw . houseCusp)
     & maybe Nothing id
+
+-- simplifications of SWE helpers
+
+splitDegrees :: Double -> LongitudeComponents
+splitDegrees = SWE.splitDegrees $ defaultSplitDegreesOptions <> [RoundSeconds]
+
+splitDegreesZodiac :: Double -> LongitudeComponents
+splitDegreesZodiac = SWE.splitDegreesZodiac
