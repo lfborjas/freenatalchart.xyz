@@ -34,6 +34,9 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
       div_ [] $ do
         figure_ [id_ "chart", class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
           div_ [] $ do
+            -- seek answers in: https://hackage.haskell.org/package/diagrams-svg-1.4.3/docs/src/Diagrams.Backend.SVG.html
+            -- and: https://hackage.haskell.org/package/svg-builder-0.1.1/docs/Graphics-Svg-Core.html#v:makeAttribute
+            -- to be able to set some sort of responsive attributes in the generated svg:
             toHtmlRaw $ Svg.renderBS $ renderChart 600 h
           figcaption_ [class_ "figure-caption text-center"] $ do
             "Sun Sign: "
