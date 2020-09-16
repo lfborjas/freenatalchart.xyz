@@ -23,7 +23,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     metaCeremony
 
   body_ $ do
-    header_ [class_ "navbar bg-secondary"] $ do
+    header_ [class_ "navbar"] $ do
       section_ [class_ "navbar-section"] $ do
         a_ [href_ "#chart", class_ "navbar-brand text-bold mr-2"] "Your Free Natal Chart"
       section_ [class_ "navbar-section"] $ do
@@ -32,8 +32,8 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
           "Report an issue"
     div_ [id_ "main", class_ "container mx-4"] $ do
       div_ [] $ do
-        figure_ [id_ "chart", class_ "figure"] $ do
-          div_ [class_ "p-centered"] $ do
+        figure_ [id_ "chart", class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
+          div_ [] $ do
             toHtmlRaw $ Svg.renderBS $ renderChart 600 h
           figcaption_ [class_ "figure-caption text-center"] $ do
             "Sun Sign: "
@@ -60,7 +60,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
               "Planet Positions"
 
           div_ [class_ "accordion-body"] $ do
-            table_ [class_ "table table-striped table-hover"] $ do
+            table_ [class_ "table table-striped table-hover table-scroll"] $ do
               thead_ [] $ do
                 tr_ [] $ do
                   th_ [] "Planet"
@@ -100,7 +100,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
             p_ $ do
               span_ [] "System Used: "
               mark_ $ toHtml $ toText horoscopeSystem
-            table_ [class_ "table table-striped table-hover"] $ do
+            table_ [class_ "table table-striped table-hover table-scroll"] $ do
               thead_ [] $ do
                 tr_ [] $ do
                   th_ [] "House"
