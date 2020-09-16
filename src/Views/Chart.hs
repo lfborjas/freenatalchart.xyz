@@ -60,7 +60,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
               "Planet Positions"
 
           div_ [class_ "accordion-body"] $ do
-            table_ [class_ "table table-striped table-hover table-scroll"] $ do
+            table_ [class_ "table table-striped table-hover"] $ do
               thead_ [] $ do
                 tr_ [] $ do
                   th_ [] "Planet"
@@ -100,7 +100,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
             p_ $ do
               span_ [] "System Used: "
               mark_ $ toHtml $ toText horoscopeSystem
-            table_ [class_ "table table-striped table-hover table-scroll"] $ do
+            table_ [class_ "table table-striped table-hover"] $ do
               thead_ [] $ do
                 tr_ [] $ do
                   th_ [] "House"
