@@ -23,16 +23,17 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     metaCeremony
 
   body_ $ do
-    div_ [id_ "main", class_ "container"] $ do
-      -- TODO: add a navbar/header?
-      div_ [class_ "p-centered"] $ do
-        details_ [id_ "chart", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-primary"] $ do
-            headerIcon
-            sectionHeading "Your Natal Chart"
-          div_ [class_ "accordion-body"] $ do
-            div_ [class_ "my-2"] $ do
-              toHtmlRaw $ Svg.renderBS $ renderChart 600 h
+    header_ [class_ "navbar"] $ do
+      section_ [class_ "navbar-section"] $ do
+        a_ [href_ "#chart", class_ "navbar-brand text-bold mr-2"] "Your Free Natal Chart"
+      section_ [class_ "navbar-section"] $ do
+        a_ [href_ "/", class_ "btn btn-link"] "Start Over"
+        a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues", class_ "btn btn-link text-error"] $ do
+          "Report an issue"
+    div_ [id_ "main", class_ "container mx-4"] $ do
+      div_ [] $ do
+        div_ [class_ "my-2"] $ do
+          toHtmlRaw $ Svg.renderBS $ renderChart 600 h
 
         details_ [id_ "at-a-glance", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
@@ -183,7 +184,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
         a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.", class_ "btn btn-link"] "Source Code"
   where
     -- markup helpers
-    headerIcon = i_ [class_ "icon icon-arrow-right mr-1"] ""
+    headerIcon = i_ [class_ "icon icon-arrow-right mr-1 c-hand"] ""
     sectionHeading = h3_ [class_ "d-inline"]
     -- some data helpers
     splitPlanets :: [LongitudeComponents]
