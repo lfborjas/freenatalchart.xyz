@@ -23,7 +23,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     metaCeremony
 
   body_ $ do
-    header_ [class_ "navbar"] $ do
+    header_ [class_ "navbar bg-secondary"] $ do
       section_ [class_ "navbar-section"] $ do
         a_ [href_ "#chart", class_ "navbar-brand text-bold mr-2"] "Your Free Natal Chart"
       section_ [class_ "navbar-section"] $ do
@@ -32,28 +32,26 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
           "Report an issue"
     div_ [id_ "main", class_ "container mx-4"] $ do
       div_ [] $ do
-        div_ [class_ "my-2"] $ do
-          toHtmlRaw $ Svg.renderBS $ renderChart 600 h
+        figure_ [id_ "chart", class_ "figure"] $ do
+          div_ [class_ "p-centered"] $ do
+            toHtmlRaw $ Svg.renderBS $ renderChart 600 h
+          figcaption_ [class_ "figure-caption text-center"] $ do
+            "Sun Sign: "
+            (maybe mempty (toHtml . toText) (findSunSign horoscopePlanetPositions))
+            " - "
+            "Ascendant: "
+            (maybe mempty (toHtml . toText) (findAscendant horoscopeHouses))
 
-        details_ [id_ "at-a-glance", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-secondary"] $ do
-            headerIcon
-            sectionHeading "At a Glance"
-          div_ [class_ "accordion-body"] $ do
-            dl_ [] $ do
-              dt_ [] "Place of Birth:"
-              dd_ [] $ do
-                toHtml $ birthLocation & locationInput
-                latLngHtml birthLocation
-              -- TODO: include timezone, julian time, delta time n' stuff?
-              dt_ [] "Local Time of Birth:"
-              dd_ [] (toHtml $ birthLocalTime & formatTime defaultTimeLocale "%Y-%m-%d %l:%M:%S %P")
-              dt_ [] "Universal Time:"
-              dd_ [] (toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z")
-              dt_ [] "Sun Sign:"
-              dd_ [] (maybe mempty (toHtml . toText) (findSunSign horoscopePlanetPositions))
-              dt_ [] "Ascendant:"
-              dd_ [] (maybe mempty (toHtml . toText) (findAscendant horoscopeHouses))
+        -- div_ [class_ "card-header"] $ do
+        --   div_ [class_ "card-title"] $ do
+        --     p_ $ do
+        --       "Born in "
+        --       toHtml $ birthLocation & locationInput
+        --       latLngHtml birthLocation
+        --       " on "
+        --       (toHtml $ birthLocalTime & formatTime defaultTimeLocale "%Y-%m-%d %l:%M:%S %P")
+        --   div_ [class_ "card-subtitle text-gray"] $ do
+        --     (toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z")
 
         details_ [id_ "planet-positions", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
