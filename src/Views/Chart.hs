@@ -12,7 +12,7 @@ import qualified Graphics.Svg as Svg
 import Import hiding (for_)
 import Lucid
 import RIO.Text (pack)
-import RIO.Time (LocalTime, defaultTimeLocale, formatTime, parseTimeM)
+import RIO.Time (LocalTime, defaultTimeLocale, parseTimeM)
 import SwissEphemeris (LongitudeComponents (..), Planet (..))
 import Views.Common
 
@@ -21,6 +21,8 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
   head_ $ do
     title_ "Your Natal Chart"
     metaCeremony
+    style_ $ do
+      "svg { height: auto; width: auto}"
 
   body_ $ do
     header_ [class_ "navbar"] $ do
@@ -34,27 +36,20 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
       div_ [] $ do
         figure_ [id_ "chart", class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
           div_ [] $ do
-            -- seek answers in: https://hackage.haskell.org/package/diagrams-svg-1.4.3/docs/src/Diagrams.Backend.SVG.html
-            -- and: https://hackage.haskell.org/package/svg-builder-0.1.1/docs/Graphics-Svg-Core.html#v:makeAttribute
-            -- to be able to set some sort of responsive attributes in the generated svg:
-            toHtmlRaw $ Svg.renderBS $ renderChart 600 h
-          figcaption_ [class_ "figure-caption text-center"] $ do
-            "Sun Sign: "
-            (maybe mempty (toHtml . toText) (findSunSign horoscopePlanetPositions))
-            " - "
-            "Ascendant: "
-            (maybe mempty (toHtml . toText) (findAscendant horoscopeHouses))
-
-        -- div_ [class_ "card-header"] $ do
-        --   div_ [class_ "card-title"] $ do
-        --     p_ $ do
-        --       "Born in "
-        --       toHtml $ birthLocation & locationInput
-        --       latLngHtml birthLocation
-        --       " on "
-        --       (toHtml $ birthLocalTime & formatTime defaultTimeLocale "%Y-%m-%d %l:%M:%S %P")
-        --   div_ [class_ "card-subtitle text-gray"] $ do
-        --     (toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z")
+            -- unfortunately, the underlying library assigns `height` and `width` attributes to the SVG:
+            -- https://github.com/circuithub/diagrams-svg/blob/master/src/Graphics/Rendering/SVG.hs#L92-L93
+            -- and any attempt to replace them simply prepends or appends instead:
+            -- https://hackage.haskell.org/package/svg-builder-0.1.1/docs/src/Graphics.Svg.Core.html#with
+            -- so instead we simply set them to invalid strings (sorry console sleuths,)
+            -- and then set the attributes via CSS, since that's allowed (they're Geometry Properties:)
+            -- https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/height#svg
+            (toHtmlRaw $ Svg.renderBS $ renderChart [Svg.makeAttribute "height" "not", Svg.makeAttribute "width" "not"] 600 h)
+            figcaption_ [class_ "figure-caption text-center"] $ do
+              "Sun Sign: "
+              (maybe mempty (toHtml . toText) (findSunSign horoscopePlanetPositions))
+              " - "
+              "Ascendant: "
+              (maybe mempty (toHtml . toText) (findAscendant horoscopeHouses))
 
         details_ [id_ "planet-positions", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do

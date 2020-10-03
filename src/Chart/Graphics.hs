@@ -216,9 +216,9 @@ correctCollisions tolerance originalPositions =
     correctCollisions' [x, y] = [(getLongitude x) - correction, (getLongitude y) + correction]
     correctCollisions' (x : xs) = (getLongitude x) : map (\y -> (getLongitude y) + correction) xs
 
-renderChart :: Double -> HoroscopeData -> Svg.Element
-renderChart width' z@HoroscopeData {..} =
-  renderDia SVG (SVGOptions (mkWidth width') Nothing "" [] True) birthChart
+renderChart :: [Svg.Attribute] -> Double -> HoroscopeData -> Svg.Element
+renderChart attrs width' z@HoroscopeData {..} =
+  renderDia SVG (SVGOptions (mkWidth width') Nothing "" attrs True) birthChart
   where
     cfg =
       ChartContext
@@ -237,4 +237,4 @@ renderTestChart = do
     birthplace <- pure $ Location "Tegucigalpa" (Latitude 14.0839053) (Longitude $ -87.2750137)
     birthtime <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:00:00" :: IO LocalTime
     calculations <- horoscope db ephe (BirthData birthplace birthtime)
-    Svg.renderToFile "circle.svg" $ renderChart 400 calculations
+    Svg.renderToFile "circle.svg" $ renderChart [] 400 calculations
