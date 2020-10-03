@@ -1,7 +1,7 @@
 ---
 name: Error report
 about: Did something look off on your chart?
-title: ''
+title: "[CHART ERROR]"
 labels: bug
 assignees: ''
 
@@ -10,8 +10,6 @@ assignees: ''
 To better diagnose the issue, please copy and paste the URL of the page you were at when things started to look wrong. If possible, please also include a screenshot!
 
 If you're unable to provide a URL and/or a screenshot, please describe the issue as best you can: "I entered so and so data, expected to see this and that, but ended up seeing this weird thing!" 
-
-If nothing is wrong but you're instead requesting a feature (e.g. you'd like to see different colors in the charts, different orbs/aspects, more house systems, synastry, etc.) you're welcome to do so! 
 
 **To Reproduce**
 What were you doing when things went wrong? E.g.: 
