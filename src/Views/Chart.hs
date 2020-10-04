@@ -13,7 +13,7 @@ import Import hiding (for_)
 import Lucid
 import RIO.Text (pack)
 import RIO.Time (LocalTime, defaultTimeLocale, parseTimeM)
-import SwissEphemeris (LongitudeComponents (..), Planet (..))
+import SwissEphemeris (ZodiacSignName(..), LongitudeComponents (..), Planet (..))
 import Views.Common
 
 render :: BirthData -> HoroscopeData -> Html ()
@@ -22,17 +22,23 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     title_ "Your Natal Chart"
     metaCeremony
     style_ $ do
-      "svg { height: auto; width: auto}"
+      "svg { height: auto; width: auto}\
+      \.scrollable-container {overflow-x: auto !important;}\
+      \"
 
   body_ $ do
-    header_ [class_ "navbar"] $ do
+    header_ [class_ "navbar bg-gray"] $ do
       section_ [class_ "navbar-section"] $ do
         a_ [href_ "#chart", class_ "navbar-brand text-bold mr-2"] "Your Free Natal Chart"
+      section_ [class_ "navbar-center text-large"] $ do
+        maybe mempty asIcon sunSign
       section_ [class_ "navbar-section"] $ do
         a_ [href_ "/", class_ "btn btn-link"] "Start Over"
-        a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues", class_ "btn btn-link text-error"] $ do
+        a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues"
+           , class_ "btn btn-link text-error"
+           , target_ "_blank"] $ do
           "Report an issue"
-    div_ [id_ "main", class_ "container mx-4"] $ do
+    div_ [id_ "main", class_ "container grid-xl mx-4"] $ do
       div_ [] $ do
         figure_ [id_ "chart", class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
           div_ [] $ do
@@ -46,10 +52,10 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
             (toHtmlRaw $ Svg.renderBS $ renderChart [Svg.makeAttribute "height" "not", Svg.makeAttribute "width" "not"] 600 h)
             figcaption_ [class_ "figure-caption text-center"] $ do
               "Sun Sign: "
-              (maybe mempty (toHtml . toText) (findSunSign horoscopePlanetPositions))
+              (maybe mempty (toHtml . toText) sunSign)
               " - "
               "Ascendant: "
-              (maybe mempty (toHtml . toText) (findAscendant horoscopeHouses))
+              (maybe mempty (toHtml . toText) asc)
 
         details_ [id_ "planet-positions", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
@@ -57,7 +63,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
             sectionHeading $ do
               "Planet Positions"
 
-          div_ [class_ "accordion-body"] $ do
+          div_ [class_ "accordion-body scrollable-container"] $ do
             table_ [class_ "table table-striped table-hover"] $ do
               thead_ [] $ do
                 tr_ [] $ do
@@ -94,7 +100,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
             headerIcon
             sectionHeading "House Cusps"
-          div_ [class_ "accordion-body"] $ do
+          div_ [class_ "accordion-body scrollable-container"] $ do
             p_ $ do
               span_ [] "System Used: "
               mark_ $ toHtml $ toText horoscopeSystem
@@ -147,7 +153,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
           summary_ [class_ "accordion-header bg-gray"] $ do
             headerIcon
             sectionHeading "Orbs used"
-          div_ [class_ "accordion-body"] $ do
+          div_ [class_ "accordion-body scrollable-container"] $ do
             table_ [class_ "table table-striped table-hover"] $ do
               thead_ [] $ do
                 tr_ [] $ do
@@ -187,6 +193,8 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     splitPlanets = map (splitDegreesZodiac . getLongitudeRaw) horoscopePlanetPositions
     splitHouses :: [LongitudeComponents]
     splitHouses = map (splitDegreesZodiac . getLongitudeRaw) horoscopeHouses
+    sunSign = (findSunSign horoscopePlanetPositions)
+    asc = (findAscendant horoscopeHouses)
 
 -- TODO: where to catch the `MeanApog` to `Lilith` transformation?
 asIcon :: Show a => a -> Html ()
@@ -194,6 +202,26 @@ asIcon z =
   i_ [class_ ("fnc-" <> shown <> " tooltip"), title_ shown, data_ "tooltip" shown] ""
   where
     shown = toText z
+
+asEmoji :: ZodiacSignName -> Html ()
+asEmoji zName =
+  toHtml z
+  where
+    z :: Text
+    z = 
+      case zName of
+        Aries -> "♈️"
+        Taurus -> "♉️"
+        Gemini -> "♊️"
+        Cancer -> "♋️"
+        Leo -> "♌️"
+        Virgo -> "♍️"
+        Libra -> "♎️"
+        Scorpio -> "♏️"
+        Sagittarius -> "♐️"
+        Capricorn -> "♑️"
+        Aquarius -> "♒️"
+        Pisces -> "♓️"
 
 htmlDegreesZodiac :: HasLongitude a => a -> Html ()
 htmlDegreesZodiac p =
@@ -219,12 +247,21 @@ htmlDegreesLatitude l =
     direction = if (unLatitude l) < 0 then "S" else "N"
 
 htmlDegrees :: Double -> Html ()
-htmlDegrees l =
+htmlDegrees = htmlDegrees' (True, True)
+
+htmlDegrees' :: (Bool, Bool) -> Double -> Html ()
+htmlDegrees' (includeMinutes, includeSeconds) l =
   abbr_ [title_ (pack . show $ l)] $ do
     toHtml sign
     toHtml $ (toText $ longitudeDegrees split) <> "° "
-    toHtml $ (toText $ longitudeMinutes split) <> "\' "
-    toHtml $ (toText $ longitudeSeconds split) <> "\""
+    if includeMinutes then
+      toHtml $ (toText $ longitudeMinutes split) <> "\' "
+    else
+      mempty
+    if includeSeconds then
+      toHtml $ (toText $ longitudeSeconds split) <> "\""
+    else
+      mempty
   where
     split = splitDegrees l
     sign :: Text
@@ -253,7 +290,7 @@ aspectCell (Just HoroscopeAspect {..}) =
   span_ [style_ ("color: " <> (aspectColor . temperament $ aspect))] $ do
     asIcon . aspectName $ aspect
     " "
-    htmlDegrees orb
+    htmlDegrees' (True, False) orb
 
 aspectColor :: AspectTemperament -> Text
 aspectColor Analytical = "red"
