@@ -82,13 +82,13 @@ quadrants env Angles {..} =
   mconcat $ map quadrant angles
   where
     angles = [(Longitude ascendant, "Asc"), (Longitude mc, "MC")]
-    quadrant (cuspBegin, label) =
+    quadrant (cuspBegin, label') =
       t
       where
         onZodiacs = env ^. zodiacCircleRadiusL
         textPosition = longitudeToPoint (onZodiacs - 0.05) (cuspBegin + 4)
         t =
-          (text $ label)
+          (text $ label')
             # moveTo textPosition
             # fontSize (local 0.05)
             # fc black

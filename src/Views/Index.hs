@@ -142,9 +142,9 @@ isEmpty :: Text -> Bool
 isEmpty = RIO.Text.null
 
 numberInput :: Text -> Text -> (Int, Int) -> Text -> (Maybe Text) -> Html ()
-numberInput name' label (start, end) value e = 
+numberInput name' label' (start, end) value e = 
     div_ [class_ (formGroupClass value e)] $ do
-        label_ [class_ "form-label", for_ name'] (toHtml label)
+        label_ [class_ "form-label", for_ name'] (toHtml label')
         input_ [ class_ "form-input"
                , type_ "number"
                , id_ name'

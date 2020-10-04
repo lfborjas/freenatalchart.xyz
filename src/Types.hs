@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving, OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -114,18 +115,30 @@ class Eq a => HasLongitude a where
   getLongitudeRaw :: a -> Double
   getLongitudeRaw = unLongitude . getLongitude
 
+class Show a => HasLabel a where
+  label :: a -> String
+  label = show
+
+instance HasLabel Planet where
+  label MeanApog = "Lilith"
+  label MeanNode = "Mean Node"
+  label p = show p
+
+instance HasLabel ZodiacSignName
+
 data Element
   = Earth
   | Air
   | Fire
   | Water
-  deriving (Eq, Show, Enum, Bounded)
+  deriving stock (Eq, Show, Enum, Bounded)
+  deriving anyclass HasLabel
 
 data ZodiacSign = ZodiacSign {
   name :: ZodiacSignName
 , zodiacLongitude :: Longitude
 , zodiacElement :: Element
-} deriving (Eq, Show)
+} deriving stock (Eq, Show)
 
 westernZodiacSigns :: [ZodiacSign]
 westernZodiacSigns =
@@ -156,14 +169,15 @@ data HouseNumber
   | X
   | XI
   | XII
-  deriving (Eq, Show, Ord, Enum, Bounded)
+  deriving stock (Eq, Show, Ord, Enum, Bounded)
+  deriving anyclass HasLabel
 
 data House = House
   {
     houseNumber :: HouseNumber
   , houseCusp :: Longitude
   , houseDeclination :: Double
-  } deriving (Eq, Show)
+  } deriving stock (Eq, Show)
 
 -- TODO(luis) fix this to be `Longitude houseCusp`?
 instance HasLongitude House where
@@ -185,19 +199,21 @@ data AspectName
     | SemiSquare
     | Novile
     | Sesquisquare -- Trioctile
-    deriving (Eq, Show, Ord, Enum, Bounded)
+    deriving stock (Eq, Show, Ord, Enum, Bounded)
+    deriving anyclass HasLabel
 
 
 data AspectTemperament
     = Analytical -- "Disharmonious"
     | Synthetic -- "Harmonious"
     | Neutral
-    deriving (Eq, Show, Ord, Enum, Bounded)
+    deriving stock (Eq, Show, Ord, Enum, Bounded)
+    deriving anyclass HasLabel
 
 
 data Aspect =
     Aspect { aspectName :: AspectName, maxOrb :: Double, angle :: Double, temperament :: AspectTemperament }
-    deriving (Eq, Show)
+    deriving stock (Eq, Show)
 
 majorAspects :: [Aspect]
 majorAspects =
@@ -227,7 +243,7 @@ data HoroscopeAspect a b = HoroscopeAspect
     , bodies :: ( a, b )
     , aspectAngle :: Double
     , orb :: Double
-    } deriving (Eq, Show)
+    } deriving stock (Eq, Show)
 
 -- extensions to SwissEphemeris
 
@@ -244,7 +260,7 @@ data PlanetPosition = PlanetPosition
   , planetLng :: Longitude
   , planetLngSpeed :: Double
   , planetDeclination :: Double
-  } deriving (Eq, Show)
+  } deriving stock (Eq, Show)
 
 instance HasLongitude PlanetPosition where
     getLongitude = planetLng

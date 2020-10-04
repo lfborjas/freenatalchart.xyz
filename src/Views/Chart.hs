@@ -152,12 +152,14 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                   td_ [style_ "border-bottom: 1px solid"] $ do
                     asIcon rowPlanet
               tr_ [] $ do
-                td_ [] "AC"
+                td_ [] $ do
+                  span_ [class_ "tooltip", data_ "tooltip" "Ascendant"] "AC"
                 forM_ (horoscopePlanetPositions) $ \PlanetPosition {..} -> do
                   td_ [style_ "border: 1px solid", class_ "text-small"] $ do
                     aspectCell $ findAspectWithAngle horoscopeAngleAspects planetName I
               tr_ [] $ do
-                td_ [] "MC"
+                td_ [] $ do
+                  span_ [class_ "tooltip", data_ "tooltip" "Midheaven"] "MC"
                 forM_ (horoscopePlanetPositions) $ \PlanetPosition {..} -> do
                   td_ [style_ "border: 1px solid", class_ "text-small"] $ do
                     aspectCell $ findAspectWithAngle horoscopeAngleAspects planetName X
@@ -210,11 +212,12 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     asc = (findAscendant horoscopeHouses)
 
 -- TODO: where to catch the `MeanApog` to `Lilith` transformation?
-asIcon :: Show a => a -> Html ()
+asIcon :: HasLabel a => a -> Html ()
 asIcon z =
-  i_ [class_ ("fnc-" <> shown <> " tooltip"), title_ shown, data_ "tooltip" shown] ""
+  i_ [class_ ("fnc-" <> shown <> " tooltip"), title_ shown, data_ "tooltip" label'] ""
   where
-    shown = toText z
+    label' = pack . label $ z
+    shown  = toText z
 
 asEmoji :: ZodiacSignName -> Html ()
 asEmoji zName =
