@@ -1,3 +1,4 @@
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving, OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -276,42 +277,42 @@ maybeBetween range x =
   if (between range x) then Just x else Nothing
 
 newtype Year = Year Int
-    deriving  (Eq, Show, Num, Read, Ord)
+    deriving newtype (Eq, Show, Num, Read, Ord)
 
 mkYear :: Int -> Maybe Year
 mkYear y = 
   maybeBetween (1800, 2399) y >>= (Just . Year)
 
 newtype Month = Month Int
-    deriving (Eq, Show, Read, Num, Ord)
+    deriving newtype (Eq, Show, Read, Num, Ord)
 
 mkMonth :: Int -> Maybe Month
 mkMonth m =
   maybeBetween (1, 12) m >>= (Just . Month)
 
 newtype Day = Day Int
-    deriving (Eq, Show, Num, Read, Ord)
+    deriving newtype (Eq, Show, Num, Read, Ord)
 
 mkDay :: Int -> Maybe Day
 mkDay d =
   maybeBetween (1, 31) d >>= (Just . Day)
 
 newtype Hour = Hour Int
-    deriving (Eq, Show, Num, Read, Ord)
+    deriving newtype (Eq, Show, Num, Read, Ord)
 
 mkHour :: Int -> Maybe Hour
 mkHour h =
   maybeBetween (1, 12) h >>= (Just . Hour)
 
 newtype Minute = Minute Int
-    deriving (Eq, Show, Num)
+    deriving newtype (Eq, Show, Num)
 
 mkMinute :: Int -> Maybe Minute
 mkMinute m =
   maybeBetween (0, 60) m >>= (Just . Minute)
 
 newtype DayPart = DayPart { unDayPart :: String }
-    deriving (Eq, Show, IsString)
+    deriving newtype (Eq, Show, IsString)
 
 mkDayPart :: String -> Maybe DayPart
 mkDayPart x = 
@@ -323,7 +324,7 @@ mkDayPart x =
     s = take 2 x
 
 newtype Latitude = Latitude {unLatitude :: Double}
-    deriving (Eq, Show, Num, Ord)
+    deriving newtype (Eq, Show, Num, Ord)
 
 -- ranges from this wrong answer that turned out to be right for me:
 -- https://stackoverflow.com/a/23914607
@@ -332,7 +333,7 @@ mkLatitude l =
    maybeBetween ((-90.0), 90.0) l >>= (Just . Latitude)
 
 newtype Longitude = Longitude {unLongitude :: Double}
-    deriving (Eq, Show, Num, Ord)
+    deriving newtype (Eq, Show, Num, Ord)
 
 instance HasLongitude Longitude where
   getLongitude = id
