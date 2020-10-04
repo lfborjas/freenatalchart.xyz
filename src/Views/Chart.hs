@@ -12,7 +12,7 @@ import qualified Graphics.Svg as Svg
 import Import hiding (for_)
 import Lucid
 import RIO.Text (pack)
-import RIO.Time (formatTime, LocalTime, defaultTimeLocale, parseTimeM)
+import RIO.Time (rfc822DateFormat, formatTime, LocalTime, defaultTimeLocale, parseTimeM)
 import SwissEphemeris (ZodiacSignName(..), LongitudeComponents (..), Planet (..))
 import Views.Common
 
@@ -37,33 +37,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
            , target_ "_blank"] $ do
           "Report an issue"
     div_ [id_ "main", class_ "container grid-xl mx-4"] $ do
-      div_ [] $ do
-        div_ [class_ "columns mt-2"] $ do
-          div_ [class_ "column col-4 col-mr-auto"] $ do
-            div_ [class_ "tile tile-centered bg-primary"] $ do
-              div_ [class_ "tile-icon"] $ do
-                div_ [class_ "px-2"] $ do
-                  maybe mempty asIcon sunSign
-                  br_ []
-                  span_ [class_ "text-tiny", title_ "Sun Sign"] "Sun"
-              div_ [class_ "tile-content bg-secondary"] $ do
-                div_ [class_ "tile-title text-dark"] $ do
-                  toHtml $ birthLocation & locationInput
-                small_ [class_ "tile-subtitle text-primary"] $ do
-                  latLngHtml birthLocation
-          div_ [class_ "column col-4 col-ml-auto"] $ do
-            div_ [class_ "tile tile-centered bg-primary"] $ do
-              div_ [class_ "tile-content bg-secondary"] $ do
-                div_ [class_ "tile-title text-dark"] $ do
-                  toHtml $ birthLocalTime & formatTime defaultTimeLocale "%Y-%m-%d %l:%M:%S %P"
-                small_ [class_ "tile-subtitle text-primary"] $ do
-                  toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z"
-              div_ [class_ "tile-action"] $ do
-                div_ [class_ "px-2"] $ do
-                  maybe mempty asIcon asc
-                  br_ []
-                  span_ [class_ "text-tiny", title_ "Ascendant"] "Asc"
-
+      div_ [class_ ""] $ do
         figure_ [id_ "chart", class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
           div_ [] $ do
             -- unfortunately, the underlying library assigns `height` and `width` attributes to the SVG:
@@ -74,12 +48,27 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
             -- and then set the attributes via CSS, since that's allowed (they're Geometry Properties:)
             -- https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/height#svg
             (toHtmlRaw $ Svg.renderBS $ renderChart [Svg.makeAttribute "height" "not", Svg.makeAttribute "width" "not"] 600 h)
-            figcaption_ [class_ "figure-caption text-center"] $ do
-              "Sun Sign: "
-              (maybe mempty (toHtml . toText) sunSign)
-              " - "
-              "Ascendant: "
-              (maybe mempty (toHtml . toText) asc)
+
+          div_ [class_ "tile tile-centered text-center"] $ do
+            div_ [class_ "tile-icon"] $ do
+              div_ [class_ "px-2"] $ do
+                maybe mempty asIcon sunSign
+                br_ []
+                span_ [class_ "text-tiny", title_ "Sun Sign"] "Sun"
+            div_ [class_ "tile-content"] $ do
+              div_ [class_ "tile-title text-dark"] $ do
+                toHtml $ birthLocation & locationInput
+                "  ·  "
+                toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
+              small_ [class_ "tile-subtitle text-gray"] $ do
+                latLngHtml birthLocation
+                "  ·  "
+                toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z"
+            div_ [class_ "tile-action"] $ do
+              div_ [class_ "px-2"] $ do
+                maybe mempty asIcon asc
+                br_ []
+                span_ [class_ "text-tiny", title_ "Ascendant"] "Asc"
 
         details_ [id_ "planet-positions", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
