@@ -334,7 +334,7 @@ In Astrology, the zodiac signs represent the "celestial" facets of the individua
 for whom the chart has been drawn: they are the personal characteristics or traits that, 
 combined with the houses and planets present in the sign, manifest in an individual's personality.
 
-Each Zodiac Sign has a _ruler_ (or two,): a planet with which it has an affinity. If an individual's chart
+Each Zodiac Sign has a _ruler_ (or two): a planet with which it has an affinity. If an individual's chart
 shows a sign's ruler present in that house, it is said to be at home and the planet's characteristics/influences
 are said to be felt more strongly. 
 

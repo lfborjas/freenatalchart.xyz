@@ -201,27 +201,36 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                 " "
                 toHtml . toText $ zodiacSign
               p_ [] $ do
-                a_ [href_ "#chart"] "(Back to top)"
+                a_ [href_ "#chart"] "(Back to chart)"
+              
               explain zodiacSign
-              if (not . null $ planetsInSign' zodiacSign) then
-                h5_ "Planets Contained: "
-              else
-                em_ "Your chart doesn't have any planets in this sign."
-              ul_ [] $ do
-                forM_ (planetsInSign' zodiacSign) $ \p -> do
-                  planetDetails p
-              if (not . null $ housesInSign' zodiacSign) then
-                h5_ "House cusps contained: "
-              else
-                em_ "Your chart doesn't have any house cusps in this sign."        
-              ul_ [] $ do
-                forM_ (housesInSign' zodiacSign) $ \House{..} -> do
-                  li_ [] $ do
-                    a_ [href_ $ "#house-" <> toText houseNumber] $ do
-                      toHtml $ "House " <> toText houseNumber
-                      houseLabel houseNumber
-                    " — starting at: "
-                    htmlDegreesZodiac houseCusp
+              let
+                planets' = planetsInSign' zodiacSign
+                in do
+                    h5_ "Planets Contained: "
+                    if null planets' then
+                      p_ $ do
+                        em_ "Your chart doesn't have any planets in this sign."
+                    else
+                      ul_ [] $ do
+                        forM_ planets' $ \p -> do
+                          planetDetails p
+              let
+                houses' = housesInSign' zodiacSign
+                in do
+                    h5_ "House cusps contained: "
+                    if null houses' then
+                      p_ $ do
+                        em_ "Your chart doesn't have any house cusps in this sign."
+                    else
+                      ul_ [] $ do
+                        forM_ houses' $ \House{..} -> do
+                          li_ [] $ do
+                            a_ [href_ $ "#house-" <> toText houseNumber] $ do
+                              toHtml $ "House " <> toText houseNumber
+                              houseLabel houseNumber
+                            " — starting at: "
+                            htmlDegreesZodiac houseCusp
 
 
         details_ [id_ "houses", class_ "accordion my-2", open_ ""] $ do
@@ -234,18 +243,23 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
               h4_ [id_ $ "house-" <> toText houseNumber] $ do
                 toHtml $ "House " <> (toText houseNumber)
               p_ [] $ do
-                a_ [href_ "#chart"] "(Back to top)"
+                a_ [href_ "#chart"] "(Back to chart)"
               p_ [] $ do
                 b_ "Starts at: "
                 htmlDegreesZodiac huis
               explain houseNumber
-              if (not . null $ planetsInHouse' huis) then
-                h5_ "Planets contained: "
-              else
-                em_ "Your chart doesn't have any planets in this house."
-              ul_ [] $ do
-                forM_ (planetsInHouse' huis) $ \p -> do
-                  planetDetails p
+
+              let
+                planets'  = planetsInHouse' huis
+                in do
+                  h5_ "Planets contained: "
+                  if null planets' then
+                    p_ $ do
+                      em_ "Your chart doesn't have any planets in this house."
+                  else
+                    ul_ [] $ do
+                      forM_ planets' $ \p -> do
+                        planetDetails p
 
         details_ [id_ "references", class_ "accordion my-2"] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
