@@ -14,6 +14,8 @@ module Chart.Calculations
     findAspectWithAngle,
     findSunSign,
     findAscendant,
+    planetsByHouse,
+    planetsInHouse
   )
 where
 
@@ -144,6 +146,19 @@ housePosition houses' body =
   where
     split = span (\h -> (getLongitude h) <= (getLongitude body)) sortedHouses
     sortedHouses = sortBy (\a b -> compare (getLongitude a) (getLongitude b)) houses'
+
+planetsByHouse :: [House] -> [PlanetPosition] -> [(House, PlanetPosition)]
+planetsByHouse houses' planets =
+  map maybeHouse planets & catMaybes
+  where
+    pos = housePosition houses'
+    maybeHouse = (\p -> maybe Nothing (\h -> Just (h, p)) (pos p))
+
+
+planetsInHouse :: [(House,  PlanetPosition)] -> House -> [PlanetPosition]
+planetsInHouse mapped haus = 
+  filter (\(h,_) -> h == haus) mapped
+  & map snd
 
 findAspectBetweenPlanets :: [HoroscopeAspect PlanetPosition PlanetPosition] -> Planet -> Planet -> Maybe (HoroscopeAspect PlanetPosition PlanetPosition)
 findAspectBetweenPlanets aspectList pa pb =

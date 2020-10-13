@@ -5,7 +5,7 @@
 
 module Views.Chart (render, renderTestChartPage) where
 
-import Chart.Calculations (findAscendant, findAspectBetweenPlanets, findAspectWithAngle, findSunSign, horoscope, housePosition, isRetrograde, splitDegrees, splitDegreesZodiac)
+import Chart.Calculations (findAscendant, findAspectBetweenPlanets, findAspectWithAngle, findSunSign, horoscope, housePosition, isRetrograde, splitDegrees, splitDegreesZodiac, planetsByHouse, planetsInHouse)
 import Chart.Graphics (renderChart)
 import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 import qualified Graphics.Svg as Svg
@@ -203,8 +203,18 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                 b_ "Starts at: "
                 htmlDegreesZodiac huis
               explain houseNumber
-              h5_ "Planets contained: "
-              mempty -- TODO: planets contained
+              if (not . null $ housePlanets huis) then
+                h5_ "Planets contained: "
+              else
+                em_ "Your chart doesn't have any planets in this house."
+              ul_ [] $ do
+                forM_ (housePlanets huis) $ \PlanetPosition{..} -> do
+                  li_ [] $ do
+                    asIcon planetName
+                    a_ [href_ $ "#" <> (pack . label) planetName] $ do
+                      planetLabel planetName
+                    " — starting at: "
+                    htmlDegreesZodiac planetLng
               
 
     -- the SVG font for all icons.
@@ -230,6 +240,8 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     splitHouses = map (splitDegreesZodiac . getLongitudeRaw) horoscopeHouses
     sunSign = (findSunSign horoscopePlanetPositions)
     asc = (findAscendant horoscopeHouses)
+    planetsGroupedByHouse = planetsByHouse horoscopeHouses horoscopePlanetPositions
+    housePlanets = planetsInHouse planetsGroupedByHouse
 
 -- TODO: where to catch the `MeanApog` to `Lilith` transformation?
 asIcon :: HasLabel a => a -> Html ()

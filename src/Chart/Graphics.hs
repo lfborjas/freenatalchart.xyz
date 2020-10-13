@@ -27,7 +27,7 @@ zodiacCircle env =
     zodiacBand (ZodiacSign signName (Longitude z) zElement) =
       g <> w # fc signColor
         # lw thin
-        # (href $ "#zodiac-" <> (show signName))
+        # (href $ "#" <> (show signName))
         -- can set `title`, `id` or `class`:
         -- https://hackage.haskell.org/package/diagrams-svg-1.4.3/docs/src/Diagrams.Backend.SVG.html
         # (keyVal $ ("title", show signName))
@@ -125,16 +125,12 @@ planets env planetPositions =
         # rectifyAround correctedPosition env
         # fc black
         # lw ultraThin
-        # (keyVal $ ("title", planetLabel planetName))
-        # (href $ "#" <> (planetLabel planetName))
+        # (keyVal $ ("title", label planetName))
+        # (href $ "#" <> (label planetName))
         <> guideLines
         <> (correctionLine # lw thin # lc darkgray)
         <> retrogradeMark
       where
-        -- TODO: maybe `planetLabel` should be promoted more, so tables
-        -- can also refer to `MeanApog` as `Lilith`?
-        planetLabel MeanApog = "Lilith"
-        planetLabel p = show p
         drawPlanetAt = maybe (getLongitude pos) id corrected
         atCorrectedPosition = flip longitudeToPoint $ drawPlanetAt
         correctedPosition = atCorrectedPosition onPlanets
