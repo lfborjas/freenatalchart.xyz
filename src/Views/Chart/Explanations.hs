@@ -8,7 +8,7 @@ import CMark
 import Data.String.Interpolate.IsString
 import Import
 import Lucid
-import SwissEphemeris (ZodiacSignName (..))
+import SwissEphemeris (ZodiacSignName (..), Planet(..))
 
 markdownToHtml :: Text -> Html ()
 markdownToHtml = toHtmlRaw . commonmarkToHtml []
@@ -289,6 +289,98 @@ instance Explicable ZodiacSignName where
         ("Weaknesses", "escapist, unrealistic, submissive, codependent")
       ]
 
+instance Explicable Planet where
+  explain Sun = 
+    descriptions 
+      [ ("Group", "Personal")
+      , ("Rulership", "Leo")
+      , ("Keywords", "ego, basic personality, conscious, vitality, stamina, life energy, will, personal identity")
+      ]
+
+  explain Moon =
+    descriptions
+      [ ("Group", "Personal")
+      , ("Rulership", "Cancer")
+      , ("Keywords", "subconscious, emotions, instincts, habits, moods, maternity")
+      ]
+
+  explain Mercury =
+    descriptions
+      [ ("Group", "Personal")
+      , ("Rulerships", "Gemini, Virgo")
+      , ("Keywords", "mind, communication, intellect, reason, language, intelligence")
+      ]
+
+  explain Venus =
+    descriptions
+      [ ("Group", "Personal")
+      , ("Rulerships", "Taurus, Libra")
+      , ("Keywords", "attraction, love, beauty, harmony, artistic sensibility")
+      ]
+
+  explain Mars =
+    descriptions
+      [ ("Group", "Personal")
+      , ("Rulership", "Aries")
+      , ("Keywords", "aggression, drive, action, desire, competition, courage, passion, self-assertion")
+      ]
+
+  explain Jupiter =
+    descriptions
+      [ ("Group", "Social")
+      , ("Rulership", "Sagittarius")
+      , ("Keywords", "luck, growth, expansion, optimism, abundance, faith")
+      ]
+
+  explain Saturn =
+    descriptions
+      [ ("Group", "Social")
+      , ("Rulership", "Capricorn")
+      , ("Keywords", "structure, restriction, discipline, responsibility, obligation, concentration, limitation, material form")
+      ]
+
+  explain Uranus =
+    descriptions
+      [ ("Group", "Spiritual")
+      , ("Rulership", "Aquarius")
+      , ("Keywords", "eccentricity, rebellion, reformation, unpredictable change, liberation, disruption")
+      ]
+
+  explain Neptune =
+    descriptions
+      [ ("Group", "Spiritual")
+      , ("Rulership", "Pisces")
+      , ("Keywords", "dreams, intution, mysticism, imagination, delusion, disintegration of limits")
+      ]
+
+  explain Pluto =
+    descriptions
+      [ ("Group", "Spiritual")
+      , ("Rulership", "Scorpio")
+      , ("Keywords", "transformation, power, death, rebirth, evolution")
+      ]
+
+  explain MeanNode =
+    descriptions 
+      [ ("Also known as", "Ascending Node, North Node")
+      , ("Notes", "Some astrologers use the 'True Node': both values are calculated points in the Moon's orbit, and are only ever less than a degree apart.")
+      , ("Keywords", "future, life's direction, goals")
+      ]
+  
+  explain MeanApog =
+    descriptions
+      [ ("Also known as", "Black Moon Lilith, Mean apogee")
+      , ("Notes", "Some astrologers calculate Lilith as a focal point in the Moon's orbit, we use the 'mean' value of the moon's apogee: the point in the moon's orbit farthest away from Earth.")
+      , ("Keywords", "repressed self, anguish, resentment, rejection")
+      ]
+
+  explain Chiron =
+    descriptions
+      [ ("Keywords", "wounded self, healer, suffering, acceptance")
+      ]
+
+  explain _ = mempty
+
 descriptions :: [(Text, Text)] -> Html ()
 descriptions ds =
   dl_ $ do
@@ -340,4 +432,26 @@ are said to be felt more strongly.
 
 Each Zodiac Sign also has an _affinity_ with a particular house; they share characteristics but the house's cusp
 _may not be_ in its "related" sign for a given chart. 
+    |]
+
+--
+generalPlanetsExplanation :: Html ()
+generalPlanetsExplanation =
+  markdownToHtml
+    [i|
+The astrological concept of a _Planet_ differs quite a bit from the modern Astronomical concept: the Sun (a star,)
+and the Moon (a satellite,) Pluto (a dwarf planet,) the North and South Nodes, as well as Lilith (points in the Moon's orbit,)
+and Chiron (an asteroid,) are often drawn in natal charts but are most definitely not what an astronomer would call a Planet:
+as far as Astrology is concerned, the symbolic notion of a planet is a point in the skies that has a certain periodic behavior
+that can be related, holistically, with cyclical/recurring patterns in the human psyche. As such, some astrologers use other
+calculated points, fictional/derived bodies, and asteroids in their practice, if they believe they symbolize something of note.
+
+Another difference from Astronomical practice, is that in Astrology planetary positions are **geocentric**: we talk about
+where a planet was at any given time _as seen from the center of the Earth_, which not only means that the positions
+are relative to Earth, but also subject to the distorting effects that Earth's gravity may have on light coming from these bodies!
+
+As far as our astrological practice is concerned, we see planets as **archetypes**: forces within the human psyche that manifest
+in combination with personality traits (as colored by the Zodiac Signs,) in various areas of life (as symbolized by the Houses.)
+
+Additionally, planets may **aspect** each other, in which case their archetypes are said to influence each other in various ways.
     |]

@@ -261,6 +261,25 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                       forM_ planets' $ \p -> do
                         planetDetails p
 
+        details_ [id_ "planets", class_ "accordion my-2", open_ ""] $ do
+          summary_ [class_ "accordion-header bg-secondary"] $ do
+            headerIcon
+            sectionHeading "Planets"
+
+          div_ [] $ do
+            generalPlanetsExplanation
+            forM_ horoscopePlanetPositions $ \PlanetPosition{..} -> do
+              h4_ [id_ $ pack . label $ planetName] $ do
+                asIcon planetName
+                " "
+                toHtml . label $ planetName
+              p_ [] $ do
+                a_ [href_ "#chart"] "(Back to chart)"
+              p_ [] $ do
+                b_ "Starts at: "
+                zodiacLink planetLng
+              explain planetName
+
         details_ [id_ "references", class_ "accordion my-2"] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
             headerIcon
