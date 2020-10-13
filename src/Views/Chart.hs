@@ -194,7 +194,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
             sectionHeading "Zodiac Signs"
           
           div_ [] $ do
-            --generalSignsExplanation
+            generalSignsExplanation
             forM_ [Aries .. Pisces] $ \zodiacSign -> do
               h4_ [id_ $ toText zodiacSign] $ do
                 asIcon zodiacSign
@@ -247,8 +247,12 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                 forM_ (planetsInHouse' huis) $ \p -> do
                   planetDetails p
 
-        h3_ "References:"
-        attribution
+        details_ [id_ "references", class_ "accordion my-2"] $ do
+          summary_ [class_ "accordion-header bg-secondary"] $ do
+            headerIcon
+            sectionHeading "References"
+          div_ [class_ "accordion-body"] $ do
+            attribution
               
 
     -- the SVG font for all icons.

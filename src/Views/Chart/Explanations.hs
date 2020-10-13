@@ -307,6 +307,7 @@ All explanations about astrological factors are based on information found in:
 
 |]
 
+-- https://www.astro.com/astrowiki/en/House
 generalHousesExplanation :: Html ()
 generalHousesExplanation =
   markdownToHtml
@@ -322,3 +323,21 @@ one or more zodiac signs until the cusp of the next house. These contained signs
 the individual approaches the house's area of life. The planets contained in the house
 represent the external forces that express themselves in that area of life.
   |]
+
+
+-- https://www.astro.com/astrowiki/en/Zodiac_Sign
+generalSignsExplanation :: Html ()
+generalSignsExplanation =
+  markdownToHtml
+    [i|
+In Astrology, the zodiac signs represent the "celestial" facets of the individual (or event)
+for whom the chart has been drawn: they are the personal characteristics or traits that, 
+combined with the houses and planets present in the sign, manifest in an individual's personality.
+
+Each Zodiac Sign has a _ruler_ (or two,): a planet with which it has an affinity. If an individual's chart
+shows a sign's ruler present in that house, it is said to be at home and the planet's characteristics/influences
+are said to be felt more strongly. 
+
+Each Zodiac Sign also has an _affinity_ with a particular house; they share characteristics but the house's cusp
+_may not be_ in its "related" sign for a given chart. 
+    |]
