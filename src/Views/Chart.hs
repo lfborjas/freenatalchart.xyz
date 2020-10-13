@@ -15,6 +15,7 @@ import RIO.Text (pack)
 import RIO.Time (rfc822DateFormat, formatTime, LocalTime, defaultTimeLocale, parseTimeM)
 import SwissEphemeris (ZodiacSignName(..), LongitudeComponents (..), Planet (..))
 import Views.Common
+import Views.Chart.Explanations 
 
 render :: BirthData -> HoroscopeData -> Html ()
 render BirthData {..} h@HoroscopeData {..} = html_ $ do
@@ -23,7 +24,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     metaCeremony
     style_ $ do
       "svg { height: auto; width: auto}\
-      \.scrollable-container {overflow-x: auto !important;}\
+      \.scrollable-container {overflow: auto !important;}\
       \"
 
   body_ $ do
@@ -186,6 +187,25 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                       toHtml $ toText angle
                     td_ $ do
                       toHtml $ toText maxOrb
+
+        details_ [id_ "houses", class_ "accordion my-2", open_ ""] $ do
+          summary_ [class_ "accordion-header bg-secondary"] $ do
+            headerIcon
+            sectionHeading "Houses"
+          div_ [class_ "accordion-body scrollable-container"] $ do
+            generalHousesExplanation
+            forM_ horoscopeHouses $ \huis@House{..} -> do
+              h4_ [id_ $ "house-" <> toText houseNumber] $ do
+                toHtml $ "House " <> (toText houseNumber)
+              p_ [] $ do
+                a_ [href_ "#chart"] "(Back to top)"
+              p_ [] $ do
+                b_ "Starts at: "
+                htmlDegreesZodiac huis
+              explain houseNumber
+              h5_ "Planets contained: "
+              mempty -- TODO: planets contained
+              
 
     -- the SVG font for all icons.
     -- TODO: path is wrong for server-rendered!
