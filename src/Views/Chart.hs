@@ -230,7 +230,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                               toHtml $ "House " <> toText houseNumber
                               houseLabel houseNumber
                             " — starting at: "
-                            htmlDegreesZodiac houseCusp
+                            zodiacLink houseCusp
 
 
         details_ [id_ "houses", class_ "accordion my-2", open_ ""] $ do
@@ -246,7 +246,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                 a_ [href_ "#chart"] "(Back to chart)"
               p_ [] $ do
                 b_ "Starts at: "
-                htmlDegreesZodiac huis
+                zodiacLink huis
               explain houseNumber
 
               let
@@ -302,7 +302,7 @@ planetDetails PlanetPosition{..} =
     a_ [href_ $ "#" <> (pack . label) planetName] $ do
       planetLabel planetName
     " — starting at: "
-    htmlDegreesZodiac planetLng
+    zodiacLink planetLng
 
 asIcon :: HasLabel a => a -> Html ()
 asIcon z =
@@ -354,6 +354,19 @@ htmlDegrees' (includeMinutes, includeSeconds) l =
     split = splitDegrees l
     sign :: Text
     sign = if l < 0 then "-" else ""
+
+-- TODO: this is just htmlDegrees with a hat!
+zodiacLink :: HasLongitude a => a -> Html ()
+zodiacLink p =
+  a_  [href_ $ "#" <> link'] $ do
+    maybe mempty asIcon (split & longitudeZodiacSign)
+    toHtml $ (" " <> (toText $ longitudeDegrees split)) <> "° "
+    toHtml $ (toText $ longitudeMinutes split) <> "\' "
+    toHtml $ (toText $ longitudeSeconds split) <> "\""
+  where
+    link' = maybe "chart" toText (split & longitudeZodiacSign)
+    pl = getLongitudeRaw p
+    split = splitDegreesZodiac pl  
 
 housePositionHtml :: Maybe House -> Html ()
 housePositionHtml Nothing = mempty
