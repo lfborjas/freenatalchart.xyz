@@ -454,4 +454,10 @@ As far as our astrological practice is concerned, we see planets as **archetypes
 in combination with personality traits (as colored by the Zodiac Signs,) in various areas of life (as symbolized by the Houses.)
 
 Additionally, planets may **aspect** each other, in which case their archetypes are said to influence each other in various ways.
+
+Planets are sometimes grouped into three groups: **Personal** planets, which express their qualities more strongly in
+the individual; **Social** planets, which have effects on the individual but also describe a society, and **Spiritual**
+planets describe aspects that go beyond the personal and social, invisible aspects in the "collective unconscious."
+
+Most traditional planets are said to be the **rulers** of one or two signs: when they're "at home," their influence is strongest.
     |]
