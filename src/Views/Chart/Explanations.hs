@@ -136,7 +136,7 @@ instance Explicable HouseNumber where
   The Northern (diurnal) hemisphere symbolizes one's extroverted/conscious qualities, while
   the Eastern hemisphere symbolizes how the Self relates to the world.
 
-  The tenth house's starting point is the ***Midheaven (Medium Coeli, MC)**, which is the highest point in the
+  The tenth house's starting point is the **Midheaven (Medium Coeli, MC)**, which is the highest point in the
   sky (the Sun's zenith,) and as such symbolizes the culmination/goal of an individual's life.
   Where the fourth house (its opposite) symbolizes _roots_, the tenth house symbolizes _fruits_.
 

@@ -18,7 +18,7 @@ import qualified Graphics.Svg as Svg
 import Import hiding (Element, (^.), local, over)
 import RIO.List (groupBy, sortBy)
 import RIO.Time (LocalTime, defaultTimeLocale, parseTimeM)
-import SwissEphemeris (Angles (..), Planet (..))
+import SwissEphemeris (Angles (..))
 
 zodiacCircle :: ChartContext -> Diagram B
 zodiacCircle env =

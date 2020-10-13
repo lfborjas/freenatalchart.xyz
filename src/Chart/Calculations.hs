@@ -15,7 +15,11 @@ module Chart.Calculations
     findSunSign,
     findAscendant,
     planetsByHouse,
-    planetsInHouse
+    planetsInHouse,
+    planetsBySign,
+    planetsInSign,
+    housesBySign,
+    housesInSign
   )
 where
 
@@ -195,3 +199,25 @@ splitDegrees = SWE.splitDegrees $ defaultSplitDegreesOptions <> [RoundSeconds]
 
 splitDegreesZodiac :: Double -> LongitudeComponents
 splitDegreesZodiac = SWE.splitDegreesZodiac
+
+planetsBySign :: [PlanetPosition] -> [(ZodiacSignName, PlanetPosition)]
+planetsBySign planets' =
+  map bySign planets'
+  & catMaybes  
+
+planetsInSign :: [(ZodiacSignName, PlanetPosition)] -> ZodiacSignName -> [PlanetPosition]
+planetsInSign = filterSign
+
+housesBySign :: [House] -> [(ZodiacSignName, House)]
+housesBySign houses' =
+  map bySign houses'
+  & catMaybes
+
+housesInSign :: [(ZodiacSignName, House)] -> ZodiacSignName -> [House]
+housesInSign = filterSign
+
+filterSign :: [(ZodiacSignName, a)] -> ZodiacSignName -> [a]
+filterSign mapped sgn = map snd . filter (\(s,_) -> s == sgn) $ mapped
+
+bySign :: HasLongitude a => a -> Maybe (ZodiacSignName, a)
+bySign p = maybe Nothing (\z -> Just (z, p)) (longitudeZodiacSign . splitDegreesZodiac . getLongitudeRaw $ p)

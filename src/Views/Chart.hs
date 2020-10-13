@@ -5,7 +5,7 @@
 
 module Views.Chart (render, renderTestChartPage) where
 
-import Chart.Calculations (findAscendant, findAspectBetweenPlanets, findAspectWithAngle, findSunSign, horoscope, housePosition, isRetrograde, splitDegrees, splitDegreesZodiac, planetsByHouse, planetsInHouse)
+import Chart.Calculations --(findAscendant, findAspectBetweenPlanets, findAspectWithAngle, findSunSign, horoscope, housePosition, isRetrograde, splitDegrees, splitDegreesZodiac, planetsByHouse, planetsInHouse)
 import Chart.Graphics (renderChart)
 import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 import qualified Graphics.Svg as Svg
@@ -188,11 +188,47 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                     td_ $ do
                       toHtml $ toText maxOrb
 
+        details_ [id_ "signs", class_ "accordion my-2", open_ ""] $ do
+          summary_ [class_ "accordion-header bg-secondary"] $ do
+            headerIcon
+            sectionHeading "Zodiac Signs"
+          
+          div_ [] $ do
+            --generalSignsExplanation
+            forM_ [Aries .. Pisces] $ \zodiacSign -> do
+              h4_ [id_ $ toText zodiacSign] $ do
+                asIcon zodiacSign
+                " "
+                toHtml . toText $ zodiacSign
+              p_ [] $ do
+                a_ [href_ "#chart"] "(Back to top)"
+              explain zodiacSign
+              if (not . null $ planetsInSign' zodiacSign) then
+                h5_ "Planets Contained: "
+              else
+                em_ "Your chart doesn't have any planets in this sign."
+              ul_ [] $ do
+                forM_ (planetsInSign' zodiacSign) $ \p -> do
+                  planetDetails p
+              if (not . null $ housesInSign' zodiacSign) then
+                h5_ "House cusps contained: "
+              else
+                em_ "Your chart doesn't have any house cusps in this sign."        
+              ul_ [] $ do
+                forM_ (housesInSign' zodiacSign) $ \House{..} -> do
+                  li_ [] $ do
+                    a_ [href_ $ "#house-" <> toText houseNumber] $ do
+                      toHtml $ "House " <> toText houseNumber
+                      houseLabel houseNumber
+                    " — starting at: "
+                    htmlDegreesZodiac houseCusp
+
+
         details_ [id_ "houses", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
             headerIcon
             sectionHeading "Houses"
-          div_ [class_ "accordion-body scrollable-container"] $ do
+          div_ [] $ do
             generalHousesExplanation
             forM_ horoscopeHouses $ \huis@House{..} -> do
               h4_ [id_ $ "house-" <> toText houseNumber] $ do
@@ -203,18 +239,16 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                 b_ "Starts at: "
                 htmlDegreesZodiac huis
               explain houseNumber
-              if (not . null $ housePlanets huis) then
+              if (not . null $ planetsInHouse' huis) then
                 h5_ "Planets contained: "
               else
                 em_ "Your chart doesn't have any planets in this house."
               ul_ [] $ do
-                forM_ (housePlanets huis) $ \PlanetPosition{..} -> do
-                  li_ [] $ do
-                    asIcon planetName
-                    a_ [href_ $ "#" <> (pack . label) planetName] $ do
-                      planetLabel planetName
-                    " — starting at: "
-                    htmlDegreesZodiac planetLng
+                forM_ (planetsInHouse' huis) $ \p -> do
+                  planetDetails p
+
+        h3_ "References:"
+        attribution
               
 
     -- the SVG font for all icons.
@@ -233,43 +267,31 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     -- markup helpers
     headerIcon = i_ [class_ "icon icon-arrow-right mr-1 c-hand"] ""
     sectionHeading = h3_ [class_ "d-inline"]
-    -- some data helpers
-    splitPlanets :: [LongitudeComponents]
-    splitPlanets = map (splitDegreesZodiac . getLongitudeRaw) horoscopePlanetPositions
-    splitHouses :: [LongitudeComponents]
-    splitHouses = map (splitDegreesZodiac . getLongitudeRaw) horoscopeHouses
     sunSign = (findSunSign horoscopePlanetPositions)
     asc = (findAscendant horoscopeHouses)
-    planetsGroupedByHouse = planetsByHouse horoscopeHouses horoscopePlanetPositions
-    housePlanets = planetsInHouse planetsGroupedByHouse
+    planetsByHouse' = planetsByHouse horoscopeHouses horoscopePlanetPositions
+    planetsInHouse' = planetsInHouse planetsByHouse'
+    planetsBySign'  = planetsBySign horoscopePlanetPositions
+    planetsInSign'  = planetsInSign planetsBySign'
+    housesBySign'   = housesBySign horoscopeHouses
+    housesInSign'   = housesInSign housesBySign'
 
--- TODO: where to catch the `MeanApog` to `Lilith` transformation?
+
+planetDetails :: PlanetPosition -> Html ()
+planetDetails PlanetPosition{..} = 
+  li_ [] $ do
+    asIcon planetName
+    a_ [href_ $ "#" <> (pack . label) planetName] $ do
+      planetLabel planetName
+    " — starting at: "
+    htmlDegreesZodiac planetLng
+
 asIcon :: HasLabel a => a -> Html ()
 asIcon z =
   i_ [class_ ("fnc-" <> shown <> " tooltip"), title_ shown, data_ "tooltip" label'] ""
   where
     label' = pack . label $ z
     shown  = toText z
-
-asEmoji :: ZodiacSignName -> Html ()
-asEmoji zName =
-  toHtml z
-  where
-    z :: Text
-    z = 
-      case zName of
-        Aries -> "♈️"
-        Taurus -> "♉️"
-        Gemini -> "♊️"
-        Cancer -> "♋️"
-        Leo -> "♌️"
-        Virgo -> "♍️"
-        Libra -> "♎️"
-        Scorpio -> "♏️"
-        Sagittarius -> "♐️"
-        Capricorn -> "♑️"
-        Aquarius -> "♒️"
-        Pisces -> "♓️"
 
 htmlDegreesZodiac :: HasLongitude a => a -> Html ()
 htmlDegreesZodiac p =
