@@ -5,7 +5,7 @@
 
 module Views.Chart (render, renderTestChartPage) where
 
-import Chart.Calculations --(findAscendant, findAspectBetweenPlanets, findAspectWithAngle, findSunSign, horoscope, housePosition, isRetrograde, splitDegrees, splitDegreesZodiac, planetsByHouse, planetsInHouse)
+import Chart.Calculations
 import Chart.Graphics (renderChart)
 import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 import qualified Graphics.Svg as Svg
@@ -265,21 +265,67 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
 
           div_ [] $ do
             generalPlanetsExplanation
-            forM_ horoscopePlanetPositions $ \PlanetPosition{..} -> do
-              h4_ [id_ $ pack . label $ planetName] $ do
-                asIcon planetName
+            forM_ horoscopePlanetPositions $ \p -> do
+              h4_ [id_ $ pack . label . planetName $ p] $ do
+                asIcon . planetName $ p
                 " "
-                toHtml . label $ planetName
+                toHtml . label . planetName $ p
               p_ [] $ do
                 a_ [href_ "#chart"] "(Back to chart)"
               p_ [] $ do
                 b_ "Starts at: "
-                zodiacLink planetLng
+                zodiacLink . planetLng $ p
+                if (isRetrograde p) then
+                  b_ "(retrograde)"
+                else
+                  mempty
               p_ [] $ do
                 b_ "House: "
-                maybe mempty houseDetails (housePosition' planetLng)
+                maybe mempty houseDetails (housePosition' . planetLng $ p)
 
-              explain planetName
+              explain . planetName $ p
+
+              let
+                aspects' = p & planetName & aspectsForPlanet' & catMaybes
+                axes'    = p & planetName & axesAspectsForPlanet' & catMaybes
+                in do
+                  h5_ "Aspects: "
+                  if (null aspects' && null axes') then
+                    p_ $ do
+                      em_ "This planet is unaspected. Note that not having any aspects is rare, which means this planet's sole influence can be quite significant."
+                  else
+                    ul_ [] $ do
+                      forM_ aspects' $ \HoroscopeAspect{..} -> do
+                        li_ $ do
+                          span_ [aspectColorStyle aspect] $ do
+                            bodies & fst & planetName & asIcon
+                            aspect & aspectName & asIcon
+                            bodies & snd & planetName & asIcon
+                          " — ("
+                          bodies & fst & planetName & planetLink
+                          " "
+                          toHtml . toText . aspectName $ aspect
+                          " "
+                          bodies & snd & planetName & planetLink
+                          "; orb: "
+                          htmlDegrees' (True, True) orb
+                          ")"
+                      forM_ axes' $ \HoroscopeAspect{..} -> do
+                        li_ $ do
+                          span_ [aspectColorStyle aspect] $ do
+                            bodies & fst & planetName & asIcon
+                            aspect & aspectName & asIcon
+                            bodies & snd & houseNumber & houseLabel
+                          " — ( "
+                          bodies & fst & planetName & planetLink
+                          " "
+                          aspect & aspectName & toText & toHtml
+                          " "
+                          bodies & snd & houseNumber & houseLink
+                          "; orb: "
+                          htmlDegrees' (True, True) orb
+                          " )"
+
 
         details_ [id_ "references", class_ "accordion my-2"] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
@@ -314,6 +360,9 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     housesBySign'   = housesBySign horoscopeHouses
     housesInSign'   = housesInSign housesBySign'
     housePosition'  = housePosition horoscopeHouses
+    --aspectsForPlanet' = aspectsForPlanet aspectsByPlanet'
+    aspectsForPlanet' p = map (findAspectBetweenPlanets horoscopePlanetaryAspects p) [Sun .. Chiron]
+    axesAspectsForPlanet' p = map (findAspectWithAngle horoscopeAngleAspects p)  [I, X]
 
 
 planetDetails :: PlanetPosition -> Html ()
@@ -398,6 +447,21 @@ zodiacLink p =
     pl = getLongitudeRaw p
     split = splitDegreesZodiac pl  
 
+planetLink :: Planet -> Html ()
+planetLink p =
+  a_ [href_ $ "#" <> textLabel] $ do
+    toHtml textLabel
+  where
+    textLabel = p & label & pack
+
+houseLink :: HouseNumber -> Html ()
+houseLink h =
+  a_ [href_ $ "#house-" <> textLabel] $ do
+    houseToAxis h
+  where
+    textLabel = h & label & pack
+  
+ 
 housePositionHtml :: Maybe House -> Html ()
 housePositionHtml Nothing = mempty
 housePositionHtml (Just House {..}) =
@@ -415,10 +479,15 @@ houseLabel VII = toHtml (" (Desc)" :: Text)
 houseLabel X = toHtml (" (MC)" :: Text)
 houseLabel _ = mempty
 
+houseToAxis :: HouseNumber -> Html ()
+houseToAxis I = toHtml ("Ascendant"::Text)
+houseToAxis X = toHtml ("Midheaven"::Text)
+houseToAxis _ = mempty
+
 aspectCell :: Maybe (HoroscopeAspect a b) -> Html ()
 aspectCell Nothing = mempty
 aspectCell (Just HoroscopeAspect {..}) =
-  span_ [style_ ("color: " <> (aspectColor . temperament $ aspect))] $ do
+  span_ [aspectColorStyle aspect] $ do
     asIcon . aspectName $ aspect
     " "
     htmlDegrees' (True, False) orb
@@ -427,6 +496,9 @@ aspectColor :: AspectTemperament -> Text
 aspectColor Analytical = "red"
 aspectColor Synthetic = "blue"
 aspectColor Neutral = "green"
+
+aspectColorStyle :: Aspect -> Attribute
+aspectColorStyle aspect = style_ ("color: " <> (aspectColor . temperament $ aspect))
 
 latLngHtml :: Location -> Html ()
 latLngHtml Location {..} =
