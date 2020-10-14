@@ -273,7 +273,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
               p_ [] $ do
                 a_ [href_ "#chart"] "(Back to chart)"
               p_ [] $ do
-                b_ "Starts at: "
+                b_ "Located in: "
                 zodiacLink . planetLng $ p
                 if (isRetrograde p) then
                   b_ "(retrograde)"
@@ -371,7 +371,7 @@ planetDetails PlanetPosition{..} =
     asIcon planetName
     a_ [href_ $ "#" <> (pack . label) planetName] $ do
       planetLabel planetName
-    " — starting at: "
+    " — located in: "
     zodiacLink planetLng
 
 houseDetails :: House -> Html ()
