@@ -214,7 +214,8 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                     else
                       ul_ [] $ do
                         forM_ planets' $ \p -> do
-                          planetDetails p
+                          li_ $ do
+                            planetDetails p
               let
                 houses' = housesInSign' zodiacSign
                 in do
@@ -224,14 +225,9 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                         em_ "Your chart doesn't have any house cusps in this sign."
                     else
                       ul_ [] $ do
-                        forM_ houses' $ \House{..} -> do
-                          li_ [] $ do
-                            a_ [href_ $ "#house-" <> toText houseNumber] $ do
-                              toHtml $ "House " <> toText houseNumber
-                              houseLabel houseNumber
-                            " — starting at: "
-                            zodiacLink houseCusp
-
+                        forM_ houses' $ \hs -> do
+                          li_ $ do
+                            houseDetails hs
 
         details_ [id_ "houses", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
@@ -259,7 +255,8 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                   else
                     ul_ [] $ do
                       forM_ planets' $ \p -> do
-                        planetDetails p
+                        li_ $ do
+                          planetDetails p
 
         details_ [id_ "planets", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
@@ -278,6 +275,10 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
               p_ [] $ do
                 b_ "Starts at: "
                 zodiacLink planetLng
+              p_ [] $ do
+                b_ "House: "
+                maybe mempty houseDetails (housePosition' planetLng)
+
               explain planetName
 
         details_ [id_ "references", class_ "accordion my-2"] $ do
@@ -312,16 +313,26 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     planetsInSign'  = planetsInSign planetsBySign'
     housesBySign'   = housesBySign horoscopeHouses
     housesInSign'   = housesInSign housesBySign'
+    housePosition'  = housePosition horoscopeHouses
 
 
 planetDetails :: PlanetPosition -> Html ()
 planetDetails PlanetPosition{..} = 
-  li_ [] $ do
+  span_ [] $ do
     asIcon planetName
     a_ [href_ $ "#" <> (pack . label) planetName] $ do
       planetLabel planetName
     " — starting at: "
     zodiacLink planetLng
+
+houseDetails :: House -> Html ()
+houseDetails House{..} =
+  span_ [] $ do
+    a_ [href_ $ "#house-" <> toText houseNumber] $ do
+      toHtml $ "House " <> toText houseNumber
+      houseLabel houseNumber
+    " — starting at: "
+    zodiacLink houseCusp
 
 asIcon :: HasLabel a => a -> Html ()
 asIcon z =
