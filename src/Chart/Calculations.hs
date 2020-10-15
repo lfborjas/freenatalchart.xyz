@@ -14,6 +14,13 @@ module Chart.Calculations
     findAspectWithAngle,
     findSunSign,
     findAscendant,
+    planetsByHouse,
+    planetsInHouse,
+    planetsBySign,
+    planetsInSign,
+    housesBySign,
+    housesInSign,
+    findAspectsByName
   )
 where
 
@@ -21,7 +28,8 @@ import Data.Time.LocalTime.TimeZone.Detect
 import Import hiding (Earth)
 import RIO.List (cycle, headMaybe, lastMaybe, sortBy)
 import RIO.Time (UTCTime (..), diffTimeToPicoseconds, toGregorian)
-import SwissEphemeris hiding (houseNumber)
+import SwissEphemeris hiding (houseNumber, splitDegrees, splitDegreesZodiac)
+import qualified SwissEphemeris as SWE
 
 -- "main" fn
 
@@ -144,6 +152,19 @@ housePosition houses' body =
     split = span (\h -> (getLongitude h) <= (getLongitude body)) sortedHouses
     sortedHouses = sortBy (\a b -> compare (getLongitude a) (getLongitude b)) houses'
 
+planetsByHouse :: [House] -> [PlanetPosition] -> [(House, PlanetPosition)]
+planetsByHouse houses' planets =
+  map maybeHouse planets & catMaybes
+  where
+    pos = housePosition houses'
+    maybeHouse = (\p -> maybe Nothing (\h -> Just (h, p)) (pos p))
+
+
+planetsInHouse :: [(House,  PlanetPosition)] -> House -> [PlanetPosition]
+planetsInHouse mapped haus = 
+  filter (\(h,_) -> h == haus) mapped
+  & map snd
+
 findAspectBetweenPlanets :: [HoroscopeAspect PlanetPosition PlanetPosition] -> Planet -> Planet -> Maybe (HoroscopeAspect PlanetPosition PlanetPosition)
 findAspectBetweenPlanets aspectList pa pb =
   aspectList
@@ -155,6 +176,11 @@ findAspectWithAngle aspectList pa hb =
   aspectList
     & filter (\HoroscopeAspect {..} -> (planetName . fst $ bodies, houseNumber . snd $ bodies) == (pa, hb))
     & headMaybe
+
+findAspectsByName :: [HoroscopeAspect a b] -> AspectName -> [HoroscopeAspect a b]
+findAspectsByName aspectList name =
+  aspectList
+    & filter (\HoroscopeAspect {..} -> (aspect & aspectName) == name)
 
 findSunSign :: [PlanetPosition] -> Maybe ZodiacSignName
 findSunSign positions =
@@ -171,3 +197,33 @@ findAscendant houses' =
     & headMaybe
     & fmap (longitudeZodiacSign . splitDegreesZodiac . getLongitudeRaw . houseCusp)
     & maybe Nothing id
+
+-- simplifications of SWE helpers
+
+splitDegrees :: Double -> LongitudeComponents
+splitDegrees = SWE.splitDegrees $ defaultSplitDegreesOptions <> [RoundSeconds]
+
+splitDegreesZodiac :: Double -> LongitudeComponents
+splitDegreesZodiac = SWE.splitDegreesZodiac
+
+planetsBySign :: [PlanetPosition] -> [(ZodiacSignName, PlanetPosition)]
+planetsBySign planets' =
+  map bySign planets'
+  & catMaybes  
+
+planetsInSign :: [(ZodiacSignName, PlanetPosition)] -> ZodiacSignName -> [PlanetPosition]
+planetsInSign = filterSign
+
+housesBySign :: [House] -> [(ZodiacSignName, House)]
+housesBySign houses' =
+  map bySign houses'
+  & catMaybes
+
+housesInSign :: [(ZodiacSignName, House)] -> ZodiacSignName -> [House]
+housesInSign = filterSign
+
+filterSign :: [(ZodiacSignName, a)] -> ZodiacSignName -> [a]
+filterSign mapped sgn = map snd . filter (\(s,_) -> s == sgn) $ mapped
+
+bySign :: HasLongitude a => a -> Maybe (ZodiacSignName, a)
+bySign p = maybe Nothing (\z -> Just (z, p)) (longitudeZodiacSign . splitDegreesZodiac . getLongitudeRaw $ p)

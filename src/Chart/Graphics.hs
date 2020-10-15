@@ -18,7 +18,7 @@ import qualified Graphics.Svg as Svg
 import Import hiding (Element, (^.), local, over)
 import RIO.List (groupBy, sortBy)
 import RIO.Time (LocalTime, defaultTimeLocale, parseTimeM)
-import SwissEphemeris (Angles (..), Planet (..))
+import SwissEphemeris (Angles (..))
 
 zodiacCircle :: ChartContext -> Diagram B
 zodiacCircle env =
@@ -27,7 +27,7 @@ zodiacCircle env =
     zodiacBand (ZodiacSign signName (Longitude z) zElement) =
       g <> w # fc signColor
         # lw thin
-        # (href $ "#zodiac-" <> (show signName))
+        # (href $ "#" <> (show signName))
         -- can set `title`, `id` or `class`:
         -- https://hackage.haskell.org/package/diagrams-svg-1.4.3/docs/src/Diagrams.Backend.SVG.html
         # (keyVal $ ("title", show signName))
@@ -82,13 +82,13 @@ quadrants env Angles {..} =
   mconcat $ map quadrant angles
   where
     angles = [(Longitude ascendant, "Asc"), (Longitude mc, "MC")]
-    quadrant (cuspBegin, label) =
+    quadrant (cuspBegin, label') =
       t
       where
         onZodiacs = env ^. zodiacCircleRadiusL
         textPosition = longitudeToPoint (onZodiacs - 0.05) (cuspBegin + 4)
         t =
-          (text $ label)
+          (text $ label')
             # moveTo textPosition
             # fontSize (local 0.05)
             # fc black
@@ -125,16 +125,12 @@ planets env planetPositions =
         # rectifyAround correctedPosition env
         # fc black
         # lw ultraThin
-        # (keyVal $ ("title", planetLabel planetName))
-        # (href $ "#" <> (planetLabel planetName))
+        # (keyVal $ ("title", label planetName))
+        # (href $ "#" <> (label planetName))
         <> guideLines
         <> (correctionLine # lw thin # lc darkgray)
         <> retrogradeMark
       where
-        -- TODO: maybe `planetLabel` should be promoted more, so tables
-        -- can also refer to `MeanApog` as `Lilith`?
-        planetLabel MeanApog = "Lilith"
-        planetLabel p = show p
         drawPlanetAt = maybe (getLongitude pos) id corrected
         atCorrectedPosition = flip longitudeToPoint $ drawPlanetAt
         correctedPosition = atCorrectedPosition onPlanets
@@ -216,9 +212,9 @@ correctCollisions tolerance originalPositions =
     correctCollisions' [x, y] = [(getLongitude x) - correction, (getLongitude y) + correction]
     correctCollisions' (x : xs) = (getLongitude x) : map (\y -> (getLongitude y) + correction) xs
 
-renderChart :: Double -> HoroscopeData -> Svg.Element
-renderChart width' z@HoroscopeData {..} =
-  renderDia SVG (SVGOptions (mkWidth width') Nothing "" [] True) birthChart
+renderChart :: [Svg.Attribute] -> Double -> HoroscopeData -> Svg.Element
+renderChart attrs width' z@HoroscopeData {..} =
+  renderDia SVG (SVGOptions (mkWidth width') Nothing "" attrs True) birthChart
   where
     cfg =
       ChartContext
@@ -237,4 +233,4 @@ renderTestChart = do
     birthplace <- pure $ Location "Tegucigalpa" (Latitude 14.0839053) (Longitude $ -87.2750137)
     birthtime <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:00:00" :: IO LocalTime
     calculations <- horoscope db ephe (BirthData birthplace birthtime)
-    Svg.renderToFile "circle.svg" $ renderChart 400 calculations
+    Svg.renderToFile "circle.svg" $ renderChart [] 400 calculations

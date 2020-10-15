@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving, OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -113,18 +115,30 @@ class Eq a => HasLongitude a where
   getLongitudeRaw :: a -> Double
   getLongitudeRaw = unLongitude . getLongitude
 
+class Show a => HasLabel a where
+  label :: a -> String
+  label = show
+
+instance HasLabel Planet where
+  label MeanApog = "Lilith"
+  label MeanNode = "Mean Node"
+  label p = show p
+
+instance HasLabel ZodiacSignName
+
 data Element
   = Earth
   | Air
   | Fire
   | Water
-  deriving (Eq, Show, Enum, Bounded)
+  deriving stock (Eq, Show, Enum, Bounded)
+  deriving anyclass HasLabel
 
 data ZodiacSign = ZodiacSign {
   name :: ZodiacSignName
 , zodiacLongitude :: Longitude
 , zodiacElement :: Element
-} deriving (Eq, Show)
+} deriving stock (Eq, Show)
 
 westernZodiacSigns :: [ZodiacSign]
 westernZodiacSigns =
@@ -155,14 +169,15 @@ data HouseNumber
   | X
   | XI
   | XII
-  deriving (Eq, Show, Ord, Enum, Bounded)
+  deriving stock (Eq, Show, Ord, Enum, Bounded)
+  deriving anyclass HasLabel
 
 data House = House
   {
     houseNumber :: HouseNumber
   , houseCusp :: Longitude
   , houseDeclination :: Double
-  } deriving (Eq, Show)
+  } deriving stock (Eq, Show)
 
 -- TODO(luis) fix this to be `Longitude houseCusp`?
 instance HasLongitude House where
@@ -184,38 +199,49 @@ data AspectName
     | SemiSquare
     | Novile
     | Sesquisquare -- Trioctile
-    deriving (Eq, Show, Ord, Enum, Bounded)
+    deriving stock (Eq, Show, Ord, Enum, Bounded)
+    deriving anyclass HasLabel
 
 
 data AspectTemperament
     = Analytical -- "Disharmonious"
     | Synthetic -- "Harmonious"
     | Neutral
-    deriving (Eq, Show, Ord, Enum, Bounded)
+    deriving stock (Eq, Show, Ord, Enum, Bounded)
+    deriving anyclass HasLabel
 
+data AspectType
+  = Major
+  | Minor
+  deriving stock (Eq, Show, Ord, Enum)
 
-data Aspect =
-    Aspect { aspectName :: AspectName, maxOrb :: Double, angle :: Double, temperament :: AspectTemperament }
-    deriving (Eq, Show)
+data Aspect = Aspect 
+  { aspectName :: AspectName
+  , maxOrb :: Double
+  , angle :: Double
+  , temperament :: AspectTemperament 
+  , aspectType :: AspectType
+  }
+    deriving stock (Eq, Show)
 
 majorAspects :: [Aspect]
 majorAspects =
-    [Aspect{ aspectName = Conjunction, angle = 0.0, maxOrb = 10.0, temperament = Synthetic }
-    ,Aspect{ aspectName = Sextile, angle = 60.0, maxOrb = 6.0, temperament = Synthetic }
-    ,Aspect{ aspectName = Square, angle = 90.0, maxOrb = 10.0, temperament = Analytical }
-    ,Aspect{ aspectName = Trine, angle = 120.0, maxOrb = 10.0, temperament = Synthetic }
-    ,Aspect{ aspectName = Opposition, angle = 180.0, maxOrb = 10.0, temperament = Analytical }
+    [ Aspect{ aspectType = Major, aspectName = Conjunction, angle = 0.0, maxOrb = 10.0, temperament = Synthetic }
+    , Aspect{ aspectType = Major, aspectName = Sextile, angle = 60.0, maxOrb = 6.0, temperament = Synthetic }
+    , Aspect{ aspectType = Major, aspectName = Square, angle = 90.0, maxOrb = 10.0, temperament = Analytical }
+    , Aspect{ aspectType = Major, aspectName = Trine, angle = 120.0, maxOrb = 10.0, temperament = Synthetic }
+    , Aspect{ aspectType = Major, aspectName = Opposition, angle = 180.0, maxOrb = 10.0, temperament = Analytical }
     ]
 
 
 minorAspects :: [Aspect]
 minorAspects =
-    [ Aspect { aspectName = SemiSquare, angle = 45.0, maxOrb = 3.0, temperament = Analytical }
-    , Aspect { aspectName = Sesquisquare, angle = 135.0, maxOrb = 3.0, temperament = Analytical }
-    , Aspect { aspectName = SemiSextile, angle = 30.0, maxOrb = 3.0, temperament = Neutral }
-    , Aspect { aspectName = Quincunx, angle = 150.0, maxOrb = 3.0, temperament = Neutral }
-    , Aspect { aspectName = Quintile, angle = 72.0, maxOrb = 2.0, temperament = Synthetic }
-    , Aspect { aspectName = BiQuintile, angle = 144.0, maxOrb = 2.0, temperament = Synthetic }
+    [ Aspect { aspectType = Minor, aspectName = SemiSquare, angle = 45.0, maxOrb = 3.0, temperament = Analytical }
+    , Aspect { aspectType = Minor, aspectName = Sesquisquare, angle = 135.0, maxOrb = 3.0, temperament = Analytical }
+    , Aspect { aspectType = Minor, aspectName = SemiSextile, angle = 30.0, maxOrb = 3.0, temperament = Neutral }
+    , Aspect { aspectType = Minor, aspectName = Quincunx, angle = 150.0, maxOrb = 3.0, temperament = Neutral }
+    , Aspect { aspectType = Minor, aspectName = Quintile, angle = 72.0, maxOrb = 2.0, temperament = Synthetic }
+    , Aspect { aspectType = Minor, aspectName = BiQuintile, angle = 144.0, maxOrb = 2.0, temperament = Synthetic }
     ]
 
 defaultAspects :: [Aspect]
@@ -226,7 +252,7 @@ data HoroscopeAspect a b = HoroscopeAspect
     , bodies :: ( a, b )
     , aspectAngle :: Double
     , orb :: Double
-    } deriving (Eq, Show)
+    } deriving stock (Eq, Show)
 
 -- extensions to SwissEphemeris
 
@@ -243,7 +269,7 @@ data PlanetPosition = PlanetPosition
   , planetLng :: Longitude
   , planetLngSpeed :: Double
   , planetDeclination :: Double
-  } deriving (Eq, Show)
+  } deriving stock (Eq, Show)
 
 instance HasLongitude PlanetPosition where
     getLongitude = planetLng
@@ -276,42 +302,42 @@ maybeBetween range x =
   if (between range x) then Just x else Nothing
 
 newtype Year = Year Int
-    deriving  (Eq, Show, Num, Read, Ord)
+    deriving newtype (Eq, Show, Num, Read, Ord)
 
 mkYear :: Int -> Maybe Year
 mkYear y = 
   maybeBetween (1800, 2399) y >>= (Just . Year)
 
 newtype Month = Month Int
-    deriving (Eq, Show, Read, Num, Ord)
+    deriving newtype (Eq, Show, Read, Num, Ord)
 
 mkMonth :: Int -> Maybe Month
 mkMonth m =
   maybeBetween (1, 12) m >>= (Just . Month)
 
 newtype Day = Day Int
-    deriving (Eq, Show, Num, Read, Ord)
+    deriving newtype (Eq, Show, Num, Read, Ord)
 
 mkDay :: Int -> Maybe Day
 mkDay d =
   maybeBetween (1, 31) d >>= (Just . Day)
 
 newtype Hour = Hour Int
-    deriving (Eq, Show, Num, Read, Ord)
+    deriving newtype (Eq, Show, Num, Read, Ord)
 
 mkHour :: Int -> Maybe Hour
 mkHour h =
   maybeBetween (1, 12) h >>= (Just . Hour)
 
 newtype Minute = Minute Int
-    deriving (Eq, Show, Num)
+    deriving newtype (Eq, Show, Num)
 
 mkMinute :: Int -> Maybe Minute
 mkMinute m =
   maybeBetween (0, 60) m >>= (Just . Minute)
 
 newtype DayPart = DayPart { unDayPart :: String }
-    deriving (Eq, Show, IsString)
+    deriving newtype (Eq, Show, IsString)
 
 mkDayPart :: String -> Maybe DayPart
 mkDayPart x = 
@@ -323,7 +349,7 @@ mkDayPart x =
     s = take 2 x
 
 newtype Latitude = Latitude {unLatitude :: Double}
-    deriving (Eq, Show, Num, Ord)
+    deriving newtype (Eq, Show, Num, Ord)
 
 -- ranges from this wrong answer that turned out to be right for me:
 -- https://stackoverflow.com/a/23914607
@@ -332,7 +358,7 @@ mkLatitude l =
    maybeBetween ((-90.0), 90.0) l >>= (Just . Latitude)
 
 newtype Longitude = Longitude {unLongitude :: Double}
-    deriving (Eq, Show, Num, Ord)
+    deriving newtype (Eq, Show, Num, Ord)
 
 instance HasLongitude Longitude where
   getLongitude = id

@@ -20,7 +20,7 @@ description:         Please see the README on Github at <https://github.com/lfbo
 dependencies:
 - base >= 4.11 && < 10
 - rio >= 0.1.12.0
-- swiss-ephemeris >= 1.1.0.0
+- swiss-ephemeris >= 1.2.0.0
 - diagrams
 - diagrams-core
 - diagrams-lib
@@ -43,6 +43,7 @@ dependencies:
 - time
 - timezone-detect >= 0.3.0.0
 - svg-builder
+- unordered-containers
 
 ghc-options:
 - -Wall
