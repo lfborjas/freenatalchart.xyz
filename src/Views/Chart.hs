@@ -123,8 +123,11 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
             sectionHeading "House Cusps"
           div_ [class_ "accordion-body scrollable-container"] $ do
             p_ $ do
-              span_ [] "System Used: "
+              "System Used: "
               mark_ $ toHtml $ toText horoscopeSystem
+              " (to learn more about house systems and the meaning of each house, see the "
+              a_ [href_ "#houses"] "Houses"
+              " section.)"
             table_ [class_ "table table-striped table-hover"] $ do
               thead_ [] $ do
                 tr_ [] $ do

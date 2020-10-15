@@ -508,7 +508,6 @@ All explanations about astrological factors are based on information found in:
 
 * An upcoming workbook by [Labyrinthos Academy](https://labyrinthos.co/)
 * Articles in [Astrowiki](https://www.astro.com/astrowiki/en/Main_Page) by Astrodienst (modified copy.)
-* Wikipedia
 |]
 
 -- https://www.astro.com/astrowiki/en/House
@@ -525,7 +524,9 @@ of the **Zodiac Signs**, find manifestation in how an individual lives their lif
 The beginning point of a house (known as the _cusp_,) may fall within a sign, and encompass
 one or more zodiac signs until the cusp of the next house. These contained signs indicate how
 the individual approaches the house's area of life. The planets contained in the house
-represent the external forces that express themselves in that area of life.
+represent the forces that express themselves in that area of life (in our practice, we 
+see these as both _external_ and _internal_ forces, in the form of archetypes: universal symbols and
+myths that human beings manifest.)
 
 Different astrological traditions use different [Systems](https://www.astro.com/astrowiki/en/House_System)
 to calculate where each of the houses starts (its _cusp_) . Western astrology has favored the
@@ -549,11 +550,27 @@ for whom the chart has been drawn: they are the personal characteristics or trai
 combined with the houses and planets present in the sign, manifest in an individual's personality.
 
 Each Zodiac Sign has a _ruler_ (or two): a planet with which it has an affinity. If an individual's chart
-shows a sign's ruler present in that house, it is said to be at home and the planet's characteristics/influences
+shows a sign's ruler located in that sign, it is said to be at home and the planet's characteristics/influences
 are said to be felt more strongly. 
 
 Each Zodiac Sign also has an _affinity_ with a particular house; they share characteristics but the house's cusp
 _may not be_ in its "related" sign for a given chart. 
+
+Traditionally, signs are assigned one of the four classical [**elements**](https://www.astro.com/astrowiki/en/Element) (Earth, Air, Fire, Water.) This is known as its
+_triplicity_. More recently, signs are related to a particular [**quality**](https://www.astro.com/astrowiki/en/Quality): this is known as its _quadruplicity_.
+
+The combination of a sign's _element_ and _quality_ can be used to deduce some useful symbolism:
+
+* __Fire__ signs are said to be creative, passionate, spontaneous and forceful.
+* __Earth__ signs are said to be practical, dependable, builders, cautious and reliable.
+* __Air__ signs are said to be communicative, clever, curious, objective.
+* __Water__ signs are said to be intuitive, sensitive, compassionate, moody
+
+Meanwhile,
+
+* __Cardinal__ signs mark the _beginning_ of a season, and as such are initiators, ambitious, driven, enthusiastic.
+* __Fixed__ signs are the _middle_ of a season, and as such are steady, stable, resolute, reliable
+* __Mutable__ signs are the _end_ of a season, and as such are adaptable, flexible, resourceful, versatile
     |]
 
 --
@@ -562,7 +579,7 @@ generalPlanetsExplanation =
   markdownToHtml
     [i|
 The astrological concept of a _Planet_ differs quite a bit from the modern Astronomical concept: the Sun (a star,)
-and the Moon (a satellite,) Pluto (a dwarf planet,) the North and South Nodes, as well as Lilith (points in the Moon's orbit,)
+the Moon (a satellite,) Pluto (a dwarf planet,) the North and South Nodes, as well as Lilith (points in the Moon's orbit,)
 and Chiron (an asteroid,) are often drawn in natal charts but are most definitely not what an astronomer would call a Planet:
 as far as Astrology is concerned, the symbolic notion of a planet is a point in the skies that has a certain periodic behavior
 that can be related, holistically, with cyclical/recurring patterns in the human psyche. As such, some astrologers use other
