@@ -304,7 +304,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                           " — ("
                           bodies & fst & planetName & planetLink
                           " "
-                          toHtml . toText . aspectName $ aspect
+                          aspect & aspectName & aspectLink
                           " "
                           bodies & snd & planetName & planetLink
                           "; orb: "
@@ -319,13 +319,28 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                           " — ( "
                           bodies & fst & planetName & planetLink
                           " "
-                          aspect & aspectName & toText & toHtml
+                          aspect & aspectName & aspectLink
                           " "
                           bodies & snd & houseNumber & houseLink
                           "; orb: "
                           htmlDegrees' (True, True) orb
                           " )"
 
+        details_ [id_ "aspects", class_ "accordion my-2", open_ ""] $ do
+          summary_ [class_ "accordion-header bg-secondary"] $ do
+            headerIcon
+            sectionHeading "Aspects"
+
+          div_ [] $ do
+            generalAspectsExplanation
+
+            h4_ "Major Aspects: "
+            forM_ majorAspects $ \a -> do
+              aspectDetails a
+
+            h4_ "Minor Aspects: "
+            forM_ minorAspects $ \a -> do
+              aspectDetails a
 
         details_ [id_ "references", class_ "accordion my-2"] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
@@ -360,10 +375,31 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
     housesBySign'   = housesBySign horoscopeHouses
     housesInSign'   = housesInSign housesBySign'
     housePosition'  = housePosition horoscopeHouses
-    --aspectsForPlanet' = aspectsForPlanet aspectsByPlanet'
     aspectsForPlanet' p = map (findAspectBetweenPlanets horoscopePlanetaryAspects p) [Sun .. Chiron]
     axesAspectsForPlanet' p = map (findAspectWithAngle horoscopeAngleAspects p)  [I, X]
 
+
+aspectDetails :: Aspect -> Html ()
+aspectDetails Aspect {..} = do
+  h5_ [id_ $ toText aspectName] $ do
+    asIcon aspectName
+    " "
+    toHtml . toText $ aspectName
+  dl_ $ do
+    dt_ "Classification"
+    dd_ . toHtml . toText $ aspectType
+    dt_ "Temperament"
+    dd_ . toHtml . toText $ temperament
+    dt_ "Traditional color"
+    dd_ . toHtml . aspectColor $ temperament
+    dt_ "Angle"
+    dd_ . toHtml . toText $ angle
+    dt_ "Orb used"
+    dd_ . toHtml . toText $ maxOrb
+  p_ [] $ do
+    explain aspectName  
+  h6_ . toHtml $ (toText aspectName) <> "s in your chart:"  
+  b_ "TODO" 
 
 planetDetails :: PlanetPosition -> Html ()
 planetDetails PlanetPosition{..} = 
@@ -461,7 +497,13 @@ houseLink h =
   where
     textLabel = h & label & pack
   
- 
+aspectLink :: AspectName -> Html ()
+aspectLink a =
+  a_ [href_ $ "#" <> textLabel] $ do
+    toHtml textLabel
+  where
+    textLabel = a & toText
+
 housePositionHtml :: Maybe House -> Html ()
 housePositionHtml Nothing = mempty
 housePositionHtml (Just House {..}) =

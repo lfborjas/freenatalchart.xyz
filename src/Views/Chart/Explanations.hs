@@ -8,12 +8,11 @@ import CMark
 import Data.String.Interpolate.IsString
 import Import
 import Lucid
-import SwissEphemeris (ZodiacSignName (..), Planet(..))
+import SwissEphemeris (Planet (..), ZodiacSignName (..))
 
 markdownToHtml :: Text -> Html ()
 markdownToHtml = toHtmlRaw . commonmarkToHtml []
---explainPlanet :: Planet -> Html ()
---explainAspect :: Aspect -> Html ()
+
 class Explicable factor where
   explain :: factor -> Html ()
 
@@ -290,96 +289,209 @@ instance Explicable ZodiacSignName where
       ]
 
 instance Explicable Planet where
-  explain Sun = 
-    descriptions 
-      [ ("Group", "Personal")
-      , ("Rulership", "Leo")
-      , ("Keywords", "ego, basic personality, conscious, vitality, stamina, life energy, will, personal identity")
+  explain Sun =
+    descriptions
+      [ ("Group", "Personal"),
+        ("Rulership", "Leo"),
+        ("Keywords", "ego, basic personality, conscious, vitality, stamina, life energy, will, personal identity")
       ]
-
   explain Moon =
     descriptions
-      [ ("Group", "Personal")
-      , ("Rulership", "Cancer")
-      , ("Keywords", "subconscious, emotions, instincts, habits, moods, maternity")
+      [ ("Group", "Personal"),
+        ("Rulership", "Cancer"),
+        ("Keywords", "subconscious, emotions, instincts, habits, moods, maternity")
       ]
-
   explain Mercury =
     descriptions
-      [ ("Group", "Personal")
-      , ("Rulerships", "Gemini, Virgo")
-      , ("Keywords", "mind, communication, intellect, reason, language, intelligence")
+      [ ("Group", "Personal"),
+        ("Rulerships", "Gemini, Virgo"),
+        ("Keywords", "mind, communication, intellect, reason, language, intelligence")
       ]
-
   explain Venus =
     descriptions
-      [ ("Group", "Personal")
-      , ("Rulerships", "Taurus, Libra")
-      , ("Keywords", "attraction, love, beauty, harmony, artistic sensibility")
+      [ ("Group", "Personal"),
+        ("Rulerships", "Taurus, Libra"),
+        ("Keywords", "attraction, love, beauty, harmony, artistic sensibility")
       ]
-
   explain Mars =
     descriptions
-      [ ("Group", "Personal")
-      , ("Rulership", "Aries")
-      , ("Keywords", "aggression, drive, action, desire, competition, courage, passion, self-assertion")
+      [ ("Group", "Personal"),
+        ("Rulership", "Aries"),
+        ("Keywords", "aggression, drive, action, desire, competition, courage, passion, self-assertion")
       ]
-
   explain Jupiter =
     descriptions
-      [ ("Group", "Social")
-      , ("Rulership", "Sagittarius")
-      , ("Keywords", "luck, growth, expansion, optimism, abundance, faith")
+      [ ("Group", "Social"),
+        ("Rulership", "Sagittarius"),
+        ("Keywords", "luck, growth, expansion, optimism, abundance, faith")
       ]
-
   explain Saturn =
     descriptions
-      [ ("Group", "Social")
-      , ("Rulership", "Capricorn")
-      , ("Keywords", "structure, restriction, discipline, responsibility, obligation, concentration, limitation, material form")
+      [ ("Group", "Social"),
+        ("Rulership", "Capricorn"),
+        ("Keywords", "structure, restriction, discipline, responsibility, obligation, concentration, limitation, material form")
       ]
-
   explain Uranus =
     descriptions
-      [ ("Group", "Spiritual")
-      , ("Rulership", "Aquarius")
-      , ("Keywords", "eccentricity, rebellion, reformation, unpredictable change, liberation, disruption")
+      [ ("Group", "Spiritual"),
+        ("Rulership", "Aquarius"),
+        ("Keywords", "eccentricity, rebellion, reformation, unpredictable change, liberation, disruption")
       ]
-
   explain Neptune =
     descriptions
-      [ ("Group", "Spiritual")
-      , ("Rulership", "Pisces")
-      , ("Keywords", "dreams, intution, mysticism, imagination, delusion, disintegration of limits")
+      [ ("Group", "Spiritual"),
+        ("Rulership", "Pisces"),
+        ("Keywords", "dreams, intution, mysticism, imagination, delusion, disintegration of limits")
       ]
-
   explain Pluto =
     descriptions
-      [ ("Group", "Spiritual")
-      , ("Rulership", "Scorpio")
-      , ("Keywords", "transformation, power, death, rebirth, evolution")
+      [ ("Group", "Spiritual"),
+        ("Rulership", "Scorpio"),
+        ("Keywords", "transformation, power, death, rebirth, evolution")
       ]
-
   explain MeanNode =
-    descriptions 
-      [ ("Also known as", "Ascending Node, North Node")
-      , ("Notes", "Some astrologers use the 'True Node': both values are calculated points in the Moon's orbit, and are only ever less than a degree apart.")
-      , ("Keywords", "future, life's direction, goals")
+    descriptions
+      [ ("Also known as", "Ascending Node, North Node"),
+        ("Notes", "Some astrologers use the 'True Node': both values are calculated points in the Moon's orbit, and are only ever less than a degree apart."),
+        ("Keywords", "future, life's direction, goals")
       ]
-  
   explain MeanApog =
     descriptions
-      [ ("Also known as", "Black Moon Lilith, Mean apogee")
-      , ("Notes", "Some astrologers calculate Lilith as a focal point in the Moon's orbit, we use the 'mean' value of the moon's apogee: the point in the moon's orbit farthest away from Earth.")
-      , ("Keywords", "repressed self, anguish, resentment, rejection")
+      [ ("Also known as", "Black Moon Lilith, Mean apogee"),
+        ("Notes", "Some astrologers calculate Lilith as a focal point in the Moon's orbit, we use the 'mean' value of the moon's apogee: the point in the moon's orbit farthest away from Earth."),
+        ("Keywords", "repressed self, anguish, resentment, rejection")
       ]
-
   explain Chiron =
     descriptions
       [ ("Keywords", "wounded self, healer, suffering, acceptance")
       ]
-
   explain _ = mempty
+
+-- https://www.astro.com/astrowiki/en/Aspect
+instance Explicable AspectName where
+  explain Conjunction =
+    markdownToHtml
+      [i|
+> A conjunction represents a close bond and interpenetration of both energies. 
+> The planets involved continually influence each other. 
+> If these planetary energies are similar - for example Moon/Venus or Sun/Mars - the conjunction's potential is increased.
+> In this case, the planets support each other and in combination often find it easier to assert themselves when facing others. 
+> If two very different planets are close together - for example Mercury/Saturn or Mars/Neptune - the potential in each may end up being inhibited.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Conjunction))
+      |]
+  explain Sextile =
+    markdownToHtml
+      [i|
+> A key word for sextile is "excitement".
+> The trine relationship between two planets is so easily expressed that it seems natural and obvious, whereas the sextile contains some of the tension of the 2-series (which includes the opposition and square.)
+>
+> As with the trine, the sextile usually indicates areas of life that go well for the person, but where opportunities can slip because the person may feel no pressure to develop his talents. The sextile represents a challenge to act, although the motivating factor is weaker than the analytical aspects in which the element of pressure is more prominent. When this happens the sextile merely functions as a weak trine. The sextile offers an opportunity to learn and expand one's horizons without the same degree of stress.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Sextile))
+      |]
+  explain Square =
+    markdownToHtml
+      [i|
+> Square aspects have an inherent potential for conflict between the planets involved, irrespective of whether their energies are of a similar quality or not, and they can have a tendency to hinder each other's development. This is the reason why astrologers in the past often referred to the square as an inhibiting or hard aspect. Square aspects will often manifest as pressure felt within the individual to "act out" according to the planets' natures.
+> For example, someone with Mars square Uranus may have an unpredictable, explosive temper; as Mars rules anger and Uranus signifies sudden disruptive events.
+>
+> More constructively, squares will also show where the person might work energetically to manifest the planets' more positive natures, because the square is not an aspect of ease and relaxation.
+> A square involving a 10th house planet, for example, might push the person to work very hard at his career.
+>
+> Modern astrology emphasises the special challenge of this aspect. The squares in a horoscope show where the native needs to work and what tests must be passed before maturing. This also means that squares serve as a constant reminder not to fall into lethargy or become too self-satisfied. In order to deal with squares in a positive way, it is necessary to be conscious of their inherent potential and to develop constructive expressions.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Square))
+      |]
+  explain Trine =
+    markdownToHtml
+      [i|
+> The trine is usually experienced as supportive and helpful. The flow of energy between the planets involved is unimpeded.
+> The supportive energy of the trine comes naturally and does not need to be earned. The trine could therefore be considered a place of relative calm in the horoscope which does not have to be fought for.
+> This is not only important for an individual's wellbeing, but is also important in that it enables the individual to concentrate her energies elsewhere. However, if trines dominate the horoscope, there is a danger that the individual may lack the motivation to work on his own development. Everything may seem so good that he sees little need to change anything.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Trine))
+      |]
+  explain Opposition =
+    markdownToHtml
+      [i|
+> The planets involved directly confront each other and the horoscope owner may tend to concentrate on the pole that appears to be more dominant to the detriment of the supposedly weaker one. If this happens the neglected energy is often experienced in the form of projections. It is also possible that the individual goes through alternating phases in which either one or the other pole is emphasised.
+> The great challenge of the opposition is to integrate the two poles. The task is to transform the energy so that they strengthen each other and work together rather than work against each other. How easy this is likely to be will depend on the energies of the planets involved. If these energies are similar - for example an opposition between the Moon and Venus or the Sun and Mars - the task should be somewhat easier. However the task will be more difficult if they are very different - as would be the case with an opposition between Saturn and Mercury or Mars and Neptune.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Opposition))
+      |]
+  explain SemiSextile =
+    markdownToHtml
+      [i|
+> A semi-sextile normally connects two consecutive signs.
+> A connection between two consecutive signs indicates a connection between two opposing energies, because consecutive signs always belong to different elements and have different qualities. For this reason semi-sextiles are often thought of as connecting two planets that have difficulty working together; or indicating difficulties or challenges because two energies that feel alien to one another need to be integrated.
+>
+> An alternative view is that the sequence of signs in the zodiac is not arbitrary but contains a deep logic. The energy inherent in each sign of the zodiac is a prerequisite for the following one. For this reason, two planets connected by a semi-sextile can work constructively together while retaining their clearly defined roles. The planet in the preceding sign paves the way, as it were, for the following one. This understanding can help to create opportunities out of the difficulties associated with semi-sextiles.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Semi-Sextile))  
+      |]
+  explain Quincunx =
+    markdownToHtml
+      [i|
+The quincunx is a "neutral aspect": it doesn't signify harmony or tension, but it does indicate a difficult to realize potential.
+
+> A quincunx can involve an effort to reconcile two planets' meanings in the chart, but even when the initial signs seem positive, there is no guarantee of success. In the end, it may not prove possible to truly integrate the energies involved. For example, if Venus and Mars stand in quincunx to one another a person may try to boost her self-confidence by investing large amounts of energy (Mars) in order to achieve aesthetic goals (Venus). But she may feel that the energy invested never produces the desired results. For this reason the quincunx is thought to be difficult to deal with and is often referred to as an aspect of desire or longing. On the other hand it shows important themes which the horoscope owner must face. The lack of success can be an impetus to consider and possibly change established patterns of behaviour. In this sense the quincunx hints at new possibilities.
+>
+> These patterns of tension that are relatively minor, yet persistent and difficult to resolve lead to this aspect's second meaning: adjustment. It is often simply easier to live with a source of disappointment or aggravation than to take action to try to resolve it. Perhaps the person feels the present outcome is inevitable.
+>
+> Part of the problem is that it is difficult for a third planet, natal or by transit, to offer resolution. A third planet might sextile or trine one of the quincunx planets, yet square the other one. Resolution is best handled by identifying the basic needs of each planet and looking for non-stressful activities that draw on both their strengths.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Quincunx))
+      |]
+  explain Quintile =
+    markdownToHtml
+      [i|
+> The quintile points to talents and potential not necessarily indicated by the major aspects. This is particulary true of artistic talent. In comparison to trines, quintiles give a greater emphasis on the purposeful manifestation of one's talents, or making something of them; be they artistic, scientific, or demonstrations of one's personal power. Thus quintiles appear with some frequency in the charts of both artists and repressive political leaders. In each case they suggest talent plus the ambition to make something of it in the world.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Quintile))
+      |]
+  explain BiQuintile =
+    markdownToHtml
+      [i|
+> The biquintile is seen as especially helpful in artistic matters. In this respect it resembles the quintile. Individuals with such an aspect between two planets are often only vaguely aware of it. However, if someone is sensitive enough it can aid in developing creative powers which can help to find original solutions and throw a positive light on issues that initially appear problematic.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Biquintile))
+      |]
+  explain SemiSquare =
+    markdownToHtml
+      [i|
+> The energy of the semi-square is similar to that of the square and sesquisquare, being one of the 2-series of aspects. It is therefore counted as one of the analytical aspects which show tension but also challenges that can help us grow and learn. However, any conflicts felt are not as immediately apparent as they are in the case of the square, making it easier to avoid them and miss an opportunity for growth.
+> So, a semi-square can indicate subtle tensions which we would rather ignore. This may intially seem tempting but is unlikely to lead to long term solutions.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Semi-Square))
+      |]
+  explain Sesquisquare =
+    markdownToHtml
+      [i|
+(Also known as _Sesquiquadrate_)
+
+> The sesquiquadrate's energy is similar to that of the square and semi-square. It belongs to the group of analytical aspects divisible by 2, which create tension and challenge us to work and learn. But the conflict is less apparent than with the square. It is easier to supress, making it more difficult to learn from the challenge. Sesquiquadrates tend to indicate a smouldering conflict that one would prefer to ignore. Any relief would then tend to be short-lived. Sesquiquadrates therefore tend to indicate themes of a long-term and stubborn nature. The German astrologer Thomas Ring talks of a "tear in the structure".
+>
+> Sesquisquares can occur between planets that are either in the same element (such as 6 degrees Leo and 21 degrees Sagittarius) or in different elements. Theoretically the same-element sesquisquares should be easier to manage because the signs have the same basic approach to life.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Sesquisquare))
+      |]
+  explain Septile =
+    markdownToHtml
+      [i|
+> The number seven has long been associated with spirituality; an association born out by astrological investigation into the septile series. It is prominent in the horoscopes of members of the clergy, for example. A key word for the septile is "inspiration," be it religious or artistic. The septile indicates a potential to experience the energies of the planets concerned on a deeper spiritual level. For example, a septile between Venus and Jupiter may lead an individual to explore and expand his musical creativity. The energy of the septile is very subtle, and perhaps most people do not experience it in their ordinary lives, except during moments of wonder.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Septile))
+      |]
+  explain Novile =
+    markdownToHtml
+      [i|
+> According to Dane Rudhyar, the novile is a symbol for "the process of pregnancy which enables an idea or form to become organically viable".
+>
+> A novile aspect can signal the end of a particular phase or process and the beginning of a new one. However, a great deal of sensitivity is needed to be aware of this subtle energy.
+
+(copied from [Astrowiki](https://www.astro.com/astrowiki/en/Nonagon))
+      |]
 
 descriptions :: [(Text, Text)] -> Html ()
 descriptions ds =
@@ -396,7 +508,7 @@ All explanations about astrological factors are based on information found in:
 
 * An upcoming workbook by [Labyrinthos Academy](https://labyrinthos.co/)
 * Articles in [Astrowiki](https://www.astro.com/astrowiki/en/Main_Page) by Astrodienst (modified copy.)
-
+* Wikipedia
 |]
 
 -- https://www.astro.com/astrowiki/en/House
@@ -415,7 +527,6 @@ one or more zodiac signs until the cusp of the next house. These contained signs
 the individual approaches the house's area of life. The planets contained in the house
 represent the external forces that express themselves in that area of life.
   |]
-
 
 -- https://www.astro.com/astrowiki/en/Zodiac_Sign
 generalSignsExplanation :: Html ()
@@ -460,4 +571,31 @@ the individual; **Social** planets, which have effects on the individual but als
 planets describe aspects that go beyond the personal and social, invisible aspects in the "collective unconscious."
 
 Most traditional planets are said to be the **rulers** of one or two signs: when they're "at home," their influence is strongest.
+    |]
+
+generalAspectsExplanation :: Html ()
+generalAspectsExplanation =
+  markdownToHtml
+    [i|
+When drawing a chart, we locate planets and house cusps at certain _longitudes_, or positions, along the
+ecliptic (which is a circular representation of the heavens as seen from Earth,) and as such they
+can form angles with each other. In astrological practice, certain angles between planets or special points
+like the _Ascendant_ or _Midheaven_ symbolize an interaction between the archetypes these points represent;
+these angles are the **Aspects**. The angle may not be exact, for example, the Sun may be 92 degrees away from
+Mars, and an astrologer may choose to still call that a square (which is an angle of 90 degrees.) 
+The deviation from exact angle that's allowed to still recognize an aspect is called an _orb_. 
+
+Different astrological practices have different orbs: sometimes bigger celestial bodies (as seen from Earth,) like the Sun or Moon 
+are given larger orbs, or bodies that are close to each other are allowed wider orbs (like the Sun with Mercury;)
+while certain points that don't cast any light (like the Mean Node or the Ascendant) are not allowed any orbs.
+In our practice, we use [fairly generous orbs uniformly](#orbs-used), but we always show you the orb of any 
+aspects, as well as precise positions for all celestial bodies, so you can always choose to ignore aspects
+or add others if you believe they improve the psychological portrait of your chart!
+
+Aspects are usually divided between **Major** aspects, which are said to have the most impact on an individual,
+and **minor** aspects. Moreover, some aspects are said to be **harmonious** (or **synthetic**,) in which
+case the two bodies involved are said to work in concert, while other aspects are known as **disharmonious** 
+(or, more accurately, **analytical/challenging**) in which the energies are at odds and may prove challenging
+-- but modern astrology sees this as an opportunity for growth and development, learning how to reconcile these
+opposing forces, as opposed to "bad" or "fateful".
     |]

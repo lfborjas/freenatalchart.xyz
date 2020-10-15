@@ -210,29 +210,38 @@ data AspectTemperament
     deriving stock (Eq, Show, Ord, Enum, Bounded)
     deriving anyclass HasLabel
 
+data AspectType
+  = Major
+  | Minor
+  deriving stock (Eq, Show, Ord, Enum)
 
-data Aspect =
-    Aspect { aspectName :: AspectName, maxOrb :: Double, angle :: Double, temperament :: AspectTemperament }
+data Aspect = Aspect 
+  { aspectName :: AspectName
+  , maxOrb :: Double
+  , angle :: Double
+  , temperament :: AspectTemperament 
+  , aspectType :: AspectType
+  }
     deriving stock (Eq, Show)
 
 majorAspects :: [Aspect]
 majorAspects =
-    [Aspect{ aspectName = Conjunction, angle = 0.0, maxOrb = 10.0, temperament = Synthetic }
-    ,Aspect{ aspectName = Sextile, angle = 60.0, maxOrb = 6.0, temperament = Synthetic }
-    ,Aspect{ aspectName = Square, angle = 90.0, maxOrb = 10.0, temperament = Analytical }
-    ,Aspect{ aspectName = Trine, angle = 120.0, maxOrb = 10.0, temperament = Synthetic }
-    ,Aspect{ aspectName = Opposition, angle = 180.0, maxOrb = 10.0, temperament = Analytical }
+    [ Aspect{ aspectType = Major, aspectName = Conjunction, angle = 0.0, maxOrb = 10.0, temperament = Synthetic }
+    , Aspect{ aspectType = Major, aspectName = Sextile, angle = 60.0, maxOrb = 6.0, temperament = Synthetic }
+    , Aspect{ aspectType = Major, aspectName = Square, angle = 90.0, maxOrb = 10.0, temperament = Analytical }
+    , Aspect{ aspectType = Major, aspectName = Trine, angle = 120.0, maxOrb = 10.0, temperament = Synthetic }
+    , Aspect{ aspectType = Major, aspectName = Opposition, angle = 180.0, maxOrb = 10.0, temperament = Analytical }
     ]
 
 
 minorAspects :: [Aspect]
 minorAspects =
-    [ Aspect { aspectName = SemiSquare, angle = 45.0, maxOrb = 3.0, temperament = Analytical }
-    , Aspect { aspectName = Sesquisquare, angle = 135.0, maxOrb = 3.0, temperament = Analytical }
-    , Aspect { aspectName = SemiSextile, angle = 30.0, maxOrb = 3.0, temperament = Neutral }
-    , Aspect { aspectName = Quincunx, angle = 150.0, maxOrb = 3.0, temperament = Neutral }
-    , Aspect { aspectName = Quintile, angle = 72.0, maxOrb = 2.0, temperament = Synthetic }
-    , Aspect { aspectName = BiQuintile, angle = 144.0, maxOrb = 2.0, temperament = Synthetic }
+    [ Aspect { aspectType = Minor, aspectName = SemiSquare, angle = 45.0, maxOrb = 3.0, temperament = Analytical }
+    , Aspect { aspectType = Minor, aspectName = Sesquisquare, angle = 135.0, maxOrb = 3.0, temperament = Analytical }
+    , Aspect { aspectType = Minor, aspectName = SemiSextile, angle = 30.0, maxOrb = 3.0, temperament = Neutral }
+    , Aspect { aspectType = Minor, aspectName = Quincunx, angle = 150.0, maxOrb = 3.0, temperament = Neutral }
+    , Aspect { aspectType = Minor, aspectName = Quintile, angle = 72.0, maxOrb = 2.0, temperament = Synthetic }
+    , Aspect { aspectType = Minor, aspectName = BiQuintile, angle = 144.0, maxOrb = 2.0, temperament = Synthetic }
     ]
 
 defaultAspects :: [Aspect]
