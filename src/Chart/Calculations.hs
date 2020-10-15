@@ -19,7 +19,8 @@ module Chart.Calculations
     planetsBySign,
     planetsInSign,
     housesBySign,
-    housesInSign
+    housesInSign,
+    findAspectsByName
   )
 where
 
@@ -175,6 +176,11 @@ findAspectWithAngle aspectList pa hb =
   aspectList
     & filter (\HoroscopeAspect {..} -> (planetName . fst $ bodies, houseNumber . snd $ bodies) == (pa, hb))
     & headMaybe
+
+findAspectsByName :: [HoroscopeAspect a b] -> AspectName -> [HoroscopeAspect a b]
+findAspectsByName aspectList name =
+  aspectList
+    & filter (\HoroscopeAspect {..} -> (aspect & aspectName) == name)
 
 findSunSign :: [PlanetPosition] -> Maybe ZodiacSignName
 findSunSign positions =

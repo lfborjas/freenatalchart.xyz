@@ -537,7 +537,6 @@ locations, at certain times, the Placidus system may fail (usually when very clo
 the mathematical definition of the system doesn't hold anymore,) in these rare cases, we automatically
 use the much simpler (and older!) [Porphyry](https://www.astro.com/astrowiki/en/House_System#Porphyry) system.
 
-The Placidus house system 
   |]
 
 -- https://www.astro.com/astrowiki/en/Zodiac_Sign
