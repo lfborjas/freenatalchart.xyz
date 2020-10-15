@@ -526,6 +526,18 @@ The beginning point of a house (known as the _cusp_,) may fall within a sign, an
 one or more zodiac signs until the cusp of the next house. These contained signs indicate how
 the individual approaches the house's area of life. The planets contained in the house
 represent the external forces that express themselves in that area of life.
+
+Different astrological traditions use different [Systems](https://www.astro.com/astrowiki/en/House_System)
+to calculate where each of the houses starts (its _cusp_) . Western astrology has favored the
+[Placidus](https://www.astro.com/astrowiki/en/Placidus_House_System) house system, and we use that system here.
+
+House systems usually depend on the "quadrants" (as defined by the ascendant, IC, descendant and midheaven,)
+and these, in turn, are relative to time and place: days and nights are seldom of equal length! In certain
+locations, at certain times, the Placidus system may fail (usually when very close to the poles, where
+the mathematical definition of the system doesn't hold anymore,) in these rare cases, we automatically
+use the much simpler (and older!) [Porphyry](https://www.astro.com/astrowiki/en/House_System#Porphyry) system.
+
+The Placidus house system 
   |]
 
 -- https://www.astro.com/astrowiki/en/Zodiac_Sign

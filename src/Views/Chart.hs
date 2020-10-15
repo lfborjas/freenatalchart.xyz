@@ -39,6 +39,13 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
           "Report an issue"
     div_ [id_ "main", class_ "container grid-xl mx-4"] $ do
       div_ [class_ ""] $ do
+        -- p_ [class_ "text-muted text-small"] $ do
+        --   "To learn more about each component of your chart, you can click on the zodiac signs, the houses, or the planets."
+        --   " We encourage you to take the descriptions presented here to find your own meaning from what the chart presents! "
+        --   " You can also just scroll down to the "
+        --   a_ [href_ "#signs"] "Zodiac Signs"
+        --   " section and follow the links between all components!"
+
         figure_ [id_ "chart", class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
           div_ [] $ do
             -- unfortunately, the underlying library assigns `height` and `width` attributes to the SVG:
@@ -140,6 +147,10 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
             headerIcon
             sectionHeading "Aspects Summary"
           div_ [class_ "accordion-body"] $ do
+            p_ $ do
+              "For more detailed descriptions of aspects, see the "
+              a_ [href_ "#aspects"] "Aspects"
+              " section."
             table_ [class_ "table table-scroll table-hover"] $ do
               forM_ defaultPlanets $ \rowPlanet -> do
                 tr_ [] $ do
