@@ -18,11 +18,16 @@ render ctx maybeForm = html_ $ do
         metaCeremony
         
     body_ $ do
-        div_ [id_ "main", class_ "container"] $ do
-            div_ [class_ "hero hero-sm bg-primary"] $ do
+        div_ [id_ "main", class_ "container grid-xl"] $ do
+            div_ [class_ "hero hero-sm bg-primary mt-2"] $ do
                 div_ [class_ "hero-body text-center"] $ do
                     h1_ "Get your free natal chart"
                     a_ [class_ "text-light text-italic", href_ "/full-chart?location=Queens&month=10&day=16&year=2020&hour=6&minute=36&day-part=pm&lat=40.6815&lng=-73.8365"] "Or see an example chart"
+            
+            div_ [id_ "err", class_ "my-2 toast toast-error d-none"] $ do
+                p_ [id_ "errMsg"] ""
+                a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues/new/choose"] $ do
+                    "Report an issue"
 
             form_ [action_ "/full-chart", method_ "get"] $ do
                 div_ [class_ (formGroupClass (val formLocation) (err InvalidLocation))] $ do
@@ -125,6 +130,10 @@ geolocationScript (Just ctx) =
             });
             var $lat = document.getElementById('lat');
             var $lng = document.getElementById('lng');
+            var $err = document.getElementById('err');
+            var $errMsg = document.getElementById('errMsg');
+            var $btn = document.querySelector(".btn-primary");
+
             placesAutocomplete.on('change', function(e) {
                 $lat.value = e.suggestion.latlng.lat;
                 $lng.value = e.suggestion.latlng.lng;
@@ -133,6 +142,18 @@ geolocationScript (Just ctx) =
             placesAutocomplete.on('clear', function() {
                 $lat.value = '';
                 $lng.value = '';             
+            });
+
+            placesAutocomplete.on('error', function(e){
+                $err.classList.remove("d-none");
+                $errMsg.textContent = "Looks like our location service is currently unreachable.";
+                $btn.setAttribute("disabled", true);
+            });
+
+            placesAutocomplete.on('limit', function(e){
+                $err.classList.remove("d-none");
+                $errMsg.textContent = "Looks like our location service is temporarily unavailable. Please try again in a little bit. If the problem persists, please submit an issue."
+                $btn.setAttribute("disabled", true);
             });
         })();|]
 

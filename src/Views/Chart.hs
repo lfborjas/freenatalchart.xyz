@@ -33,7 +33,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
         a_ [href_ "#chart", class_ "navbar-brand text-bold mr-2"] "Your Free Natal Chart"
       section_ [class_ "navbar-section"] $ do
         a_ [href_ "/", class_ "btn btn-link"] "Start Over"
-        a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues"
+        a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues/new/choose"
            , class_ "btn btn-link text-error"
            , target_ "_blank"] $ do
           "Report an issue"
