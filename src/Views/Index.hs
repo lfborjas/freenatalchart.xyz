@@ -11,9 +11,6 @@ import Server.Types
 import RIO.List (nub)
 import Servant (toQueryParam, ToHttpApiData)
 
-
-
-
 render :: (Maybe AppContext) -> (Maybe FailedChartForm) -> Html ()
 render ctx maybeForm = html_ $ do
     head_ $ do
@@ -25,6 +22,7 @@ render ctx maybeForm = html_ $ do
             div_ [class_ "hero hero-sm bg-primary"] $ do
                 div_ [class_ "hero-body text-center"] $ do
                     h1_ "Get your free natal chart"
+                    a_ [class_ "text-light text-italic", href_ "/full-chart?location=Queens&month=10&day=16&year=2020&hour=6&minute=36&day-part=pm&lat=40.6815&lng=-73.8365"] "Or see an example chart"
 
             form_ [action_ "/full-chart", method_ "get"] $ do
                 div_ [class_ (formGroupClass (val formLocation) (err InvalidLocation))] $ do
