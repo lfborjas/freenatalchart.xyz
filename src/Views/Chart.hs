@@ -334,7 +334,8 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
 
     -- the SVG font for all icons.
     -- TODO: path is wrong for server-rendered!
-    link_ [rel_ "stylesheet", href_ "static/css/freenatalchart-icons.css"]
+    --link_ [rel_ "stylesheet", href_ "static/css/freenatalchart-icons.css"]
+    link_ [rel_ "stylesheet", href_ "/css/freenatalchart-icons.css"]
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footer_ [class_ "navbar bg-secondary"] $ do
       section_ [class_ "navbar-section"] $ do
