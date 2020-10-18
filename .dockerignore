@@ -1,0 +1,8 @@
+.stack-work/
+dist-newstyle/
+.env
+.github
+static/Symbola.svg
+Dockerfile
+.dockerignore
+.git/
