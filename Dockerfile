@@ -19,8 +19,10 @@ FROM debian:latest
 RUN adduser fnc-api
 USER fnc-api
 
-COPY --from=build /opt/freenatalchart/bin /opt/freenatalchart/bin
+COPY --from=build /opt/freenatalchart/bin /opt/freenatalchart
 COPY --from=build /opt/freenatalchart/config /opt/freenatalchart/config
 COPY --from=build /opt/freenatalchart/static /opt/freenatalchart/static
 
-CMD [ "/opt/freenatalchart/bin/freenatalchart-exe" ]
+WORKDIR /opt/freenatalchart
+
+CMD [ "/opt/freenatalchart/freenatalchart-exe" ]
