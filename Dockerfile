@@ -7,8 +7,11 @@ COPY . /opt/freenatalchart
 WORKDIR /opt/freenatalchart
 
 # Install dependencies and move binary to `/bin`
-RUN stack --system-ghc build -j1 servant diagrams
-RUN stack --system-ghc build -j1
+
+## install some heavy hitters first, with only one job to not choke the docker container
+RUN stack --system-ghc build -j1 interpolate diagrams servant
+## let the rest of the dependencies install with all available cores
+RUN stack --system-ghc build
 RUN stack --local-bin-path /opt/freenatalchart/bin install
 
 # Using multi-stage builds:
