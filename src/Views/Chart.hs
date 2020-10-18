@@ -15,7 +15,7 @@ import RIO.Text (pack)
 import RIO.Time (rfc822DateFormat, formatTime, LocalTime, defaultTimeLocale, parseTimeM)
 import SwissEphemeris (ZodiacSignName(..), LongitudeComponents (..), Planet (..))
 import Views.Common
-import Views.Chart.Explanations 
+import Views.Chart.Explanations
 
 render :: BirthData -> HoroscopeData -> Html ()
 render BirthData {..} h@HoroscopeData {..} = html_ $ do
@@ -32,7 +32,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
       section_ [class_ "navbar-section"] $ do
         a_ [href_ "#chart", class_ "navbar-brand text-bold mr-2"] "Your Free Natal Chart"
       section_ [class_ "navbar-section"] $ do
-        a_ [href_ "/", class_ "btn btn-link"] "Start Over"
+        a_ [href_ "/", class_ "btn btn-link"] "Draw Another Chart"
         a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues/new/choose"
            , class_ "btn btn-link text-error"
            , target_ "_blank"] $ do
@@ -65,13 +65,13 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
                 span_ [class_ "text-tiny", title_ "Sun Sign"] "Sun"
             div_ [class_ "tile-content"] $ do
               div_ [class_ "tile-title text-dark"] $ do
-                toHtml $ birthLocation & locationInput
-                "  ·  "
                 toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
+                "  ·  "                
+                toHtml $ birthLocation & locationInput
               small_ [class_ "tile-subtitle text-gray"] $ do
-                latLngHtml birthLocation
-                "  ·  "
                 toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z"
+                "  ·  "
+                latLngHtml birthLocation
             div_ [class_ "tile-action"] $ do
               div_ [class_ "px-2"] $ do
                 maybe mempty asIcon asc
