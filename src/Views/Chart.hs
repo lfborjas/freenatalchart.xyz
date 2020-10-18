@@ -149,7 +149,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
             headerIcon
             sectionHeading "Aspects Summary"
-          div_ [class_ "accordion-body"] $ do
+          div_ [class_ "accordion-body scrollable-container"] $ do
             p_ $ do
               "For more detailed descriptions of aspects, see the "
               a_ [href_ "#aspects"] "Aspects"
