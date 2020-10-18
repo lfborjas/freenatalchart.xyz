@@ -18,8 +18,9 @@ To get everything going the first time, you can run `stack build` (look into `gh
 
 Working locally should be rather painless, it's a simple `stack` project; you can run the server with:
 
+    stack run
 
-
+(You'll need to set `ALGOLIA_APP_ID` and `ALGOLIA_APP_KEY` as env vars for geolocation to work locally -- **TODO**: read `.env` files in Haskell, too.)
 
 ### With Docker:
 

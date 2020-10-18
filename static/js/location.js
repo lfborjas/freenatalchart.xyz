@@ -46,7 +46,7 @@ function initGeolocation(appId, appKey) {
     let hour24 = now.getHours();
     let hour = hour24 % 12;
     let partOfDay = hour24 > 12 ? "pm" : "am";
-    let minute = now.getMinutes() + 1;
+    let minute = now.getMinutes();
     return {
       day: day,
       month: month,
