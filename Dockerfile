@@ -8,7 +8,7 @@ WORKDIR /opt/freenatalchart
 
 # Install dependencies and move binary to `/bin`
 RUN stack --system-ghc build -j1 servant diagrams
-RUN stack --system-ghc build
+RUN stack --system-ghc build -j1
 RUN stack --local-bin-path /opt/freenatalchart/bin install
 
 # Add user and setup path (for local testing, ignored by Heroku)
