@@ -14,7 +14,7 @@ Create a `.env` file with the following entries
 I personally use [haskell-language-server](https://github.com/haskell/haskell-language-server) in VS Code. The `haskell` extension should
 be able to download the right binaries, and use `hie.yaml` to configure the project. 
 
-To get everything going the first time, you can run `stack build` (look into `ghcup` to install all the haskell stuffs.)
+To get everything going the first time, you can run `stack build` (look into [`ghcup`](https://www.haskell.org/ghcup/) to install all the haskell stuffs.)
 
 Working locally should be rather painless, it's a simple `stack` project; you can run the server with:
 
