@@ -27,3 +27,7 @@ metaCeremony = do
     meta_ [charset_ "UTF-8"]
     favicon
     stylesheets
+
+broughtToYou :: Html ()
+broughtToYou = do
+    a_ [class_ "text-muted", href_ "https://lfborjas.com"] "Brought to you by a ♑"

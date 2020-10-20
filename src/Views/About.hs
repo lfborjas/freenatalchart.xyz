@@ -23,8 +23,7 @@ render = do
                 section_ [class_ "navbar-section"] $ do
                     a_ [href_ "/", class_ "btn btn-link", title_ "Start here to get your free natal chart"] "Draw me a chart"
                 section_ [class_ "navbar-center"] $ do
-                    -- TODO: add a lil' icon?
-                    span_ "Brought to you by a ♑"
+                    broughtToYou
                 section_ [class_ "navbar-section"] $ do
                     a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.",  class_ "btn btn-link"] "Source Code"
 
