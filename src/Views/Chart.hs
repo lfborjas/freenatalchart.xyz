@@ -17,11 +17,11 @@ import SwissEphemeris (ZodiacSignName(..), LongitudeComponents (..), Planet (..)
 import Views.Common
 import Views.Chart.Explanations
 
-render :: BirthData -> HoroscopeData -> Html ()
-render BirthData {..} h@HoroscopeData {..} = html_ $ do
+render :: HasStaticRoot a => a -> BirthData -> HoroscopeData -> Html ()
+render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
   head_ $ do
     title_ "Your Natal Chart"
-    metaCeremony
+    metaCeremony renderCtx
     style_ $ do
       "svg { height: auto; width: auto}\
       \.scrollable-container {overflow: auto !important;}\
@@ -333,9 +333,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
               
 
     -- the SVG font for all icons.
-    -- TODO: path is wrong for server-rendered!
-    --link_ [rel_ "stylesheet", href_ "static/css/freenatalchart-icons.css"]
-    link_ [rel_ "stylesheet", href_ "/css/freenatalchart-icons.css"]
+    link_ [rel_ "stylesheet", href_ . pack $ assetPath <> "css/freenatalchart-icons.css"]
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footer_ [class_ "navbar bg-secondary"] $ do
       section_ [class_ "navbar-section"] $ do
@@ -345,6 +343,7 @@ render BirthData {..} h@HoroscopeData {..} = html_ $ do
       section_ [class_ "navbar-section"] $ do
         a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.", class_ "btn btn-link"] "Source Code"
   where
+    assetPath = renderCtx ^. staticRootL
     -- markup helpers
     headerIcon = i_ [class_ "icon icon-arrow-right mr-1 c-hand"] ""
     sectionHeading = h3_ [class_ "d-inline"]
@@ -596,5 +595,6 @@ renderTestChartPage = do
     birthplace <- pure $ Location "Tegucigalpa" (Latitude 14.0839053) (Longitude $ -87.2750137)
     birthtime <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:30:00" :: IO LocalTime
     let birthdata = BirthData birthplace birthtime
+        renderCtx = RenderContext ""
     calculations <- horoscope db ephe birthdata
-    renderToFile "test-chart.html" $ render birthdata calculations
+    renderToFile "test-chart.html" $ render renderCtx birthdata calculations

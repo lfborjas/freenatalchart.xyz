@@ -57,7 +57,7 @@ renderChartPage birthData = do
     let ephemerides = env ^. ephePathL
         tzDatabase  = env ^. timeZoneDatabaseL
     horoscopeData <- liftIO $ horoscope tzDatabase ephemerides birthData
-    return $ ChartPage.render birthData horoscopeData
+    return $ ChartPage.render env birthData horoscopeData
 
 about :: AppM (Html ())
 about = return $ About.render

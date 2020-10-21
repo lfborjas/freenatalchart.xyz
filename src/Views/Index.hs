@@ -15,7 +15,7 @@ render :: (Maybe AppContext) -> (Maybe FailedChartForm) -> Html ()
 render ctx maybeForm = html_ $ do
     head_ $ do
         title_ "Free Natal Chart"
-        metaCeremony
+        metaCeremony $ maybe (RenderContext "/") (RenderContext . appStaticRoot) ctx
         
     body_ $ do
         div_ [id_ "main", class_ "container grid-xl"] $ do
@@ -95,9 +95,10 @@ render ctx maybeForm = html_ $ do
 
         -- TODO: host this ourselves.
         script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
-        script_ [src_ "/js/location.js"] (""::Text)
+        script_ [src_ . pack $ assetPath <> "js/location.js"] (""::Text)
         (geolocationInit ctx)
     where
+        assetPath = maybe "/" (\e -> e ^. staticRootL) ctx
         isDateInvalidClass =
             maybe "" (const "has-error") (err InvalidDateTime)
         val :: ToHttpApiData a => (ChartForm -> ParsedParameter a) -> Text
