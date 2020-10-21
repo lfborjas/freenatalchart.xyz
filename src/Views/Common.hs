@@ -20,6 +20,9 @@ instance HasAlgoliaAppId RenderContext where
 instance HasAlgoliaAppKey RenderContext where
     algoliaAppKeyL = lens (const "") (const . id)
 
+fixtureRenderContext :: RenderContext
+fixtureRenderContext = RenderContext "../../static/"
+
 assetRef :: HasStaticRoot ctx => ctx -> FilePath -> Attribute
 assetRef renderCtx = 
     href_ . pack . (mappend assetPath)

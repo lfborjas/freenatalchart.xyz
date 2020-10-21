@@ -192,4 +192,4 @@ errorMessagesFor errors errorT =
 -- | Render to a file on disk, purely for debugging.
 
 renderTestIndex :: IO ()
-renderTestIndex = renderToFile "test/files/index.html" $ render (RenderContext "/") Nothing
+renderTestIndex = renderToFile "test/files/index.html" $ render fixtureRenderContext Nothing

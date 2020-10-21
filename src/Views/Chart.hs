@@ -595,6 +595,5 @@ renderTestChartPage = do
     birthplace <- pure $ Location "Tegucigalpa" (Latitude 14.0839053) (Longitude $ -87.2750137)
     birthtime <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:30:00" :: IO LocalTime
     let birthdata = BirthData birthplace birthtime
-        renderCtx = RenderContext ""
     calculations <- horoscope db ephe birthdata
-    renderToFile "test-chart.html" $ render renderCtx birthdata calculations
+    renderToFile "test/files/chart.html" $ render fixtureRenderContext birthdata calculations
