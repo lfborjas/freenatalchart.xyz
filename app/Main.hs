@@ -11,18 +11,20 @@ import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 main :: IO ()
 main = do
   lo <- logOptionsHandle stderr False
-  env <- decodeWithDefaults defaultConfig
+  env' <- decodeWithDefaults defaultConfig
   let logOptions = setLogUseTime True lo
   withLogFunc logOptions $ \lf ->
-    withTimeZoneDatabase (timezoneDatabaseFile env) $ \tzdb ->
+    withTimeZoneDatabase (timezoneDatabaseFile env') $ \tzdb ->
       let ctx = AppContext 
             {
               appLogFunc = lf
-            , appPort = port env
-            , appEphePath = ephePath env
-            , appAlgoliaAppId = algoliaAppId env
-            , appAlgoliaAppKey = algoliaAppKey env
+            , appPort = port env'
+            , appEphePath = ephePath env'
+            , appAlgoliaAppId = algoliaAppId env'
+            , appAlgoliaAppKey = algoliaAppKey env'
             , appTimeZoneDatabase = tzdb
+            , appEnvironment = deployEnv env'
+            , appStaticRoot = "/"
             }
       in
         start ctx

@@ -8,6 +8,7 @@ Create a `.env` file with the following entries
     ALGOLIA_APP_KEY=<ALGOLIA-PUBLIC-SEARCH-KEY>
     GEONAMES_USERNAME=<GET-FROM-GEONAMES>
     PORT=3030
+    DEPLOY_ENV=Development
 
 ## Development
 
