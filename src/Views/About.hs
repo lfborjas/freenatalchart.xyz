@@ -8,11 +8,11 @@ import Lucid
 import CMark
 import Data.String.Interpolate.IsString
 
-render :: Html ()
-render = do
+render :: HasStaticRoot ctx => ctx -> Html ()
+render renderCtx = do
     head_ $ do
         title_ "About Free Natal Chart"
-        metaCeremony
+        metaCeremony renderCtx
 
     body_ $ do
         div_ [id_ "main", class_ "container"] $ do
