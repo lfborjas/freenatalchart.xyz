@@ -11,11 +11,11 @@ import Server.Types
 import RIO.List (nub)
 import Servant (toQueryParam, ToHttpApiData)
 
-render :: (Maybe AppContext) -> (Maybe FailedChartForm) -> Html ()
+render :: (HasStaticRoot ctx, HasAlgoliaAppId ctx, HasAlgoliaAppKey ctx) => ctx -> (Maybe FailedChartForm) -> Html ()
 render ctx maybeForm = html_ $ do
     head_ $ do
         title_ "Free Natal Chart"
-        metaCeremony $ maybe (RenderContext "/") (RenderContext . appStaticRoot) ctx
+        metaCeremony ctx
         
     body_ $ do
         div_ [id_ "main", class_ "container grid-xl"] $ do
@@ -98,7 +98,7 @@ render ctx maybeForm = html_ $ do
         script_ [src_ . pack $ assetPath <> "js/location.js"] (""::Text)
         (geolocationInit ctx)
     where
-        assetPath = maybe "/" (\e -> e ^. staticRootL) ctx
+        assetPath = ctx ^. staticRootL
         isDateInvalidClass =
             maybe "" (const "has-error") (err InvalidDateTime)
         val :: ToHttpApiData a => (ChartForm -> ParsedParameter a) -> Text
@@ -111,21 +111,22 @@ render ctx maybeForm = html_ $ do
             | (isEmpty $ val formDayPart) && dayP == "am" = [checked_]
             | otherwise = []
 
-geolocationInit :: (Maybe AppContext) -> Html ()
-geolocationInit Nothing =
-    mempty
-
-geolocationInit (Just ctx) =
+geolocationInit :: (HasAlgoliaAppId ctx, HasAlgoliaAppKey ctx) => ctx -> Html ()
+geolocationInit ctx =
     let appId = ctx ^. algoliaAppIdL
         appKey = ctx ^. algoliaAppKeyL
-    in
-    script_ $ do
-        [i|
-            initGeolocation(
-                '#{appId}',
-                '#{appKey}'
-            );
-        |]
+        empty = Import.null
+    in 
+        if (empty appId && empty appKey) then
+            return mempty
+        else do
+            script_ $ do
+                [i|
+                    initGeolocation(
+                        '#{appId}',
+                        '#{appKey}'
+                    );
+                |]
 
 isEmpty :: Text -> Bool
 isEmpty = RIO.Text.null
@@ -191,4 +192,4 @@ errorMessagesFor errors errorT =
 -- | Render to a file on disk, purely for debugging.
 
 renderTestIndex :: IO ()
-renderTestIndex = renderToFile "test/files/index.html" $ render Nothing Nothing
+renderTestIndex = renderToFile "test/files/index.html" $ render (RenderContext "/") Nothing

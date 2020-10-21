@@ -14,6 +14,12 @@ data RenderContext = RenderContext
 instance HasStaticRoot RenderContext where
     staticRootL = lens staticRoot (\x y -> x {staticRoot = y})
 
+instance HasAlgoliaAppId RenderContext where
+    algoliaAppIdL = lens (const "") (const . id)
+
+instance HasAlgoliaAppKey RenderContext where
+    algoliaAppKeyL = lens (const "") (const . id)
+
 assetRef :: HasStaticRoot ctx => ctx -> FilePath -> Attribute
 assetRef renderCtx = 
     href_ . pack . (mappend assetPath)
