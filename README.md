@@ -1,5 +1,8 @@
 # freenatalchart.xyz
 
+![build](https://github.com/lfborjas/freenatalchart.xyz/workflows/Haskell%20CI/badge.svg)
+
+
 ## Setup
 
 Create a `.env` file with the following entries
