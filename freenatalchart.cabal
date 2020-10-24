@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9fea5fdbc696c87ab9bc4c39681ea549f56d222225a51ba344efd38995b8e34f
+-- hash: 6d9cefc734b187fa0562a1c6f7939ee7e04529dab9fc4825521f0e6f2b27df35
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -118,6 +118,7 @@ test-suite freenatalchart-test
   other-modules:
       TestUtil
       ValidationSpec
+      Views.ChartSpec
       Views.IndexSpec
       Paths_freenatalchart
   hs-source-dirs:
