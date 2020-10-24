@@ -86,3 +86,6 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+
+    build-tools:
+    - hspec-discover

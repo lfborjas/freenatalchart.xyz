@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fb95e8cae62d8ac5da8a746c8de7a8ad1c17ffdef55fb2d8ae98674fd3e49ad6
+-- hash: ec24e9b730dcf6a5023d7ab6f6a1c0ce7452e4a1e9b1c5a594be2775855eede9
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -121,6 +121,8 @@ test-suite freenatalchart-test
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-tool-depends:
+      hspec-discover:hspec-discover
   build-depends:
       QuickCheck
     , SVGFonts >=1.7.0.1 && <1.8
