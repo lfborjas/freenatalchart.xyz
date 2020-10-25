@@ -16,6 +16,7 @@ import RIO.Time (rfc822DateFormat, formatTime, LocalTime, defaultTimeLocale, par
 import SwissEphemeris (ZodiacSignName(..), LongitudeComponents (..), Planet (..))
 import Views.Common
 import Views.Chart.Explanations
+import Text.Printf (printf)
 
 render :: HasStaticRoot a => a -> BirthData -> HoroscopeData -> Html ()
 render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
@@ -457,12 +458,14 @@ asIcon z =
 
 htmlDegreesZodiac :: HasLongitude a => a -> Html ()
 htmlDegreesZodiac p =
-  abbr_ [title_ (pack . show $ pl)] $ do
+  abbr_ [title_ $ pack plFormatted] $ do
     maybe mempty asIcon (split & longitudeZodiacSign)
     toHtml $ (" " <> (toText $ longitudeDegrees split)) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
     toHtml $ (toText $ longitudeSeconds split) <> "\""
   where
+    plFormatted :: String
+    plFormatted = printf "%.4f" pl
     pl = getLongitudeRaw p
     split = splitDegreesZodiac pl
 
