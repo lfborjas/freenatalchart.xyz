@@ -19,8 +19,8 @@ import RIO.Text (pack)
 type Param' = QueryParam' '[Required, Lenient]
 
 type Service = 
-    Get '[HTML] (Html ())
-    :<|> "about" :> Get '[HTML] (Html ())
+    Get '[HTML] (Headers '[Header "Cache-Control" Text] (Html ()))
+    :<|> "about" :> Get '[HTML]  (Headers '[Header "Cache-Control" Text] (Html ()))
     :<|> "full-chart" 
         :> Param' "location" Text
         :> Param' "day" Day
@@ -31,10 +31,12 @@ type Service =
         :> Param' "day-part" DayPart
         :> Param' "lat" Latitude
         :> Param' "lng" Longitude
-        :> Get '[HTML] (Html ())
+        :> Get '[HTML]  (Headers '[Header "Cache-Control" Text] (Html ()))
     :<|> Raw
 
 type AppM = ReaderT AppContext Servant.Handler
+
+type CachedHtml =  (Headers '[Header "Cache-Control" Text] (Html ()))
 
 -- Form types:
 

@@ -7,7 +7,6 @@ module Server.Handlers where
 import Import
 import Server.Types
 import Servant
-import Lucid
 import RIO.Time (defaultTimeLocale, parseTimeM, LocalTime)
 import Validation (failure, Validation(..))
 import RIO.Text (pack)
@@ -17,6 +16,7 @@ import qualified Views.Index as Index
 import qualified Views.About as About
 import qualified Views.Chart as ChartPage
 import Chart.Calculations (horoscope)
+import Lucid (Html)
 
 service :: ServerT Service AppM
 service = 
@@ -25,10 +25,10 @@ service =
     :<|> chart
     :<|> (serveDirectoryWebApp "static")
 
-root :: AppM (Html ())
+root :: AppM CachedHtml
 root = do
     env <- ask
-    return $ Index.render env Nothing
+    return $ cacheForOneDay $ Index.render env Nothing
 
 chart :: ParsedParameter Text ->
     ParsedParameter Day ->
@@ -39,7 +39,7 @@ chart :: ParsedParameter Text ->
     ParsedParameter DayPart ->
     ParsedParameter Latitude ->
     ParsedParameter Longitude ->
-    AppM (Html ())
+    AppM CachedHtml
 chart loc d m y h min' dp lt lng = do
     env <- ask
     let form = ChartForm loc lt lng y m d h min' dp
@@ -47,28 +47,34 @@ chart loc d m y h min' dp lt lng = do
     case validated of
         Left f -> do 
             logInfo $ fromString $ show f
-            return $ Index.render env (Just f)
+            return $ noHeader $ Index.render env (Just f)
         Right birthData -> do
             renderChartPage birthData
 
-renderChartPage :: BirthData -> AppM (Html ())
+renderChartPage :: BirthData -> AppM CachedHtml
 renderChartPage birthData = do
     env <- ask
     let ephemerides = env ^. ephePathL
         tzDatabase  = env ^. timeZoneDatabaseL
     horoscopeData <- liftIO $ horoscope tzDatabase ephemerides birthData
-    return $ ChartPage.render env birthData horoscopeData
+    return $ cacheForOneDay $ ChartPage.render env birthData horoscopeData
 
-about :: AppM (Html ())
+about :: AppM CachedHtml
 about = do
     env <- ask
-    return $ About.render env
+    return $ cacheForOneDay $ About.render env
 
 -- HANDLER HELPERS
 
 -- TODO: should these participate in the AppM monad so they can log and such?
 -- params should be `Required Lenient`
 -- as per: http://hackage.haskell.org/package/servant-0.15/docs/Servant-API-Modifiers.html#t:RequestArgument
+
+-- | Cache for a day, revalidate, but give 1 hour of "grace" while revalidating
+-- TODO: add a last-modified or etag header, but also need a way of returning 304s!
+-- informed by: https://csswizardry.com/2019/03/cache-control-for-civilians/
+cacheForOneDay :: Html () -> CachedHtml
+cacheForOneDay = addHeader "max-age=86400, must-revalidate, stale-while-revalidate=3600"
 
 ---
 --- DATE VALIDATION

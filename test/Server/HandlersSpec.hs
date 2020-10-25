@@ -3,7 +3,7 @@
 module Server.HandlersSpec (spec) where
 
 import Import
-    (mkLogFunc,
+    (ByteString, mkLogFunc,
       LogFunc,
       AppContext(..),
       Environment(Test) )
@@ -11,7 +11,7 @@ import TestUtil (toStrict, safeToString,  testEphe, testTzDB )
 import Network.Wai (Application)
 import Test.Hspec ( describe, it, Spec )
 import Test.Hspec.Wai
-    (Body,  get,
+    ((<:>), Body,  get,
       shouldRespondWith,
       with,
       MatchBody(..),
@@ -67,6 +67,10 @@ testApp  = do
     in
       pure $ server ctx
 
+--expectedCacheDirective :: [Char]
+expectedCacheDirective :: ByteString
+expectedCacheDirective = "max-age=86400, must-revalidate, stale-while-revalidate=3600"
+
 spec :: Spec
 spec =
   with testApp $ do
@@ -74,7 +78,10 @@ spec =
       it "returns the index page" $ do
         get "/" `shouldRespondWith` ResponseMatcher 
           { matchStatus = 200
-          , matchHeaders = []
+          , matchHeaders = [
+            "Content-Type" <:> "text/html;charset=utf-8",
+            "Cache-Control" <:> expectedCacheDirective
+          ]
           , matchBody = matchAny
           }
 
@@ -84,7 +91,10 @@ spec =
         get ("/full-chart?" <> exampleChart) `shouldRespondWith`
           ResponseMatcher
             { matchStatus = 200
-            , matchHeaders = []
+            , matchHeaders = [
+              "Content-Type" <:> "text/html;charset=utf-8",
+              "Cache-Control" <:> expectedCacheDirective
+            ]
             -- very simplistic check, see View specs for
             -- more thorough verification of response templates
             , matchBody = bodyContains "Planet Positions"
