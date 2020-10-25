@@ -6,6 +6,8 @@ module Chart.Prerendered
     -- useful for creating static/test assets
     renderAll,
     renderSeparate,
+    -- useful for testing
+    allPrerendered
   )
 where
 
@@ -109,10 +111,11 @@ prerenderedAspect Sesquisquare = Path [Trail (loopFromSegments [] openLinear) `a
 
 allPrerendered :: Diagram B
 allPrerendered =
-  allSigns === allPlanets
+  allSigns === allPlanets === allAspects
   where
     allSigns = hcat $ map (\g -> stroke (prerenderedSign g) # fc black # scale 0.5) [Aries .. Pisces]
     allPlanets = hcat $ map (\g -> stroke (prerenderedPlanet g) # fc red # scale 0.5) [Sun .. Chiron]
+    allAspects = hcat $ map (\g -> stroke (prerenderedAspect g) # fc green # scale 0.5) [Conjunction .. Sesquisquare]
 
 renderAll :: IO ()
 renderAll = renderSVG "prerendered.svg" (mkWidth 400) allPrerendered

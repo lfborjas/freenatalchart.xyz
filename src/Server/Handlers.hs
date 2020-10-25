@@ -28,7 +28,7 @@ service =
 root :: AppM (Html ())
 root = do
     env <- ask
-    return $ Index.render (Just env) Nothing
+    return $ Index.render env Nothing
 
 chart :: ParsedParameter Text ->
     ParsedParameter Day ->
@@ -47,7 +47,7 @@ chart loc d m y h min' dp lt lng = do
     case validated of
         Left f -> do 
             logInfo $ fromString $ show f
-            return $ Index.render (Just env) (Just f)
+            return $ Index.render env (Just f)
         Right birthData -> do
             renderChartPage birthData
 
@@ -57,10 +57,12 @@ renderChartPage birthData = do
     let ephemerides = env ^. ephePathL
         tzDatabase  = env ^. timeZoneDatabaseL
     horoscopeData <- liftIO $ horoscope tzDatabase ephemerides birthData
-    return $ ChartPage.render birthData horoscopeData
+    return $ ChartPage.render env birthData horoscopeData
 
 about :: AppM (Html ())
-about = return $ About.render
+about = do
+    env <- ask
+    return $ About.render env
 
 -- HANDLER HELPERS
 

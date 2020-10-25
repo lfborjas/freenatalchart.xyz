@@ -22,7 +22,8 @@ imAlive = do
     env <- ask
     let p = env ^. portL
         ephe = env ^. ephePathL
-    logInfo $ fromString $ "Running on: " <> (show p) <> " with ephe path: " <> ephe
+        env' = env ^. environmentL
+    logInfo $ fromString $ "[" <> (show env') <> "] " <> "Running on: " <> (show p) <> " with ephe path: " <> ephe
 
 start :: AppContext -> IO ()
 start ctx =

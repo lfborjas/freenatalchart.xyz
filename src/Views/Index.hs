@@ -11,11 +11,11 @@ import Server.Types
 import RIO.List (nub)
 import Servant (toQueryParam, ToHttpApiData)
 
-render :: (Maybe AppContext) -> (Maybe FailedChartForm) -> Html ()
+render :: (HasStaticRoot ctx, HasAlgoliaAppId ctx, HasAlgoliaAppKey ctx) => ctx -> (Maybe FailedChartForm) -> Html ()
 render ctx maybeForm = html_ $ do
     head_ $ do
         title_ "Free Natal Chart"
-        metaCeremony
+        metaCeremony ctx
         
     body_ $ do
         div_ [id_ "main", class_ "container grid-xl"] $ do
@@ -89,16 +89,16 @@ render ctx maybeForm = html_ $ do
                 section_ [class_ "navbar-section"] $ do
                     a_ [href_ "/about", class_ "btn btn-link", title_ "tl;dr: we won't sell you anything, or store your data."] "About"
                 section_ [class_ "navbar-center"] $ do
-                    -- TODO: add a lil' icon?
-                    span_ "Brought to you by a ♑"
+                    broughtToYou
                 section_ [class_ "navbar-section"] $ do
                     a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.",  class_ "btn btn-link"] "Source Code"
 
         -- TODO: host this ourselves.
         script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
-        script_ [src_ "/js/location.js"] (""::Text)
+        script_ [src_ . pack $ assetPath <> "js/location.js"] (""::Text)
         (geolocationInit ctx)
     where
+        assetPath = ctx ^. staticRootL
         isDateInvalidClass =
             maybe "" (const "has-error") (err InvalidDateTime)
         val :: ToHttpApiData a => (ChartForm -> ParsedParameter a) -> Text
@@ -111,21 +111,22 @@ render ctx maybeForm = html_ $ do
             | (isEmpty $ val formDayPart) && dayP == "am" = [checked_]
             | otherwise = []
 
-geolocationInit :: (Maybe AppContext) -> Html ()
-geolocationInit Nothing =
-    mempty
-
-geolocationInit (Just ctx) =
+geolocationInit :: (HasAlgoliaAppId ctx, HasAlgoliaAppKey ctx) => ctx -> Html ()
+geolocationInit ctx =
     let appId = ctx ^. algoliaAppIdL
         appKey = ctx ^. algoliaAppKeyL
-    in
-    script_ $ do
-        [i|
-            initGeolocation(
-                '#{appId}',
-                '#{appKey}'
-            );
-        |]
+        empty = Import.null
+    in 
+        if (empty appId && empty appKey) then
+            return mempty
+        else do
+            script_ $ do
+                [i|
+                    initGeolocation(
+                        '#{appId}',
+                        '#{appKey}'
+                    );
+                |]
 
 isEmpty :: Text -> Bool
 isEmpty = RIO.Text.null
@@ -191,4 +192,4 @@ errorMessagesFor errors errorT =
 -- | Render to a file on disk, purely for debugging.
 
 renderTestIndex :: IO ()
-renderTestIndex = renderToFile "test/files/index.html" $ render Nothing Nothing
+renderTestIndex = renderToFile "test/files/index.html" $ render fixtureRenderContext Nothing

@@ -7,7 +7,7 @@ module Types where
 
 import RIO
 import SwissEphemeris
-import System.Envy (FromEnv)
+import System.Envy (Var(..), FromEnv)
 import RIO.Time (UTCTime, LocalTime)
 import RIO.Char (toLower)
 import Data.Time.LocalTime.TimeZone.Detect (TimeZoneDatabase)
@@ -16,6 +16,16 @@ import Data.Time.LocalTime.TimeZone.Detect (TimeZoneDatabase)
 
 type EphemeridesPath = FilePath
 
+data Environment 
+  = Development
+  | Test
+  | Production
+  deriving stock (Eq, Show, Enum, Read)
+
+instance Var Environment where
+  toVar = show
+  fromVar = readMaybe
+
 data AppContext = AppContext
   { appLogFunc :: !LogFunc
   , appPort :: !Int
@@ -23,6 +33,8 @@ data AppContext = AppContext
   , appAlgoliaAppId :: !String
   , appAlgoliaAppKey :: !String
   , appTimeZoneDatabase :: !TimeZoneDatabase
+  , appEnvironment :: !Environment
+  , appStaticRoot :: !FilePath
   -- Add other app-specific configuration information here
   }
 
@@ -54,7 +66,17 @@ class HasTimeZoneDatabase env where
 instance HasTimeZoneDatabase AppContext where
   timeZoneDatabaseL = lens appTimeZoneDatabase (\x y -> x { appTimeZoneDatabase = y})
 
+class HasEnvironment env where
+  environmentL :: Lens' env Environment
+instance HasEnvironment AppContext where
+  environmentL = lens appEnvironment (\x y -> x { appEnvironment = y})
 
+class HasStaticRoot env where
+  staticRootL :: Lens' env FilePath
+instance HasStaticRoot AppContext where
+  staticRootL = lens appStaticRoot (\x y -> x {appStaticRoot = y})
+
+-- | Options that can be set as environment variables
 data AppOptions = AppOptions
   {
     port :: Int
@@ -62,6 +84,7 @@ data AppOptions = AppOptions
   , algoliaAppId :: String
   , algoliaAppKey :: String
   , timezoneDatabaseFile :: FilePath
+  , deployEnv :: Environment
   } deriving (Generic, Show)
 
 defaultConfig :: AppOptions
@@ -70,7 +93,8 @@ defaultConfig = AppOptions {
   ephePath = "./config", 
   algoliaAppId = "", 
   algoliaAppKey = "", 
-  timezoneDatabaseFile = "./config/timezone21.bin"
+  timezoneDatabaseFile = "./config/timezone21.bin",
+  deployEnv = Development
 }
 
 instance FromEnv AppOptions
