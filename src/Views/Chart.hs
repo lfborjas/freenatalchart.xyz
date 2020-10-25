@@ -456,22 +456,23 @@ asIcon z =
     label' = pack . label $ z
     shown  = toText z
 
+formatDouble :: Double -> String
+formatDouble = printf "%.4f"
+
 htmlDegreesZodiac :: HasLongitude a => a -> Html ()
 htmlDegreesZodiac p =
-  abbr_ [title_ $ pack plFormatted] $ do
+  abbr_ [title_ . pack . formatDouble $ pl] $ do
     maybe mempty asIcon (split & longitudeZodiacSign)
     toHtml $ (" " <> (toText $ longitudeDegrees split)) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
     toHtml $ (toText $ longitudeSeconds split) <> "\""
   where
-    plFormatted :: String
-    plFormatted = printf "%.4f" pl
     pl = getLongitudeRaw p
     split = splitDegreesZodiac pl
 
 htmlDegreesLatitude :: Latitude -> Html ()
 htmlDegreesLatitude l =
-  abbr_ [title_ (pack . show $ l)] $ do
+  abbr_ [title_ . pack . formatDouble . unLatitude $ l] $ do
     toHtml $ (toText $ longitudeDegrees split) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
     toHtml $ (toText $ longitudeSeconds split) <> "\" "
@@ -486,7 +487,7 @@ htmlDegrees = htmlDegrees' (True, True)
 
 htmlDegrees' :: (Bool, Bool) -> Double -> Html ()
 htmlDegrees' (includeMinutes, includeSeconds) l =
-  abbr_ [title_ (pack . show $ l)] $ do
+  abbr_ [title_ . pack . formatDouble $ l] $ do
     toHtml sign
     toHtml $ (toText $ longitudeDegrees split) <> "° "
     if includeMinutes then
