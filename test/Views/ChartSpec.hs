@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Views.ChartSpec (spec) where
 
-import TestUtil (goldenFixture, renderHtmlToString)
+import TestUtil (testTzDB, goldenFixture, renderHtmlToString, testEphe)
 import Views.Common (fixtureRenderContext)
 import Views.Chart (render)
 import Test.Hspec ( context, describe, it, Spec )
@@ -16,9 +16,7 @@ import Data.Time.LocalTime.TimeZone.Detect (TimeZoneDatabase, openTimeZoneDataba
 import System.IO.Unsafe (unsafePerformIO)
 
 testTZDB :: IO TimeZoneDatabase
-testTZDB = openTimeZoneDatabase "./config/timezone21.bin"
-testEphe :: FilePath
-testEphe = "./config"
+testTZDB = openTimeZoneDatabase testTzDB
 
 renderHoroscope :: String
 renderHoroscope = unsafePerformIO $ do
