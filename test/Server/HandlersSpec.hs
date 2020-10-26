@@ -3,15 +3,15 @@
 module Server.HandlersSpec (spec) where
 
 import Import
-    (mkLogFunc,
+    (ByteString, mkLogFunc,
       LogFunc,
       AppContext(..),
-      Environment(Test) )
+      Environment(Test, Production) )
 import TestUtil (toStrict, safeToString,  testEphe, testTzDB )
 import Network.Wai (Application)
-import Test.Hspec ( describe, it, Spec )
+import Test.Hspec (xit,  describe, it, Spec )
 import Test.Hspec.Wai
-    (Body,  get,
+    (request, MatchHeader, (<:>), Body,  get,
       shouldRespondWith,
       with,
       MatchBody(..),
@@ -21,6 +21,8 @@ import Server.Run (server)
 import Data.Time.LocalTime.TimeZone.Detect (openTimeZoneDatabase, TimeZoneDatabase)
 import System.IO.Unsafe (unsafePerformIO)
 import Data.List (isInfixOf)
+import Network.HTTP.Types (methodGet)
+import Network.HTTP.Types.Header (hHost)
 
 noLog :: LogFunc
 noLog = mkLogFunc $ (\_ _ _ _ -> pure ())
@@ -51,8 +53,8 @@ tzDB :: TimeZoneDatabase
 tzDB = unsafePerformIO $ openTimeZoneDatabase testTzDB
 {-# NOINLINE tzDB #-}
 
-testApp :: IO Application
-testApp  = do
+testApp' :: Environment -> IO Application
+testApp' runAs = do
    let ctx = AppContext
         {
           appLogFunc = noLog
@@ -61,20 +63,41 @@ testApp  = do
         , appAlgoliaAppId = ""
         , appAlgoliaAppKey = ""
         , appTimeZoneDatabase = tzDB
-        , appEnvironment = Test
+        , appEnvironment = runAs
         , appStaticRoot = "/"
         }
     in
       pure $ server ctx
 
+testApp :: IO Application
+testApp = testApp' Test
+prodApp :: IO Application
+prodApp = testApp' Production
+
+expectedHeaders :: [MatchHeader]
+expectedHeaders = 
+  [
+    "Content-Type" <:> "text/html;charset=utf-8",
+    "Cache-Control" <:> "public, max-age=86400, stale-while-revalidate=3600",
+    "Strict-Transport-Security" <:> "max-age=63072000; includeSubdomains; preload"
+  ]
+
+testHost :: ByteString
+testHost = "test.freenatalchart.xyz"
+
 spec :: Spec
-spec =
+spec = do
+  describe "General business logic" routesSpec
+  describe "Production-specific logic (redirects, caching, etc.)" prodSpec
+
+routesSpec :: Spec
+routesSpec =
   with testApp $ do
     describe "GET /" $ do
       it "returns the index page" $ do
         get "/" `shouldRespondWith` ResponseMatcher 
           { matchStatus = 200
-          , matchHeaders = []
+          , matchHeaders = expectedHeaders
           , matchBody = matchAny
           }
 
@@ -84,8 +107,46 @@ spec =
         get ("/full-chart?" <> exampleChart) `shouldRespondWith`
           ResponseMatcher
             { matchStatus = 200
-            , matchHeaders = []
+            , matchHeaders = expectedHeaders
             -- very simplistic check, see View specs for
             -- more thorough verification of response templates
             , matchBody = bodyContains "Planet Positions"
+            }
+
+
+prodSpec :: Spec
+prodSpec =
+  with prodApp $ do
+    describe "GET / through reverse proxy (i.e. Heroku)" $ do
+      xit "redirects if no proto header is present" $ do
+        request methodGet "/" [(hHost, testHost)] "" `shouldRespondWith`
+          ResponseMatcher
+            { matchStatus = 301
+            , matchHeaders = ["Location" <:> "https://test.freenatalchart.xyz"]
+            , matchBody = matchAny
+            }
+      xit "redirects if requested via http" $ do
+        req <- pure $ request methodGet "/" [(hHost, testHost), ("X-Forwarded-Proto", "http")] ""
+        req `shouldRespondWith`
+          ResponseMatcher
+            { matchStatus = 301
+            , matchHeaders = ["Location" <:> "https://test.freenatalchart.xyz"]
+            , matchBody = matchAny
+            }        
+      it "returns a successful response if requested via https" $ do
+        request methodGet "/" [(hHost, testHost), ("X-Forwarded-Proto", "https")] "" `shouldRespondWith`
+          ResponseMatcher
+            { matchStatus = 200
+            , matchHeaders = expectedHeaders
+            , matchBody = matchAny
+            }
+      it "fails if requested via http (in reality, this is a 301, but something in the test library is unable to set the host)" $ do
+        request methodGet "/" [(hHost, testHost)] "" `shouldRespondWith`
+          ResponseMatcher
+            -- this isn't actually 400, but the Host header is somehow not set in the request, and is being
+            -- then blocked by this:
+            -- https://github.com/turboMaCk/wai-enforce-https/blob/9479665f587fca6330a97de2c69b79d76cdcd5bb/lib/Network/Wai/Middleware/EnforceHTTPS.hs#L146
+            { matchStatus = 400
+            , matchHeaders = []
+            , matchBody = matchAny
             }
