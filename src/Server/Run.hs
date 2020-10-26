@@ -3,10 +3,30 @@
 module Server.Run where
 
 import Import
-import Server.Types
-import Server.Handlers
-import Servant
+    ((==), (&),  ($),
+      Monad((>>)),
+      Show(show),
+      IsString(fromString),
+      Semigroup((<>)),
+      IO,
+      flip,
+      (^.),
+      logInfo,
+      runRIO,
+      Proxy(..),
+      MonadReader(ask),
+      RIO,
+      ReaderT(runReaderT),
+      AppContext(appPort),
+      HasEnvironment(environmentL),
+      HasEphePath(ephePathL),
+      HasPort(portL) )
+import Server.Types ( Service )
+import Server.Handlers ( service )
+import Server.Middleware ( addHstsHeader, enforceHttps )
+import Servant ( Application, hoistServer, serve )
 import Network.Wai.Handler.Warp (run)
+import Types (Environment(Production))
 
 proxyService :: Proxy Service
 proxyService = Proxy
@@ -15,7 +35,13 @@ proxyService = Proxy
 -- https://docs.servant.dev/en/stable/cookbook/using-custom-monad/UsingCustomMonad.html
 server :: AppContext -> Application
 server ctx =
-    serve proxyService $ hoistServer proxyService (flip runReaderT ctx) service
+    if shouldEnforceHttps then
+        enforceHttps server'
+    else
+        server'
+    where
+        shouldEnforceHttps = ctx ^. environmentL & (== Production)
+        server' = addHstsHeader $ serve proxyService $ hoistServer proxyService (flip runReaderT ctx) service
 
 imAlive :: RIO AppContext ()
 imAlive = do

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0eac35040982ebd9a17849e48d4fbcfb94ec1150af3a883c750dca3f5b822d25
+-- hash: 2a84ace3a69077e1873c7456ebed0aa80d4451270af9d4a21224ea54b39792c9
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -31,6 +31,7 @@ library
       Chart.Prerendered
       Import
       Server.Handlers
+      Server.Middleware
       Server.Run
       Server.Types
       Types
@@ -47,6 +48,7 @@ library
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
     , base >=4.11 && <10
+    , case-insensitive
     , cmark
     , diagrams
     , diagrams-contrib
@@ -70,6 +72,7 @@ library
     , unordered-containers
     , validation-selective
     , wai
+    , wai-enforce-https
     , warp
   default-language: Haskell2010
 
@@ -83,6 +86,7 @@ executable freenatalchart-exe
   build-depends:
       SVGFonts >=1.7.0.1 && <1.8
     , base >=4.11 && <10
+    , case-insensitive
     , cmark
     , diagrams
     , diagrams-contrib
@@ -108,6 +112,7 @@ executable freenatalchart-exe
     , unordered-containers
     , validation-selective
     , wai
+    , wai-enforce-https
     , warp
   default-language: Haskell2010
 
@@ -133,6 +138,7 @@ test-suite freenatalchart-test
       QuickCheck
     , SVGFonts >=1.7.0.1 && <1.8
     , base >=4.11 && <10
+    , case-insensitive
     , cmark
     , diagrams
     , diagrams-contrib
@@ -161,5 +167,6 @@ test-suite freenatalchart-test
     , unordered-containers
     , validation-selective
     , wai
+    , wai-enforce-https
     , warp
   default-language: Haskell2010

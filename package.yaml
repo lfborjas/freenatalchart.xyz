@@ -44,6 +44,8 @@ dependencies:
 - timezone-detect >= 0.3.0.0
 - svg-builder
 - unordered-containers
+- case-insensitive
+- wai-enforce-https
 
 ghc-options:
 - -Wall
