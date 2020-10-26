@@ -47,7 +47,7 @@ chart loc d m y h min' dp lt lng = do
     case validated of
         Left f -> do 
             logInfo $ fromString $ show f
-            return $ noHeader $ Index.render env (Just f)
+            return $ cacheForOneDay $ Index.render env (Just f)
         Right birthData -> do
             renderChartPage birthData
 
@@ -74,7 +74,7 @@ about = do
 -- TODO: add a last-modified or etag header, but also need a way of returning 304s!
 -- informed by: https://csswizardry.com/2019/03/cache-control-for-civilians/
 cacheForOneDay :: Html () -> CachedHtml
-cacheForOneDay = addHeader "max-age=86400, must-revalidate, stale-while-revalidate=3600"
+cacheForOneDay = addHeader "public, max-age=86400, stale-while-revalidate=3600"
 
 ---
 --- DATE VALIDATION

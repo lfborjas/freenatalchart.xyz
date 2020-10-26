@@ -69,7 +69,7 @@ testApp  = do
 
 --expectedCacheDirective :: [Char]
 expectedCacheDirective :: ByteString
-expectedCacheDirective = "max-age=86400, must-revalidate, stale-while-revalidate=3600"
+expectedCacheDirective = "public, max-age=86400, stale-while-revalidate=3600"
 
 spec :: Spec
 spec =
