@@ -55,4 +55,4 @@ metaCeremony renderCtx = do
 
 broughtToYou :: Html ()
 broughtToYou = do
-    a_ [class_ "text-muted", href_ "https://lfborjas.com"] "Brought to you by a ♑"
+    a_ [class_ "text-muted", href_ "https://www.lfborjas.com"] "Brought to you by a ♑"
