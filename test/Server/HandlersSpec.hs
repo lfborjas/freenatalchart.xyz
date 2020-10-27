@@ -79,7 +79,7 @@ expectedHeaders =
   [
     "Content-Type" <:> "text/html;charset=utf-8",
     "Cache-Control" <:> "public, max-age=86400, stale-while-revalidate=3600",
-    "Strict-Transport-Security" <:> "max-age=63072000; includeSubdomains; preload"
+    "Strict-Transport-Security" <:> "max-age=63072000"
   ]
 
 testHost :: ByteString

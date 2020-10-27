@@ -13,9 +13,10 @@ import qualified Data.CaseInsensitive as CI
 -- * https://hstspreload.org/
 -- inspired by:
 -- https://hackage.haskell.org/package/kawaii-0.0.1.0/docs/src/Network-Wai-Serve-Middleware.html#stsHeadersMiddleware
+-- TODO: add `preload` later on.
 addHstsHeader :: Middleware
 addHstsHeader = 
-  addHeaders [("Strict-Transport-Security", "max-age=63072000; includeSubdomains; preload")]
+  addHeaders [("Strict-Transport-Security", "max-age=63072000")]
 
 enforceHttps :: Middleware
 enforceHttps = withResolver xForwardedProto
