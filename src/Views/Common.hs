@@ -56,3 +56,8 @@ metaCeremony renderCtx = do
 broughtToYou :: Html ()
 broughtToYou = do
     a_ [class_ "text-muted", href_ "https://www.lfborjas.com"] "Brought to you by a ♑"
+
+otherLinks :: Html ()
+otherLinks = do
+    a_ [href_ "/about", class_ "btn btn-link", title_ "tl;dr: we won't sell you anything, or store your data."] "About"
+    a_ [href_ "https://blog.freenatalchart.xyz/", class_ "btn btn-link", title_ "Announcements, technical writeups, notes on learning about astrology"] "Blog"

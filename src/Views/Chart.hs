@@ -338,7 +338,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footer_ [class_ "navbar bg-secondary"] $ do
       section_ [class_ "navbar-section"] $ do
-        a_ [href_ "/about", class_ "btn btn-link", title_ "tl;dr: we won't sell you anything, or store your data."] "About"
+        otherLinks
       section_ [class_ "navbar-center"] $ do
         broughtToYou
       section_ [class_ "navbar-section"] $ do
