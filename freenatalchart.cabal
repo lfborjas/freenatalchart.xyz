@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2a84ace3a69077e1873c7456ebed0aa80d4451270af9d4a21224ea54b39792c9
+-- hash: df62ec79aa973956c2d55996b922f608a9fc156ccb87cbe6159ca838d0dad48f
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -34,6 +34,7 @@ library
       Server.Middleware
       Server.Run
       Server.Types
+      Transits.RootFinding
       Types
       Views.About
       Views.Chart
@@ -60,6 +61,7 @@ library
     , http-types
     , interpolate
     , lucid
+    , math-functions
     , rio >=0.1.12.0
     , selective
     , servant
@@ -99,6 +101,7 @@ executable freenatalchart-exe
     , http-types
     , interpolate
     , lucid
+    , math-functions
     , optparse-simple
     , rio >=0.1.12.0
     , selective
@@ -155,6 +158,7 @@ test-suite freenatalchart-test
     , http-types
     , interpolate
     , lucid
+    , math-functions
     , rio >=0.1.12.0
     , selective
     , servant

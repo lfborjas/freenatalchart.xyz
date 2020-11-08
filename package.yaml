@@ -46,6 +46,7 @@ dependencies:
 - unordered-containers
 - case-insensitive
 - wai-enforce-https
+- math-functions
 
 ghc-options:
 - -Wall

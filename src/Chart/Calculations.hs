@@ -7,6 +7,7 @@ module Chart.Calculations
     angularDifference,
     isRetrograde,
     mkTime,
+    utcToJulian,
     housePosition,
     splitDegrees,
     splitDegreesZodiac,
