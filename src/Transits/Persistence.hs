@@ -39,23 +39,20 @@ import Import
 import qualified RIO.Text as T
 import SwissEphemeris
 
-data EclipticEphemeris = EclipticEphemeris
+data EclipticLongitudeEphemeris = EclipticLongitudeEphemeris
   { planet :: Planet,
     julianTime :: JulianTime,
     longitude :: Double,
-    latitude :: Double,
-    geocentricDistance :: Double,
-    longitudinalSpeed :: Double,
-    latitudinalSpeed :: Double,
-    distanceSpeed :: Double
+    longitudinalSpeedSignum :: Int
   }
 
-toPosition :: EclipticEphemeris -> EclipticPosition
-toPosition (EclipticEphemeris _ _ la lo di ls las dis) = EclipticPosition la lo di ls las dis
-
-toEphemeris :: Planet -> JulianTime -> EclipticPosition -> EclipticEphemeris
-toEphemeris p t (EclipticPosition la lo di ls las dis) = EclipticEphemeris p t la lo di ls las dis
-
+toEphemeris :: Planet -> JulianTime -> EclipticPosition -> EclipticLongitudeEphemeris
+toEphemeris p t (EclipticPosition lo _ _ ls _ _) =
+  EclipticLongitudeEphemeris p t lo speedSignum
+  where
+    -- we're only storing the sign of the speed, to know at first glance if it was retrogade
+    -- or prograde in that moment. Still unsure if it'll be useful!
+    speedSignum = truncate . signum $ ls
 deriving stock instance Read Planet
 
 instance FromField Planet where
@@ -77,18 +74,13 @@ instance FromField JulianTime where
 instance ToField JulianTime where
   toField (JulianTime d) = SQLFloat d
 
-instance FromRow EclipticEphemeris where
-  fromRow =
-    EclipticEphemeris <$> field
-      <*> field
-      <*> field
-      <*> field
-      <*> field
+instance FromRow EclipticLongitudeEphemeris where
+  fromRow = EclipticLongitudeEphemeris <$> field
       <*> field
       <*> field
       <*> field
 
-ephemeridesFor :: Planet -> (JulianTime, JulianTime) -> Double -> IO [Either String EclipticEphemeris]
+ephemeridesFor :: Planet -> (JulianTime, JulianTime) -> Double -> IO [Either String EclipticLongitudeEphemeris]
 ephemeridesFor planet (JulianTime start, JulianTime end) step =
   mapM (planetPositionAt planet) [start, (start + step) .. end]
   where
@@ -97,13 +89,13 @@ ephemeridesFor planet (JulianTime start, JulianTime end) step =
       where
         t' = JulianTime t
 
-insertEphemeris :: Connection -> Either String EclipticEphemeris -> IO ()
+insertEphemeris :: Connection -> Either String EclipticLongitudeEphemeris -> IO ()
 insertEphemeris _ (Left _) = pure ()
-insertEphemeris conn (Right EclipticEphemeris {..}) = do
+insertEphemeris conn (Right EclipticLongitudeEphemeris {..}) = do
   execute
     conn
-    "INSERT INTO ecliptic_ephemeris (planet, julian_time, longitude, latitude, distance, lng_speed, lat_speed, dist_speed) VALUES (?,?,?,?,?,?,?,?)"
-    (planet, julianTime, longitude, latitude, geocentricDistance, longitudinalSpeed, latitudinalSpeed, distanceSpeed)
+    "INSERT INTO ecliptic_longitude_ephemeris (planet, julian_time, longitude, lng_speed_signum) VALUES (?,?,?,?)"
+    (planet, julianTime, longitude, longitudinalSpeedSignum)
 
 populateEphemeris :: (JulianTime, JulianTime) -> IO ()
 populateEphemeris range = do
@@ -115,7 +107,7 @@ populateEphemeris range = do
 
   close conn
 
--- one year of ephemeris takes 3.47 seconds to calculate, and occupies 896K in disk; producing 4771 rows.
+-- one year of ephemeris takes 3.19 seconds to calculate, and occupies 896K in disk; producing 4771 rows.
 -- (to time the execution, I used `:set +s` in `ghci`)
 populateEphemeris2020 :: IO ()
 populateEphemeris2020 =
