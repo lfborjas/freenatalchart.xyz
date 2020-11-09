@@ -107,9 +107,20 @@ populateEphemeris range = do
 
   close conn
 
--- one year of ephemeris takes 3.19 seconds to calculate, and occupies 896K in disk; producing 4771 rows.
+-- one year of ephemeris takes 3.19 seconds to calculate, and occupies ~700kb in disk; producing 4771 rows.
 -- (to time the execution, I used `:set +s` in `ghci`)
 populateEphemeris2020 :: IO ()
 populateEphemeris2020 =
   withEphemerides "./config" $
     populateEphemeris (JulianTime 2458849.5, JulianTime 2459215.5)
+
+-- | Pre-populate 16 years of ephemeris, between 1/1/2015 and 1/1/2032.
+-- takes about 48 seconds and occupies 11Mb on disk; 80730 rows.
+-- I used https://ssd.jpl.nasa.gov/tc.cgi#top for easy string/julian
+-- conversion. I run this on `ghci` with `:set +s` enabled. To
+-- pre-populate for your own purposes, you'll have to export this 
+-- function explicitly.
+prepopulateEphemeris :: IO ()
+prepopulateEphemeris =
+  withEphemerides "./config" $
+    populateEphemeris (JulianTime 2457023.5, JulianTime 2463232.5) 
