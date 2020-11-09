@@ -1,18 +1,20 @@
-module Transits.RootFinding where
-
-import Debug.Trace (trace)
+module Transits.RootFinding (ExactTransit (..), findExactTransit) where
 import Numeric.MathFunctions.Constants (m_epsilon)
 import Numeric.RootFinding
   ( RiddersParam (RiddersParam, riddersMaxIter, riddersTol),
-    Root,
+    Root(..),
     Tolerance (RelTol),
     ridders,
   )
 import SwissEphemeris (EclipticPosition (..), JulianTime (..), Planet (..), calculateEclipticPosition)
 import System.IO.Unsafe (unsafePerformIO)
+import Import (Longitude (Longitude))
 
--- julianMinute :: Double
--- julianMinute = 6.944448687136173e-4
+data ExactTransit a
+  = OutsideBounds
+  | NoCrossing
+  | ExactAt a
+  deriving (Eq, Show)
 
 -- | Merely for numerical convenience. This is an unsafe, partial function!!
 unsafeCalculateEclipticLongitude :: Planet -> Double -> Double
@@ -20,7 +22,8 @@ unsafeCalculateEclipticLongitude
   planet
   time =
     case pos of
-      Right ep -> trace ("Found position: " <> show ep <> " for time: " <> show time) $ lng ep
+      --Right ep -> trace ("Found position: " <> show ep <> " for time: " <> show time) $ lng ep
+      Right ep -> lng ep
       Left e -> error e
     where
       pos = unsafePerformIO $ calculateEclipticPosition (JulianTime time) planet
@@ -50,16 +53,11 @@ root :: (Double -> Double) -> Double -> Double -> Root Double
 root f start end =
   ridders RiddersParam {riddersMaxIter = 50, riddersTol = RelTol (4 * m_epsilon)} (start, end) f
 
--- Test fn: look at a couple of days of positions to find an exact conjunction of a natal
--- pluto to a transiting sun, knowing from astro.com that it happens between those days.
--- astro.com found the root at 15:46 UTC on Nov-06; this fn does the same!
--- Using the ridder's method, it takes it about 29 iterations (which is 58 invocations of the fn)
-testFn =
-  root (longitudeIntersects Sun 224.6882) start end
+findExactTransit :: Planet -> Longitude -> JulianTime -> JulianTime -> ExactTransit JulianTime
+findExactTransit p (Longitude pos) (JulianTime start) (JulianTime end) =
+  case root' of
+    Root t -> ExactAt . JulianTime $ t
+    NotBracketed -> OutsideBounds -- the given start/end won't converge
+    SearchFailed -> NoCrossing -- we looked, but didn't find
   where
-    -- start = 2459159.5 -- 11/06 00
-    --end = 2459160.4993056 -- 11/06 23:59
-    start = 2459158.5 -- 11/06 00
-    end = 2459161.5 -- 11/08 00
-    --start = 2458849.5 -- 1/1/2020
-    --end = 2459274.5 -- 1/3/2021
+    root' = root (longitudeIntersects p pos) start end

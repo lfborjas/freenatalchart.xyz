@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: df62ec79aa973956c2d55996b922f608a9fc156ccb87cbe6159ca838d0dad48f
+-- hash: b12c89c94ff2d85830554e6301120643efbc23095efe9393f4cafe8796c9328e
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -34,6 +34,7 @@ library
       Server.Middleware
       Server.Run
       Server.Types
+      Transits.Persistence
       Transits.RootFinding
       Types
       Views.About
@@ -67,6 +68,7 @@ library
     , servant
     , servant-lucid
     , servant-server
+    , sqlite-simple >=0.4.18.0
     , svg-builder
     , swiss-ephemeris >=1.2.0.0
     , time
@@ -108,6 +110,7 @@ executable freenatalchart-exe
     , servant
     , servant-lucid
     , servant-server
+    , sqlite-simple >=0.4.18.0
     , svg-builder
     , swiss-ephemeris >=1.2.0.0
     , time
@@ -128,6 +131,7 @@ test-suite freenatalchart-test
       Chart.PrerenderedSpec
       Server.HandlersSpec
       TestUtil
+      Transits.RootFindingSpec
       ValidationSpec
       Views.ChartSpec
       Views.IndexSpec
@@ -164,6 +168,7 @@ test-suite freenatalchart-test
     , servant
     , servant-lucid
     , servant-server
+    , sqlite-simple >=0.4.18.0
     , svg-builder
     , swiss-ephemeris >=1.2.0.0
     , time
