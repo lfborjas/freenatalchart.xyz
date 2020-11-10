@@ -1,4 +1,4 @@
-module Transits.RootFinding (ExactTransit (..), findExactTransit) where
+module Transits.RootFinding (ExactTransit (..), findExactTransit, findExactTransitAround) where
 import Numeric.MathFunctions.Constants (m_epsilon)
 import Numeric.RootFinding
   ( RiddersParam (RiddersParam, riddersMaxIter, riddersTol),
@@ -9,6 +9,8 @@ import Numeric.RootFinding
 import SwissEphemeris (EclipticPosition (..), JulianTime (..), Planet (..), calculateEclipticPosition)
 import System.IO.Unsafe (unsafePerformIO)
 import Import (Longitude (Longitude))
+import Control.Applicative
+import Control.Monad (ap)
 
 data ExactTransit a
   = OutsideBounds
@@ -16,6 +18,28 @@ data ExactTransit a
   | ExactAt a
   deriving (Eq, Show)
 
+instance Monad ExactTransit where
+  OutsideBounds >>= _ = OutsideBounds
+  NoCrossing >>= _ = NoCrossing
+  ExactAt a >>= f = f a
+  return = ExactAt
+
+instance Functor ExactTransit where
+  fmap _ OutsideBounds = OutsideBounds
+  fmap _ NoCrossing = NoCrossing
+  fmap f (ExactAt a) = ExactAt (f a)
+
+instance Applicative ExactTransit where
+  pure = return
+  (<*>) = ap
+
+instance Alternative ExactTransit where
+  empty = OutsideBounds
+  r@ExactAt {} <|> _ = r
+  _ <|> r@ExactAt {} = r
+  OutsideBounds <|> r = r
+  r <|> OutsideBounds = r
+  _ <|> r = r
 -- | Merely for numerical convenience. This is an unsafe, partial function!!
 unsafeCalculateEclipticLongitude :: Planet -> Double -> Double
 unsafeCalculateEclipticLongitude
@@ -61,3 +85,10 @@ findExactTransit p (Longitude pos) (JulianTime start) (JulianTime end) =
     SearchFailed -> NoCrossing -- we looked, but didn't find
   where
     root' = root (longitudeIntersects p pos) start end
+
+findExactTransitAround :: Planet -> Longitude -> JulianTime -> ExactTransit JulianTime
+findExactTransitAround p pos (JulianTime start) =
+  transitBefore <|> transitAfter
+  where
+    transitBefore = findExactTransit p pos (JulianTime start) (JulianTime $ start + 1)
+    transitAfter = findExactTransit p pos (JulianTime $ start -1) (JulianTime start)

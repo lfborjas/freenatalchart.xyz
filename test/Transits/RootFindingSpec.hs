@@ -1,9 +1,9 @@
 module Transits.RootFindingSpec (spec) where
 
 import Import (Longitude (Longitude))
-import SwissEphemeris (JulianTime (JulianTime), Planet (Sun))
+import SwissEphemeris (JulianTime (JulianTime), Planet (..))
 import Test.Hspec (Spec, describe, it, shouldBe)
-import Transits.RootFinding (ExactTransit (..), findExactTransit)
+import Transits.RootFinding (ExactTransit (..), findExactTransit, findExactTransitAround)
 
 spec :: Spec
 spec = do
@@ -18,3 +18,19 @@ spec = do
           -- 11/8/2020 00:00:00 UTC
           endSearch = JulianTime 2459161.5
       (findExactTransit transiting natalPluto beginSearch endSearch) `shouldBe` transitIsExactAt
+
+  describe "findExactTransitAround" $ do
+    it "finds the exact moment of a known transit, given a time when the longitude is closest" $ do
+      let natalSunSquare = Longitude 195.9234
+          transiting = Venus
+          exactAt = ExactAt . JulianTime
+          candidate = JulianTime 2459163.5
+          foundTransit = findExactTransitAround transiting natalSunSquare candidate
+      foundTransit `shouldBe` (exactAt 2459163.631149835)
+  
+    it "determines that the transit doesn't happen when close, but never past" $ do
+      let natalSunSquare = Longitude 15.9234
+          transiting = Mars
+          candidate = JulianTime 2459161.5
+          transitSearch = findExactTransitAround transiting natalSunSquare candidate
+      transitSearch `shouldBe` OutsideBounds

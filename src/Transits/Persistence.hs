@@ -207,9 +207,25 @@ at this moment, we can interpolate. Still unsure if the signum can help determin
 
 as such, I think we can:
 
-* Use the `union` query for the period of activity, and we're done; limit it to 6 months before and 6 months after the queried date.
-* Use the "within three days" query to see if the crossing will be happening today (see if the returned date is in the natal timezone's definition of "today")
+* Use the `union` query for the period of activity, and we're done; limit it to 6 months before and 6 months after the queried date. Only applicable for already proven
+  transits that are happening (i.e. find aspects/houses/sign containment.)
+* Use the "within three days" query to see if the crossing may be happening soon (see if the returned date is in the natal timezone's definition of "today")
 * If yes to the above, interpolate to find exactness.
+
+I say may because take this example: Mars is "in orb", but the crossing isn't happening in the three day interval given, when interpolated:
+select julian_time, longitude, lng_speed_signum from ecliptic_longitude_ephemeris where planet = 'Mars' and julian_time between 2459161.5 and 2459163.5 and longitude between 14.9234 and 16.9234;
+
+In fact, to disambiguate, I think this query is better for an interpolation candidate:
+select max(longitude), julian_time, lng_speed_signum from ecliptic_longitude_ephemeris where planet = 'Mars' and julian_time between 2459161.5 and 2459163.5 and longitude between 14.9234 and 16.9234;
+
+which returns the time at which it is closest:
+max(longitude)	julian_time	lng_speed_signum
+15.47755306436939	2459161.5	-1
+
+and can be used thusly:
+
+> findExactTransitAround Mars (Longitude 15.9234) (JulianTime 2459163.5)
+=> OutsideBounds
 
 References:
 https://ssd.jpl.nasa.gov/tc.cgi#top
