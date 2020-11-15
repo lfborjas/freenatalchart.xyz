@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Ephemeris.Horoscope where
+module Ephemeris.Horoscope (horoscope) where
 
 import Import
 import Ephemeris.Types
