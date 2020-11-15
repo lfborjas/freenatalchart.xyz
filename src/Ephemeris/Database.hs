@@ -1,10 +1,16 @@
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+
+
+module Ephemeris.Database where
 
 {-
 Precomputed ephemeris, and functions to interact with them
@@ -27,8 +33,6 @@ To explore next:
   in `Transists.RootFinding` to find the exact moment of transit.
 -}
 
-module Transits.Persistence where
-
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromField
 import Database.SQLite.Simple.FromRow ()
@@ -38,6 +42,12 @@ import Database.SQLite.Simple.ToField
 import Import
 import qualified RIO.Text as T
 import SwissEphemeris
+    ( calculateEclipticPosition,
+      withEphemerides,
+      Planet(..))
+import Ephemeris.Types
+import Ephemeris.Planet
+
 
 data EclipticLongitudeEphemeris = EclipticLongitudeEphemeris
   { planet :: Planet,

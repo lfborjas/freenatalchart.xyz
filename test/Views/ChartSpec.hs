@@ -6,14 +6,11 @@ import Views.Common (fixtureRenderContext)
 import Views.Chart (render)
 import Test.Hspec ( context, describe, it, Spec )
 import Import
-    ( BirthData(BirthData),
-      Latitude(Latitude),
-      Location(Location),
-      Longitude(Longitude) )
 import RIO.Time ( defaultTimeLocale, parseTimeM )
-import Chart.Calculations (horoscope)
+import Ephemeris (horoscope)
 import Data.Time.LocalTime.TimeZone.Detect (TimeZoneDatabase, openTimeZoneDatabase)
 import System.IO.Unsafe (unsafePerformIO)
+import Ephemeris.Types
 
 testTZDB :: IO TimeZoneDatabase
 testTZDB = openTimeZoneDatabase testTzDB

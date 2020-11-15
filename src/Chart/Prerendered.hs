@@ -16,7 +16,7 @@ import Diagrams.Prelude
 import qualified Graphics.SVGFonts as SF
 import qualified Graphics.SVGFonts.ReadFont as SF
 import Import
-import SwissEphemeris (Planet (..), ZodiacSignName (..))
+import Ephemeris
 import System.IO.Unsafe (unsafePerformIO)
 
 -- | Default font, bundled with the SVGFonts package,

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b12c89c94ff2d85830554e6301120643efbc23095efe9393f4cafe8796c9328e
+-- hash: d26b674088283c2e457283dbbc7f86934ad84fe73b7ddfc7d3dfd9a0709c26e4
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -26,17 +26,25 @@ source-repository head
 
 library
   exposed-modules:
-      Chart.Calculations
       Chart.Graphics
       Chart.Prerendered
+      Ephemeris
+      Ephemeris.Aspect
+      Ephemeris.Database
+      Ephemeris.Horoscope
+      Ephemeris.House
+      Ephemeris.Planet
+      Ephemeris.Transit
+      Ephemeris.Types
+      Ephemeris.Utils
+      Ephemeris.ZodiacSign
       Import
       Server.Handlers
       Server.Middleware
       Server.Run
       Server.Types
-      Transits.Persistence
-      Transits.RootFinding
       Types
+      Utils
       Views.About
       Views.Chart
       Views.Chart.Explanations
@@ -127,11 +135,11 @@ test-suite freenatalchart-test
   main-is: Spec.hs
   other-modules:
       Arbitrary
-      Chart.CalculationsSpec
       Chart.PrerenderedSpec
+      Ephemeris.HoroscopeSpec
+      Ephemeris.TransitSpec
       Server.HandlersSpec
       TestUtil
-      Transits.RootFindingSpec
       ValidationSpec
       Views.ChartSpec
       Views.IndexSpec

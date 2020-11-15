@@ -15,7 +15,7 @@ import Control.Selective (ifS)
 import qualified Views.Index as Index
 import qualified Views.About as About
 import qualified Views.Chart as ChartPage
-import Chart.Calculations (horoscope)
+import Ephemeris ( Latitude, Longitude, horoscope )
 import Lucid (Html)
 
 service :: ServerT Service AppM

@@ -1,9 +1,9 @@
-module Transits.RootFindingSpec (spec) where
+module Ephemeris.TransitSpec (spec) where
 
-import Import (Longitude (Longitude))
-import SwissEphemeris (JulianTime (JulianTime), Planet (..))
+import Import 
+import Ephemeris
 import Test.Hspec (Spec, describe, it, shouldBe)
-import Transits.RootFinding (ExactTransit (..), findExactTransit, findExactTransitAround)
+import Ephemeris.Transit (ExactTransit (..), findExactTransit, findExactTransitAround)
 
 spec :: Spec
 spec = do

@@ -1,4 +1,6 @@
-module Transits.RootFinding (ExactTransit (..), findExactTransit, findExactTransitAround) where
+{-# LANGUAGE NoImplicitPrelude #-}
+module Ephemeris.Transit where
+
 import Numeric.MathFunctions.Constants (m_epsilon)
 import Numeric.RootFinding
   ( RiddersParam (RiddersParam, riddersMaxIter, riddersTol),
@@ -6,9 +8,10 @@ import Numeric.RootFinding
     Tolerance (RelTol),
     ridders,
   )
-import SwissEphemeris (EclipticPosition (..), JulianTime (..), Planet (..), calculateEclipticPosition)
+import SwissEphemeris (calculateEclipticPosition)
 import System.IO.Unsafe (unsafePerformIO)
-import Import (Longitude (Longitude))
+import Import
+import Ephemeris.Types
 import Control.Applicative
 import Control.Monad (ap)
 

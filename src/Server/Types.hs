@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds #-}
@@ -10,11 +9,57 @@
 module Server.Types where
 
 import Import
+    ( ($),
+      Eq,
+      Monad((>>=)),
+      Read,
+      Show(..),
+      Semigroup((<>)),
+      Maybe(..),
+      Either(..),
+      String,
+      (.),
+      Text,
+      maybe,
+      flip,
+      readMaybe,
+      NonEmpty,
+      ReaderT,
+      mkDay,
+      mkDayPart,
+      mkHour,
+      mkMinute,
+      mkMonth,
+      mkYear,
+      AppContext,
+      Day(..),
+      DayPart(unDayPart),
+      Hour(..),
+      Minute(..),
+      Month(..),
+      Year(..) )
 import Servant
-import Servant.HTML.Lucid
+    ( Handler,
+      Header,
+      type (:<|>),
+      Headers,
+      Lenient,
+      Required,
+      type (:>),
+      Get,
+      Raw,
+      FromHttpApiData(parseUrlPiece),
+      ToHttpApiData(toUrlPiece),
+      QueryParam' )
+import Servant.HTML.Lucid ( HTML )
 import Lucid.Base (Html)
 import Validation (Validation)
 import RIO.Text (pack)
+import Ephemeris.Types
+    ( Latitude(unLatitude),
+      Longitude(unLongitude),
+      mkLatitude,
+      mkLongitude )
 
 type Param' = QueryParam' '[Required, Lenient]
 

@@ -1,17 +1,9 @@
 {-# LANGUAGE OverloadedStrings#-}
 
-module Chart.CalculationsSpec (spec) where
+module Ephemeris.HoroscopeSpec (spec) where
 
-import Import
-    ( BirthData(BirthData),
-      HoroscopeData(horoscopePlanetPositions, horoscopeHouses,
-                    horoscopeSystem),
-      Latitude(Latitude),
-      Location(Location),
-      Longitude(Longitude) )
-import TestUtil ( testEphe, testTzDB )
+import Import hiding (assert)
 import Arbitrary ()
-import Chart.Calculations ( horoscope )
 import Test.Hspec ( describe, Spec )
 import Test.Hspec.QuickCheck ( prop )
 import Test.QuickCheck
@@ -19,8 +11,9 @@ import Test.QuickCheck
 import Test.QuickCheck.Monadic ( assert, monadicIO, run )
 import Data.Time.LocalTime.TimeZone.Detect (openTimeZoneDatabase, TimeZoneDatabase)
 import System.IO.Unsafe (unsafePerformIO)
-import SwissEphemeris (HouseSystem(Placidus, Porphyrius))
+import Ephemeris
 import RIO.Time (LocalTime(..))
+import TestUtil
 
 tzDB :: TimeZoneDatabase
 tzDB = unsafePerformIO $ openTimeZoneDatabase testTzDB

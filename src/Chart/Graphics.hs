@@ -7,18 +7,111 @@
 
 module Chart.Graphics where
 
-import Chart.Calculations (angularDifference, horoscope, isRetrograde, rotateList)
+import Ephemeris
+    ( Angles(..),
+      ZodiacSign(ZodiacSign),
+      Element(Water, Earth, Air, Fire),
+      HasLabel(label),
+      HasLongitude(..),
+      House(House),
+      HouseNumber,
+      Aspect(temperament),
+      AspectTemperament(Neutral, Analytical, Synthetic),
+      HoroscopeAspect(..),
+      Latitude(Latitude),
+      Longitude(Longitude),
+      westernZodiacSigns,
+      angularDifference,
+      isRetrograde,
+      HoroscopeData(..),
+      PlanetPosition(..),
+      horoscope )
 import Chart.Prerendered as P
+    ( prerenderedPlanet, prerenderedSign )
 import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
-import Diagrams.Backend.SVG
+import Diagrams.Backend.SVG ( Options(SVGOptions), SVG(SVG), B )
 import Diagrams.Core.Types (keyVal)
-import Diagrams.Prelude hiding (aspect)
+import Diagrams.Prelude
+    ( Applicative(pure),
+      Semigroup((<>)),
+      V2,
+      (&),
+      black,
+      Point,
+      stroke,
+      Affine((.+^)),
+      Angle,
+      href,
+      Diagram,
+      origin,
+      (*^),
+      renderDia,
+      moveTo,
+      local,
+      scale,
+      (@@),
+      deg,
+      turn,
+      lw,
+      thin,
+      ultraThin,
+      (~~),
+      annularWedge,
+      fc,
+      lc,
+      mkWidth,
+      fontSize,
+      text,
+      rotateAround,
+      rotateBy,
+      xDir,
+      (#),
+      Direction,
+      blue,
+      darkgray,
+      darkgreen,
+      gray,
+      green,
+      lightblue,
+      red,
+      yellow,
+      (^.),
+      negated )
 import Diagrams.TwoD.Vector (e)
 import qualified Graphics.Svg as Svg
-import Import hiding (Element, (^.), local, over)
+import Import
+    ( zip,
+      fst,
+      snd,
+      map,
+      ($),
+      Enum(fromEnum),
+      Eq((==)),
+      Fractional((/)),
+      Num((-), abs, (+)),
+      Ord((<=), compare),
+      Show(show),
+      Monoid(mconcat, mempty),
+      Bool(True),
+      Double,
+      Maybe(..),
+      IO,
+      String,
+      id,
+      concatMap,
+      maybe,
+      flip,
+      (>>>),
+      BirthData(BirthData),
+      ChartContext(..),
+      HasAscendantOffset(ascendantOffsetL),
+      HasAspectCircleRadius(aspectCircleRadiusL),
+      HasPlanetCircleRadius(planetCircleRadiusL),
+      HasZodiacCircleRadius(zodiacCircleRadiusL),
+      Location(Location) )
 import RIO.List (groupBy, sortBy)
 import RIO.Time (LocalTime, defaultTimeLocale, parseTimeM)
-import SwissEphemeris (Angles (..))
+import Utils (rotateList)
 
 zodiacCircle :: ChartContext -> Diagram B
 zodiacCircle env =
@@ -48,7 +141,7 @@ zodiacCircle env =
             # lw thin
         signColor =
           case zElement of
-            Import.Earth -> darkgreen
+            Earth -> darkgreen
             Air -> yellow
             Fire -> red
             Water -> lightblue
