@@ -4,11 +4,16 @@
 
 module Views.Chart.Explanations where
 
-import CMark
-import Data.String.Interpolate.IsString
-import Import
-import Lucid
-import SwissEphemeris (Planet (..), ZodiacSignName (..))
+import CMark ( commonmarkToHtml )
+import Data.String.Interpolate.IsString ( i )
+import Import ( ($), Monoid(mempty), (.), Text, forM_ )
+import Lucid ( Html, ToHtml(toHtml, toHtmlRaw), dd_, dl_, dt_ )
+import Ephemeris
+    ( Planet(Chiron, Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn,
+             Uranus, Neptune, Pluto, MeanNode, MeanApog),
+      ZodiacSignName(..),
+      HouseNumber(..),
+      AspectName(..) )
 
 markdownToHtml :: Text -> Html ()
 markdownToHtml = toHtmlRaw . commonmarkToHtml []

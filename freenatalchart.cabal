@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2a84ace3a69077e1873c7456ebed0aa80d4451270af9d4a21224ea54b39792c9
+-- hash: d26b674088283c2e457283dbbc7f86934ad84fe73b7ddfc7d3dfd9a0709c26e4
 
 name:           freenatalchart
 version:        0.1.0.0
@@ -26,15 +26,25 @@ source-repository head
 
 library
   exposed-modules:
-      Chart.Calculations
       Chart.Graphics
       Chart.Prerendered
+      Ephemeris
+      Ephemeris.Aspect
+      Ephemeris.Database
+      Ephemeris.Horoscope
+      Ephemeris.House
+      Ephemeris.Planet
+      Ephemeris.Transit
+      Ephemeris.Types
+      Ephemeris.Utils
+      Ephemeris.ZodiacSign
       Import
       Server.Handlers
       Server.Middleware
       Server.Run
       Server.Types
       Types
+      Utils
       Views.About
       Views.Chart
       Views.Chart.Explanations
@@ -60,11 +70,13 @@ library
     , http-types
     , interpolate
     , lucid
+    , math-functions
     , rio >=0.1.12.0
     , selective
     , servant
     , servant-lucid
     , servant-server
+    , sqlite-simple >=0.4.18.0
     , svg-builder
     , swiss-ephemeris >=1.2.0.0
     , time
@@ -99,12 +111,14 @@ executable freenatalchart-exe
     , http-types
     , interpolate
     , lucid
+    , math-functions
     , optparse-simple
     , rio >=0.1.12.0
     , selective
     , servant
     , servant-lucid
     , servant-server
+    , sqlite-simple >=0.4.18.0
     , svg-builder
     , swiss-ephemeris >=1.2.0.0
     , time
@@ -121,8 +135,9 @@ test-suite freenatalchart-test
   main-is: Spec.hs
   other-modules:
       Arbitrary
-      Chart.CalculationsSpec
       Chart.PrerenderedSpec
+      Ephemeris.HoroscopeSpec
+      Ephemeris.TransitSpec
       Server.HandlersSpec
       TestUtil
       ValidationSpec
@@ -155,11 +170,13 @@ test-suite freenatalchart-test
     , http-types
     , interpolate
     , lucid
+    , math-functions
     , rio >=0.1.12.0
     , selective
     , servant
     , servant-lucid
     , servant-server
+    , sqlite-simple >=0.4.18.0
     , svg-builder
     , swiss-ephemeris >=1.2.0.0
     , time

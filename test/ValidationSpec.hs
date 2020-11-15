@@ -9,6 +9,7 @@ import Server.Handlers
 import Server.Types
 import System.IO.Unsafe (unsafePerformIO)
 import Test.Hspec
+import Ephemeris.Types
 
 localTimeFromString :: String -> LocalTime
 localTimeFromString =

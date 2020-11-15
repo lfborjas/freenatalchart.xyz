@@ -46,6 +46,8 @@ dependencies:
 - unordered-containers
 - case-insensitive
 - wai-enforce-https
+- math-functions
+- sqlite-simple >= 0.4.18.0
 
 ghc-options:
 - -Wall

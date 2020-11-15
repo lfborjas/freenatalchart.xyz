@@ -5,17 +5,58 @@
 
 module Views.Chart (render, renderTestChartPage) where
 
-import Chart.Calculations
 import Chart.Graphics (renderChart)
 import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 import qualified Graphics.Svg as Svg
-import Import hiding (for_)
+import Import
 import Lucid
 import RIO.Text (pack)
 import RIO.Time (rfc822DateFormat, formatTime, LocalTime, defaultTimeLocale, parseTimeM)
-import SwissEphemeris (ZodiacSignName(..), LongitudeComponents (..), Planet (..))
+import Ephemeris
+    ( LongitudeComponents(longitudeZodiacSign, longitudeSeconds,
+                          longitudeDegrees, longitudeMinutes),
+      Planet(MeanApog, Chiron, Sun, MeanNode),
+      ZodiacSignName(Pisces, Aries),
+      HasLabel(..),
+      HasLongitude(getLongitudeRaw),
+      House(..),
+      HouseNumber(X, IV, VII, I),
+      Aspect(..),
+      AspectTemperament(..),
+      AspectName,
+      HoroscopeAspect(..),
+      Latitude(..),
+      Longitude(Longitude, unLongitude),
+      majorAspects,
+      minorAspects,
+      defaultPlanets,
+      isRetrograde,
+      HoroscopeData(..),
+      PlanetPosition(..),
+      findAspectBetweenPlanets,
+      findAspectWithAngle,
+      findAspectsByName,
+      housePosition,
+      planetsByHouse,
+      planetsInHouse,
+      planetsBySign,
+      planetsInSign,
+      housesBySign,
+      housesInSign,
+      findSunSign,
+      splitDegrees,
+      splitDegreesZodiac,
+      findAscendant,
+      horoscope )
 import Views.Common
+    ( broughtToYou, fixtureRenderContext, metaCeremony, otherLinks )
 import Views.Chart.Explanations
+    ( attribution,
+      generalAspectsExplanation,
+      generalHousesExplanation,
+      generalPlanetsExplanation,
+      generalSignsExplanation,
+      Explicable(explain) )
 import Text.Printf (printf)
 
 render :: HasStaticRoot a => a -> BirthData -> HoroscopeData -> Html ()
