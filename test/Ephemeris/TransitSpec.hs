@@ -1,6 +1,5 @@
 module Ephemeris.TransitSpec (spec) where
 
-import Import 
 import Ephemeris
 import Test.Hspec (Spec, describe, it, shouldBe)
 import Ephemeris.Transit (ExactTransit (..), findExactTransit, findExactTransitAround)
