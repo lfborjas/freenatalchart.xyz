@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d26b674088283c2e457283dbbc7f86934ad84fe73b7ddfc7d3dfd9a0709c26e4
+-- hash: 6ce406ac39dcff6a249e111b7a2a46c30215e3aca9ab97f21599f58b6875d4f4
 
 name:           freenatalchart
-version:        0.1.0.0
+version:        0.2.0.0
 description:    Please see the README on Github at <https://github.com/lfborjas/freenatalchart#readme>
 homepage:       https://github.com/lfborjas/freenatalchart#readme
 bug-reports:    https://github.com/lfborjas/freenatalchart/issues
