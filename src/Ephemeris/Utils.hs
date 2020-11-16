@@ -2,7 +2,7 @@
 module Ephemeris.Utils where
 
 import Ephemeris.Types
-import RIO.Time (fromGregorian, picosecondsToDiffTime, diffTimeToPicoseconds, toGregorian, UTCTime(..), Day(..))
+import RIO.Time (fromGregorian, picosecondsToDiffTime, diffTimeToPicoseconds, toGregorian, UTCTime(..))
 import SwissEphemeris(julianDay, defaultSplitDegreesOptions, gregorianDateTime)
 import qualified SwissEphemeris as SWE
 
@@ -22,13 +22,16 @@ isRetrograde PlanetPosition {..} =
     TrueNode -> False
     _ -> planetLngSpeed < 0.0
 
+picosecondsInHour :: Double
+picosecondsInHour = 3600 * 1e12
+
 -- | Convert between a UTC timestamp and the low-level JulianTime that SwissEphemeris requires.
 utcToJulian :: UTCTime -> JulianTime
 utcToJulian (UTCTime day time) =
   julianDay (fromIntegral y) m d h
   where
     (y, m, d) = toGregorian day
-    h = 2.77778e-16 * (fromIntegral $ diffTimeToPicoseconds time)
+    h = (1/picosecondsInHour) * (fromIntegral $ diffTimeToPicoseconds time)
 
 julianToUTC :: JulianTime -> UTCTime
 julianToUTC jd = 
@@ -36,7 +39,7 @@ julianToUTC jd =
   where
     (y,m,d,h) = gregorianDateTime jd
     day = fromGregorian (fromIntegral y) m d
-    dt = picosecondsToDiffTime $ round $ h * 3600 * 1e12
+    dt = picosecondsToDiffTime $ round $ h * picosecondsInHour
 
 -- 2459160.1572215613
 
