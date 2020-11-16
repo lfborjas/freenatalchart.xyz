@@ -2,8 +2,8 @@
 module Ephemeris.Utils where
 
 import Ephemeris.Types
-import RIO.Time (diffTimeToPicoseconds, toGregorian, UTCTime(..))
-import SwissEphemeris(julianDay, defaultSplitDegreesOptions)
+import RIO.Time (fromGregorian, picosecondsToDiffTime, diffTimeToPicoseconds, toGregorian, UTCTime(..), Day(..))
+import SwissEphemeris(julianDay, defaultSplitDegreesOptions, gregorianDateTime)
 import qualified SwissEphemeris as SWE
 
 mkEcliptic :: EclipticPosition
@@ -30,6 +30,15 @@ utcToJulian (UTCTime day time) =
     (y, m, d) = toGregorian day
     h = 2.77778e-16 * (fromIntegral $ diffTimeToPicoseconds time)
 
+julianToUTC :: JulianTime -> UTCTime
+julianToUTC jd = 
+  UTCTime day dt
+  where
+    (y,m,d,h) = gregorianDateTime jd
+    day = fromGregorian (fromIntegral y) m d
+    dt = picosecondsToDiffTime $ round $ h * 3600 * 1e12
+
+-- 2459160.1572215613
 
 splitDegrees :: Double -> LongitudeComponents
 splitDegrees = SWE.splitDegrees $ defaultSplitDegreesOptions <> [RoundSeconds]

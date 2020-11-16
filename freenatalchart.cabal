@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6ce406ac39dcff6a249e111b7a2a46c30215e3aca9ab97f21599f58b6875d4f4
+-- hash: 32e4fd32a130391fc97137baa7f6af95facc001a71c25f3e0c6845e57fd291f4
 
 name:           freenatalchart
 version:        0.2.0.0
@@ -78,7 +78,7 @@ library
     , servant-server
     , sqlite-simple >=0.4.18.0
     , svg-builder
-    , swiss-ephemeris >=1.2.0.0
+    , swiss-ephemeris >=1.2.1.0
     , time
     , timezone-detect >=0.3.0.0
     , unordered-containers
@@ -120,7 +120,7 @@ executable freenatalchart-exe
     , servant-server
     , sqlite-simple >=0.4.18.0
     , svg-builder
-    , swiss-ephemeris >=1.2.0.0
+    , swiss-ephemeris >=1.2.1.0
     , time
     , timezone-detect >=0.3.0.0
     , unordered-containers
@@ -178,7 +178,7 @@ test-suite freenatalchart-test
     , servant-server
     , sqlite-simple >=0.4.18.0
     , svg-builder
-    , swiss-ephemeris >=1.2.0.0
+    , swiss-ephemeris >=1.2.1.0
     , time
     , timezone-detect >=0.3.0.0
     , unordered-containers
