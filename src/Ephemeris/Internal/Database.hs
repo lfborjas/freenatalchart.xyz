@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 
@@ -35,6 +36,7 @@ import Database.SQLite.Simple.FromRow ()
 import Database.SQLite.Simple.Internal (Field (Field))
 import Database.SQLite.Simple.Ok
 import Database.SQLite.Simple.ToField
+import Database.SQLite.Simple.QQ
 import Import
 import qualified RIO.Text as T
 import SwissEphemeris
@@ -77,11 +79,51 @@ instance FromField JulianTime where
 instance ToField JulianTime where
   toField (JulianTime d) = SQLFloat d
 
+instance FromField Longitude where
+  fromField (Field (SQLFloat flt) _) = Ok . Longitude $ flt
+  fromField f = returnError ConversionFailed f "Expected a float."
+
+instance ToField Longitude where
+  toField (Longitude d) = SQLFloat d
+
 instance FromRow EclipticLongitudeEphemeris where
   fromRow = EclipticLongitudeEphemeris <$> field
       <*> field
       <*> field
       <*> field
+
+
+-- | Given a Planet, a Julian Time and a Longitude, find the interval
+-- in an appropriate time range when said planet is likely to cross over
+-- the given Longitude.
+crossingCandidateInterval :: Connection -> Planet -> Longitude -> JulianTime -> IO (Maybe JulianTime, Maybe JulianTime)
+crossingCandidateInterval conn crossingPlanet soughtLongitude soughtTime = do
+  results' <- results
+  case results' of
+    [] -> pure (Nothing, Nothing)
+    (Only x:_) -> pure (JulianTime <$> x, JulianTime . (+upperBracketStep) <$> x)
+  where
+    results :: IO [Only (Maybe Double)]
+    results = 
+      query conn [sql|
+        select max(julian_time) from ecliptic_longitude_ephemeris
+        where planet = ? and longitude between ? and ? and julian_time between ? and ?
+      |] (crossingPlanet, lowerLongitudeBound, upperLongitudeBound, lowerTimeBound, upperTimeBound)
+    
+    -- see Approximations.hs
+    lowerLongitudeBound = soughtLongitude - (Longitude 1.55)
+    upperLongitudeBound = soughtLongitude
+    lowerTimeBound      = JulianTime 2458849.5
+    upperTimeBound      = JulianTime 2459215.5
+    upperBracketStep    = 1
+
+
+--
+-- Dev Utilities
+-- 
+
+devConnection :: IO Connection
+devConnection = open "./config/precalculated_ephemeris.db"
 
 ephemeridesFor :: Planet -> (JulianTime, JulianTime) -> Double -> IO [Either String EclipticLongitudeEphemeris]
 ephemeridesFor planet (JulianTime start, JulianTime end) step =
