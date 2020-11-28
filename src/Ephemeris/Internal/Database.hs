@@ -119,10 +119,10 @@ populateEphemeris2020 =
     populateEphemeris (JulianTime 2458849.5, JulianTime 2459215.5)
 
 -- | Pre-populate 16 years of ephemeris, between 1/1/2015 and 1/1/2032.
--- takes about 48 seconds and occupies 11Mb on disk; 80730 rows.
+-- takes about 53 seconds and occupies 13Mb on disk; 80730 rows.
 -- I used https://ssd.jpl.nasa.gov/tc.cgi#top for easy string/julian
--- conversion. I run this on `ghci` with `:set +s` enabled. To
--- pre-populate for your own purposes, you'll have to export this 
+-- conversion.
+-- To pre-populate for your own purposes, you'll have to export this 
 -- function explicitly.
 prepopulateEphemeris :: IO ()
 prepopulateEphemeris =
