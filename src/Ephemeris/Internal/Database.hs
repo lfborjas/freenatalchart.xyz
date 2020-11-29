@@ -10,27 +10,6 @@
 
 module Ephemeris.Internal.Database where
 
-{-
-Precomputed ephemeris, and functions to interact with them
-
-* Need a function to find all ephemeris in a range of years, for a given planet and step (default 1 day, moon can bee 1/2 day,)
-* Another function to set up the tables
-* Another to populate the whole thing
-* Another to, given a longitude, find the day(s) a planet is closest to it; depending on the
-  longitudinal speed, we'll work with the previous/next position given the step used:
-  this is our bracket for root finding (i.e. we just need the days, the previous/next can just be derived by applying the step.)
-  * Note that this obviates the "find extrema" step used by astro.com, leaving the task to the DB.
-
-To explore next:
-
-* See: https://stackoverflow.com/a/32017013 for a SQLite-specific, efficient way of finding
-  the longitude closest to a given one, given also the planet name and the transit time
-  (this [other answer](https://stackoverflow.com/a/595691) hints at possibly using a composite index, too.)
-* We essentially want a hybrid approach: maintain a database of precomputed ephemeris that's fast to search
-  in, use queries to find good bracketing candidates for interpolation, and then use functions
-  in `Transists.RootFinding` to find the exact moment of transit.
--}
-
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromField
 import Database.SQLite.Simple.FromRow ()
@@ -99,11 +78,11 @@ instance FromRow EclipticLongitudeEphemeris where
       <*> field
 
 
--- | Given a Planet, a Julian Time and a Longitude, find the interval
+-- | Given a Planet, a Julian Time and a Longitude, find the day
 -- in an appropriate time range when said planet is likely to cross over
 -- the given Longitude.
-crossingCandidateInterval :: Connection -> Planet -> Longitude -> JulianTime -> IO (Maybe JulianTime, Maybe JulianTime)
-crossingCandidateInterval conn crossingPlanet soughtLongitude (JulianTime soughtTime) = do
+crossingCandidateQuery :: Connection -> Planet -> Longitude -> JulianTime -> IO (Maybe JulianTime)
+crossingCandidateQuery conn crossingPlanet soughtLongitude (JulianTime soughtTime) = do
   -- results :: IO [Only (Maybe Double)]
   results <-
     query conn [sql|
@@ -113,8 +92,8 @@ crossingCandidateInterval conn crossingPlanet soughtLongitude (JulianTime sought
         and julian_time between ? and ?
       |] (crossingPlanet, lowerLongitudeBound, upperLongitudeBound, lowerTimeBound, upperTimeBound)
   case results of
-    [] -> pure (Nothing, Nothing)
-    (Only x:_) -> pure (JulianTime <$> x, JulianTime . (+upperBracketStep) <$> x)
+    [] -> pure Nothing
+    (Only x:_) -> pure (JulianTime <$> x)
   where
     -- see Approximations.hs:
     -- a lot of ranges depend on the speed of the transiting planet,
@@ -124,29 +103,88 @@ crossingCandidateInterval conn crossingPlanet soughtLongitude (JulianTime sought
     -- due to retrograde motion,) which is enough to have begun its approach to the position.
     lowerLongitudeBound = orbBefore crossingPlanet soughtLongitude 1
     upperLongitudeBound = soughtLongitude
-    lowerTimeBound      = soughtTime - (maxDayDelta crossingPlanet) --JulianTime 2458849.5
-    upperTimeBound      = soughtTime + (maxDayDelta crossingPlanet) -- JulianTime 2459215.5
-    upperBracketStep    = 1
+    lowerTimeBound      = soughtTime - (maxDayDelta crossingPlanet)
+    upperTimeBound      = soughtTime + (maxDayDelta crossingPlanet)
+
+{-
+select t,longitude,l,lng_speed_signum from (
+  select max(julian_time)as t,longitude, 'end' as l, lng_speed_signum from ecliptic_longitude_ephemeris where planet = 'Pluto' and julian_time between 2457023.5 and 2463232.5  and longitude between 292.9268 and 293.9268
+  union
+  select min(julian_time)as t,longitude, 'start' as l, lng_speed_signum from ecliptic_longitude_ephemeris where planet = 'Pluto' and julian_time between 2457023.5 and 2463232.5 and longitude between 291.9268 and 292.9268
+) where t is not null order by t asc;
+-}
+
+activityPeriodQuery :: Connection -> Planet -> Longitude -> JulianTime -> IO (Maybe JulianTime, Maybe JulianTime)
+activityPeriodQuery conn crossingPlanet soughtLongitude (JulianTime soughtTime) = do
+  results <-
+    queryNamed conn [sql|
+      select t from (
+        select min(julian_time) as t from ecliptic_longitude_ephemeris 
+          where planet = :planet
+          and julian_time between :start and :end
+          and longitude between :lowerBound and :longitude
+        union
+        select max(julian_time) as t from ecliptic_longitude_ephemeris
+          where planet = :planet 
+          and julian_time between :start and :end
+          and longitude between :longitude and :upperBound
+      )
+    |] [ ":planet" := crossingPlanet
+       , ":start" := lowerTimeBound
+       , ":end" := upperTimeBound
+       , ":lowerBound" := lowerLongitudeBound
+       , ":upperBound" := upperLongitudeBound
+       , ":longitude" := soughtLongitude
+       ]
+  case results of
+    [] -> pure (Nothing, Nothing)
+    (Only s):(Only e):_ -> pure (JulianTime <$> s, JulianTime <$> e)
+    [(Only _)] -> pure (Nothing, Nothing)
+  where
+    lowerTimeBound = soughtTime - (maxDayDelta crossingPlanet)
+    upperTimeBound = soughtTime + (maxDayDelta crossingPlanet)
+    lowerLongitudeBound = orbBefore crossingPlanet soughtLongitude 1
+    upperLongitudeBound = orbAfter crossingPlanet soughtLongitude 1
 
 
 -- query utils
 
+-- TODO: note that the orb* functions have a /literal/ edge case:
+-- if the orb is too close to the 0/360 point, we don't currently
+-- query cleanly, we just cut it off at that point. For fast-moving
+-- bodies, this will mean that there will be some misses, if the
+-- distance between 0/360 and the sought longitude is smaller than
+-- the speed at the given time, the crossing will happen "under the radar:"
+-- too fast for the coarse day-step ephemeris to detect without
+-- "crossing over" the 0/360 point. This is totally feasible, I think,
+-- just not something I can figure out currently with good SQL!
+
 -- | Given a planet, a longitude and a desired orb, find the longitude
 -- where the orb "begins". Note that if the orb is smaller than the planet's
--- max daily speed in the ephemeris DB, the latter will be preferred when calculating
+-- max daily speed in the ephemeris DB, the latter will be preferred when calculating.
+-- We also account for "crossing over" the beginning of the ecliptic circle.
 orbBefore :: Planet -> Longitude -> Double -> Longitude
-orbBefore planet lng orb =
-  lng - Longitude preferredOrb
+orbBefore planet (Longitude lng) orb =
+  if nonAngularVal < 0 then
+    Longitude 0 -- nonAngularVal + 360
+  else
+    Longitude nonAngularVal
   where
+    nonAngularVal = lng - preferredOrb
     preferredOrb = max (maxSpeed planet) orb
 
 -- | Given a planet, a longitude and a desired orb, find the longitude
 -- where the orb "begins". Note that if the orb is smaller than the planet's
--- max daily speed in the ephemeris DB, the latter will be preferred when calculating
+-- max daily speed in the ephemeris DB, the latter will be preferred when calculating.
+-- We also account for "crossing over" the beginning of the ecliptic circle.
 orbAfter :: Planet -> Longitude -> Double -> Longitude
-orbAfter planet lng orb =
-  lng + Longitude preferredOrb
+orbAfter planet (Longitude lng) orb =
+  if nonAngularVal >= 360 then
+    Longitude 360 -- nonAngularVal - 360
+  else
+    Longitude nonAngularVal
   where
+    nonAngularVal = lng + preferredOrb
     preferredOrb = max (maxSpeed planet) orb
 
 
