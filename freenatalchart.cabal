@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5fa450f7268c43222004b1ee80de612c77cf035b24474a2d86649edad36dee93
+-- hash: 9586f306ed91b886c03506929b91b4d2716bb4b0a805722b5f0a250aee9961e3
 
 name:           freenatalchart
 version:        0.2.0.0
@@ -32,6 +32,7 @@ library
       Ephemeris.Aspect
       Ephemeris.Horoscope
       Ephemeris.House
+      Ephemeris.Internal.Approximations
       Ephemeris.Internal.Database
       Ephemeris.Planet
       Ephemeris.Transit

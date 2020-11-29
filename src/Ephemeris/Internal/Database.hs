@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DerivingStrategies #-}
@@ -45,6 +46,7 @@ import SwissEphemeris
       Planet(..))
 import Ephemeris.Types
 import Ephemeris.Planet
+import Ephemeris.Internal.Approximations
 
 
 data EclipticLongitudeEphemeris = EclipticLongitudeEphemeris
@@ -58,7 +60,11 @@ toEphemeris :: Planet -> JulianTime -> EclipticPosition -> EclipticLongitudeEphe
 toEphemeris p t (EclipticPosition lo _ _ ls _ _) =
   EclipticLongitudeEphemeris p t lo ls
 
+
+-- Some missing instances for the SwissEphemeris types
+-- TODO: consider moving up to Ephemeris.Types
 deriving stock instance Read Planet
+deriving newtype instance Num JulianTime
 
 instance FromField Planet where
   fromField f@(Field (SQLText txt) _) =
@@ -97,25 +103,51 @@ instance FromRow EclipticLongitudeEphemeris where
 -- in an appropriate time range when said planet is likely to cross over
 -- the given Longitude.
 crossingCandidateInterval :: Connection -> Planet -> Longitude -> JulianTime -> IO (Maybe JulianTime, Maybe JulianTime)
-crossingCandidateInterval conn crossingPlanet soughtLongitude soughtTime = do
-  results' <- results
-  case results' of
+crossingCandidateInterval conn crossingPlanet soughtLongitude (JulianTime soughtTime) = do
+  -- results :: IO [Only (Maybe Double)]
+  results <-
+    query conn [sql|
+        select max(julian_time) from ecliptic_longitude_ephemeris
+        where planet = ? 
+        and longitude between ? and ?
+        and julian_time between ? and ?
+      |] (crossingPlanet, lowerLongitudeBound, upperLongitudeBound, lowerTimeBound, upperTimeBound)
+  case results of
     [] -> pure (Nothing, Nothing)
     (Only x:_) -> pure (JulianTime <$> x, JulianTime . (+upperBracketStep) <$> x)
   where
-    results :: IO [Only (Maybe Double)]
-    results = 
-      query conn [sql|
-        select max(julian_time) from ecliptic_longitude_ephemeris
-        where planet = ? and longitude between ? and ? and julian_time between ? and ?
-      |] (crossingPlanet, lowerLongitudeBound, upperLongitudeBound, lowerTimeBound, upperTimeBound)
-    
-    -- see Approximations.hs
-    lowerLongitudeBound = soughtLongitude - (Longitude 1.55)
+    -- see Approximations.hs:
+    -- a lot of ranges depend on the speed of the transiting planet,
+    -- so we look for movement between the sought point and the longitude
+    -- the planet would theoretically be at a day before, depending on the speed.
+    -- Same for the range of time observed: enough to move ~180 degrees (less
+    -- due to retrograde motion,) which is enough to have begun its approach to the position.
+    lowerLongitudeBound = orbBefore crossingPlanet soughtLongitude 1
     upperLongitudeBound = soughtLongitude
-    lowerTimeBound      = JulianTime 2458849.5
-    upperTimeBound      = JulianTime 2459215.5
+    lowerTimeBound      = soughtTime - (maxDayDelta crossingPlanet) --JulianTime 2458849.5
+    upperTimeBound      = soughtTime + (maxDayDelta crossingPlanet) -- JulianTime 2459215.5
     upperBracketStep    = 1
+
+
+-- query utils
+
+-- | Given a planet, a longitude and a desired orb, find the longitude
+-- where the orb "begins". Note that if the orb is smaller than the planet's
+-- max daily speed in the ephemeris DB, the latter will be preferred when calculating
+orbBefore :: Planet -> Longitude -> Double -> Longitude
+orbBefore planet lng orb =
+  lng - Longitude preferredOrb
+  where
+    preferredOrb = max (maxSpeed planet) orb
+
+-- | Given a planet, a longitude and a desired orb, find the longitude
+-- where the orb "begins". Note that if the orb is smaller than the planet's
+-- max daily speed in the ephemeris DB, the latter will be preferred when calculating
+orbAfter :: Planet -> Longitude -> Double -> Longitude
+orbAfter planet lng orb =
+  lng + Longitude preferredOrb
+  where
+    preferredOrb = max (maxSpeed planet) orb
 
 
 --
