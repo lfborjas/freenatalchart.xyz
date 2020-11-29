@@ -219,5 +219,5 @@ data Transit a = Transit
   , transited :: a
   , transitStarts :: Maybe UTCTime
   , transitEnds :: Maybe UTCTime
-  , approximateTrigger :: Maybe UTCTime
+  , approximateTriggers :: [UTCTime]
   } deriving stock (Eq, Show)

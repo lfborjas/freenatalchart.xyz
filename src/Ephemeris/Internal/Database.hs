@@ -81,9 +81,8 @@ instance FromRow EclipticLongitudeEphemeris where
 -- | Given a Planet, a Julian Time and a Longitude, find the days
 -- in an appropriate time range when said planet is likely to cross over
 -- the given Longitude.
-crossingCandidatesQuery :: Connection -> Planet -> Longitude -> JulianTime -> IO [Maybe JulianTime]
+crossingCandidatesQuery :: Connection -> Planet -> Longitude -> JulianTime -> IO [JulianTime]
 crossingCandidatesQuery conn crossingPlanet soughtLongitude@(Longitude lng) (JulianTime soughtTime) = do
-  -- results :: IO [Only (Maybe Double)]
   results <-
     query conn [sql|
         select julian_time from ecliptic_longitude_ephemeris
@@ -91,7 +90,7 @@ crossingCandidatesQuery conn crossingPlanet soughtLongitude@(Longitude lng) (Jul
         and longitude between ? and ?
         and julian_time between ? and ?
       |] (crossingPlanet, lowerLongitudeBound, upperLongitudeBound, lowerTimeBound, upperTimeBound)
-  pure $ map (fmap JulianTime . fromOnly ) results 
+  pure $ map fromOnly results
   where
     -- see Approximations.hs:
     -- a lot of ranges depend on the speed of the transiting planet,
