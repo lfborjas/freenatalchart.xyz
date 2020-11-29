@@ -78,22 +78,20 @@ instance FromRow EclipticLongitudeEphemeris where
       <*> field
 
 
--- | Given a Planet, a Julian Time and a Longitude, find the day
+-- | Given a Planet, a Julian Time and a Longitude, find the days
 -- in an appropriate time range when said planet is likely to cross over
 -- the given Longitude.
-crossingCandidateQuery :: Connection -> Planet -> Longitude -> JulianTime -> IO (Maybe JulianTime)
-crossingCandidateQuery conn crossingPlanet soughtLongitude (JulianTime soughtTime) = do
+crossingCandidatesQuery :: Connection -> Planet -> Longitude -> JulianTime -> IO [Maybe JulianTime]
+crossingCandidatesQuery conn crossingPlanet soughtLongitude@(Longitude lng) (JulianTime soughtTime) = do
   -- results :: IO [Only (Maybe Double)]
   results <-
     query conn [sql|
-        select max(julian_time) from ecliptic_longitude_ephemeris
+        select julian_time from ecliptic_longitude_ephemeris
         where planet = ? 
         and longitude between ? and ?
         and julian_time between ? and ?
       |] (crossingPlanet, lowerLongitudeBound, upperLongitudeBound, lowerTimeBound, upperTimeBound)
-  case results of
-    [] -> pure Nothing
-    (Only x:_) -> pure (JulianTime <$> x)
+  pure $ map (fmap JulianTime . fromOnly ) results 
   where
     -- see Approximations.hs:
     -- a lot of ranges depend on the speed of the transiting planet,
@@ -101,19 +99,15 @@ crossingCandidateQuery conn crossingPlanet soughtLongitude (JulianTime soughtTim
     -- the planet would theoretically be at a day before, depending on the speed.
     -- Same for the range of time observed: enough to move ~180 degrees (less
     -- due to retrograde motion,) which is enough to have begun its approach to the position.
-    lowerLongitudeBound = orbBefore crossingPlanet soughtLongitude 1
+    lowerLongitudeBound = eclipticVal $ lng - maxSpeed crossingPlanet
     upperLongitudeBound = soughtLongitude
     lowerTimeBound      = soughtTime - (maxDayDelta crossingPlanet)
     upperTimeBound      = soughtTime + (maxDayDelta crossingPlanet)
 
-{-
-select t,longitude,l,lng_speed_signum from (
-  select max(julian_time)as t,longitude, 'end' as l, lng_speed_signum from ecliptic_longitude_ephemeris where planet = 'Pluto' and julian_time between 2457023.5 and 2463232.5  and longitude between 292.9268 and 293.9268
-  union
-  select min(julian_time)as t,longitude, 'start' as l, lng_speed_signum from ecliptic_longitude_ephemeris where planet = 'Pluto' and julian_time between 2457023.5 and 2463232.5 and longitude between 291.9268 and 292.9268
-) where t is not null order by t asc;
--}
-
+-- | Given a transiting planet, a longitude it transits and a reference time,
+-- find when the planet started approaching the longitude, and when it will stop
+-- doing so. Notice that within an activity period, there can be several crossings
+-- for planets that exhibit retrograde motion.
 activityPeriodQuery :: Connection -> Planet -> Longitude -> JulianTime -> IO (Maybe JulianTime, Maybe JulianTime)
 activityPeriodQuery conn crossingPlanet soughtLongitude (JulianTime soughtTime) = do
   results <-
@@ -165,12 +159,8 @@ activityPeriodQuery conn crossingPlanet soughtLongitude (JulianTime soughtTime) 
 -- We also account for "crossing over" the beginning of the ecliptic circle.
 orbBefore :: Planet -> Longitude -> Double -> Longitude
 orbBefore planet (Longitude lng) orb =
-  if nonAngularVal < 0 then
-    Longitude 0 -- nonAngularVal + 360
-  else
-    Longitude nonAngularVal
+  eclipticVal $ lng - preferredOrb
   where
-    nonAngularVal = lng - preferredOrb
     preferredOrb = max (maxSpeed planet) orb
 
 -- | Given a planet, a longitude and a desired orb, find the longitude
@@ -179,14 +169,14 @@ orbBefore planet (Longitude lng) orb =
 -- We also account for "crossing over" the beginning of the ecliptic circle.
 orbAfter :: Planet -> Longitude -> Double -> Longitude
 orbAfter planet (Longitude lng) orb =
-  if nonAngularVal >= 360 then
-    Longitude 360 -- nonAngularVal - 360
-  else
-    Longitude nonAngularVal
+  eclipticVal $ lng + preferredOrb
   where
-    nonAngularVal = lng + preferredOrb
     preferredOrb = max (maxSpeed planet) orb
 
+eclipticVal :: Double -> Longitude
+eclipticVal v | v >= 360 = Longitude 360
+              | v < 0    = Longitude 0
+              | otherwise = Longitude v
 
 --
 -- Dev Utilities
