@@ -81,6 +81,7 @@ instance FromRow EclipticLongitudeEphemeris where
 -- | Given a Planet, a Julian Time and a Longitude, find the days
 -- in an appropriate time range when said planet is likely to cross over
 -- the given Longitude.
+-- TODO: ensure that the lowerLongitudeBound can account for 0/360 jumps
 crossingCandidatesQuery :: Connection -> Planet -> Longitude -> JulianTime -> IO [JulianTime]
 crossingCandidatesQuery conn crossingPlanet soughtLongitude@(Longitude lng) (JulianTime soughtTime) = do
   results <-
@@ -107,6 +108,7 @@ crossingCandidatesQuery conn crossingPlanet soughtLongitude@(Longitude lng) (Jul
 -- find when the planet started approaching the longitude, and when it will stop
 -- doing so. Notice that within an activity period, there can be several crossings
 -- for planets that exhibit retrograde motion.
+-- TODO: ensure that the bounds can account for 0/360 jumps
 activityPeriodQuery :: Connection -> Planet -> Longitude -> JulianTime -> IO (Maybe JulianTime, Maybe JulianTime)
 activityPeriodQuery conn crossingPlanet soughtLongitude (JulianTime soughtTime) = do
   results <-
