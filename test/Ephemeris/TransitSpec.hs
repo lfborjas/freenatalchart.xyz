@@ -4,6 +4,10 @@ import Ephemeris
 import Test.Hspec (Spec, describe, it, shouldBe)
 import Ephemeris.Transit (ExactTransit (..), findExactTransit, findExactTransitAround)
 
+exactAt :: Double -> ExactTransit JulianTime
+exactAt = ExactAt . JulianTime
+
+
 spec :: Spec
 spec = do
   describe "findExactTransit" $ do
@@ -22,7 +26,6 @@ spec = do
     it "finds the exact moment of a known transit, given a time when the longitude is closest" $ do
       let natalSunSquare = Longitude 195.9234
           transiting = Venus
-          exactAt = ExactAt . JulianTime
           candidate = JulianTime 2459163.5
           foundTransit = findExactTransitAround transiting natalSunSquare candidate
       foundTransit `shouldBe` (exactAt 2459163.631149835)
@@ -33,3 +36,10 @@ spec = do
           candidate = JulianTime 2459161.5
           transitSearch = findExactTransitAround transiting natalSunSquare candidate
       transitSearch `shouldBe` OutsideBounds
+
+    it "correctly finds a crossing that jumps over 360" $ do
+      let marsCrossing = Longitude 0.76
+          transiting = Mars
+          candidate = JulianTime 2457073.5
+          foundTransit = findExactTransitAround transiting marsCrossing candidate
+      foundTransit `shouldBe` (exactAt 2457074.495819183)
