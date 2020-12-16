@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings, QuasiQuotes#-}
 
-module Views.Index (render, renderTestIndex) where
+module Views.Index (render) where
 
 import Import hiding (for_)
 import Lucid
@@ -18,11 +18,15 @@ render ctx maybeForm = html_ $ do
         metaCeremony ctx
         
     body_ $ do
-        div_ [id_ "main", class_ "container grid-xl"] $ do
-            div_ [class_ "hero hero-sm bg-primary mt-2"] $ do
-                div_ [class_ "hero-body text-center"] $ do
-                    h1_ "Get your free natal chart"
-                    a_ [id_ "chart-of-the-moment", class_ "text-light text-italic", href_ "/full-chart?location=Queens&month=10&day=16&year=2020&hour=6&minute=36&day-part=pm&lat=40.6815&lng=-73.8365"] "Or see an example chart"
+        div_ [id_ "main", class_ "container grid-sm"] $ do
+            header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
+                section_ [class_ "navbar-section"] ""
+                section_ [class_ "navbar-section navbar-center"] $ do
+                    a_ [id_ "chart-of-the-moment", class_ "text-light text-italic", href_ "/full-chart?location=Queens&month=10&day=16&year=2020&hour=6&minute=36&day-part=pm&lat=40.6815&lng=-73.8365"] "Chart of the Moment"
+                section_ [class_ "navbar-section"] ""
+
+            h1_ [class_ "under-navbar text-primary text-center hero-title gold-stars-bg"] $ do
+                "Get your natal chart"
             
             div_ [id_ "err", class_ "my-2 toast toast-error d-none"] $ do
                 p_ [id_ "errMsg"] ""
@@ -32,7 +36,7 @@ render ctx maybeForm = html_ $ do
             form_ [action_ "/full-chart", method_ "get"] $ do
                 div_ [class_ (formGroupClass (val formLocation) (err InvalidLocation))] $ do
                     label_ [class_ "form-label", for_ "location"] "Born in"
-                    input_ [ class_ "form-input"
+                    input_ [ class_ "form-input input-transparent"
                            , type_ "search"
                            , id_ "location"
                            , name_ "location"
@@ -52,11 +56,11 @@ render ctx maybeForm = html_ $ do
                 -- if we want them tho, e.g.:
                 -- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date
                 fieldset_ [class_ isDateInvalidClass ] $ do
-                    numberInput "month" "Month" (1, 12) (val formMonth) (err InvalidMonth)
-                    numberInput "day" "Day" (1, 31) (val formDay) (err InvalidDay)
-                    numberInput "year" "Year" (1800, 2399) (val formYear) (err InvalidYear)
-                    numberInput "hour" "Hour" (1, 12) (val formHour) (err InvalidHour)
-                    numberInput "minute" "Minute" (0, 60) (val formMinute) (err InvalidMinute)
+                    numberInput "month" "Month" (1, 12) (val formMonth) (err InvalidMonth) "M"
+                    numberInput "day" "Day" (1, 31) (val formDay) (err InvalidDay) "D"
+                    numberInput "year" "Year" (1800, 2399) (val formYear) (err InvalidYear) "Y"
+                    numberInput "hour" "Hour" (1, 12) (val formHour) (err InvalidHour) "HH"
+                    numberInput "minute" "Minute" (0, 60) (val formMinute) (err InvalidMinute) "MM"
                 
                     div_ [class_ "form-group"] $ do
                         label_ [class_ "form-radio form-inline"] $ do
@@ -76,8 +80,10 @@ render ctx maybeForm = html_ $ do
                 input_ [id_ "lng", name_ "lng", type_ "hidden", value_ (val formLongitude)]
 
 
-                button_ [class_ "btn btn-primary"] "Show me my chart"
-                a_ [class_ "btn btn-link", href_ "/"] "Start Over"
+                div_ [class_ "form-group text-center"] $ do
+                    button_ [class_ "btn btn-primary btn-round btn-lg"] "Show me my chart"
+                div_ [class_ "form-group text-center"] $ do
+                    a_ [class_ "btn btn-link", href_ "/"] "Start Over"
 
                 -- TODO: add checkboxes for preferences?
                 -- e.g. monochrome -- though ideally the tables would also help:
@@ -85,13 +91,13 @@ render ctx maybeForm = html_ $ do
                 -- audit accessibility: https://webaim.org/techniques/forms/controls
                 -- aria described by and invalid: https://webaim.org/techniques/formvalidation/
 
-            footer_ [class_ "navbar bg-secondary"] $ do
+            footer_ [class_ "navbar navbar-border-top"] $ do
                 section_ [class_ "navbar-section"] $ do
                     otherLinks
                 section_ [class_ "navbar-center"] $ do
                     broughtToYou
                 section_ [class_ "navbar-section"] $ do
-                    a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.",  class_ "btn btn-link"] "Source Code"
+                    a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.",  class_ "btn btn-link text-white"] "Source Code"
 
         -- TODO: host this ourselves.
         script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
@@ -131,11 +137,11 @@ geolocationInit ctx =
 isEmpty :: Text -> Bool
 isEmpty = RIO.Text.null
 
-numberInput :: Text -> Text -> (Int, Int) -> Text -> (Maybe Text) -> Html ()
-numberInput name' label' (start, end) value e = 
+numberInput :: Text -> Text -> (Int, Int) -> Text -> (Maybe Text) -> Text -> Html ()
+numberInput name' label' (start, end) value e placeholder'= 
     div_ [class_ (formGroupClass value e)] $ do
         label_ [class_ "form-label", for_ name'] (toHtml label')
-        input_ [ class_ "form-input"
+        input_ [ class_ "form-input input-transparent"
                , type_ "number"
                , id_ name'
                , name_ name'
@@ -143,13 +149,14 @@ numberInput name' label' (start, end) value e =
                , min_ (asText start)
                , max_ (asText end)
                , value_ value
+               , placeholder_ placeholder'
                ]
         errorHint e
     where
         asText = pack . show
 
 errorHint :: Maybe Text -> Html ()
-errorHint = maybe mempty (\e -> p_ [class_ "form-input-hint"] (toHtml e))
+errorHint = maybe mempty (\e -> p_ [class_ "form-input-hint input-hint-highlighted"] (toHtml e))
 
 formGroupClass :: Text -> Maybe Text -> Text
 formGroupClass value e
@@ -190,6 +197,3 @@ errorMessagesFor errors errorT =
                 & nub
 
 -- | Render to a file on disk, purely for debugging.
-
-renderTestIndex :: IO ()
-renderTestIndex = renderToFile "test/files/index.html" $ render fixtureRenderContext Nothing
