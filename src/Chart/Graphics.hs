@@ -81,6 +81,7 @@ cuspsCircle env c =
       t <> w # lw thin
         # lc black
         # (href $ "#house-" <> (show houseName))
+        # svgClass "house-segment"
       where
         d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
         a = (angularDifference cuspBegin cuspEnd) @@ deg
@@ -91,7 +92,6 @@ cuspsCircle env c =
           (text $ houseLabel houseName)
             # moveTo textPosition
             # fontSize (local 0.05)
-            # svgClass "house-segment"
             # rectifyAround textPosition env
 
 quadrants :: ChartContext -> Angles -> Diagram B

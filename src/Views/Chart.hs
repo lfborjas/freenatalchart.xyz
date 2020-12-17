@@ -3,36 +3,19 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Views.Chart (render, renderTestChartPage) where
+module Views.Chart (render) where
 
 import Chart.Graphics (renderChart)
-import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 import qualified Graphics.Svg as Svg
 import Import
 import Lucid
 import RIO.Text (pack)
-import RIO.Time (rfc822DateFormat, formatTime, LocalTime, defaultTimeLocale, parseTimeM)
+import RIO.Time (rfc822DateFormat, formatTime, defaultTimeLocale)
 import Ephemeris
-    ( LongitudeComponents(longitudeZodiacSign, longitudeSeconds,
-                          longitudeDegrees, longitudeMinutes),
-      Planet(MeanApog, Chiron, Sun, MeanNode),
-      ZodiacSignName(Pisces, Aries),
-      HasLabel(..),
-      HasLongitude(getLongitudeRaw),
-      House(..),
-      HouseNumber(X, IV, VII, I),
-      Aspect(..),
-      AspectTemperament(..),
-      AspectName,
-      HoroscopeAspect(..),
-      Latitude(..),
-      Longitude(Longitude, unLongitude),
-      majorAspects,
+    ( majorAspects,
       minorAspects,
       defaultPlanets,
       isRetrograde,
-      HoroscopeData(..),
-      PlanetPosition(..),
       findAspectBetweenPlanets,
       findAspectWithAngle,
       findAspectsByName,
@@ -46,10 +29,9 @@ import Ephemeris
       findSunSign,
       splitDegrees,
       splitDegreesZodiac,
-      findAscendant,
-      horoscope )
+      findAscendant )
 import Views.Common
-    ( broughtToYou, fixtureRenderContext, metaCeremony, otherLinks )
+    ( broughtToYou, metaCeremony, otherLinks )
 import Views.Chart.Explanations
     ( attribution,
       generalAspectsExplanation,
@@ -58,6 +40,7 @@ import Views.Chart.Explanations
       generalSignsExplanation,
       Explicable(explain) )
 import Text.Printf (printf)
+import Ephemeris.Types
 
 render :: HasStaticRoot a => a -> BirthData -> HoroscopeData -> Html ()
 render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
@@ -70,17 +53,20 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
       \"
 
   body_ $ do
-    header_ [class_ "navbar bg-gray"] $ do
+    header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
       section_ [class_ "navbar-section"] $ do
-        a_ [href_ "#chart", class_ "navbar-brand text-bold mr-2"] "Your Free Natal Chart"
+        a_ [href_ "/", class_ "mr-2"] $ do
+          i_ [class_ "icon icon-back", title_ "Draw Another Chart"] ""
+      section_ [class_ "navbar-section navbar-center text-muted"] "Your Natal Chart"
       section_ [class_ "navbar-section"] $ do
-        a_ [href_ "/", class_ "btn btn-link"] "Draw Another Chart"
-        a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues/new/choose"
-           , class_ "btn btn-link text-error"
-           , target_ "_blank"] $ do
-          "Report an issue"
+        a_ [href_ "#chart"] $ do
+          i_ [class_ "icon icon-upward", title_ "Back to Top"] ""
+        -- a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues/new/choose"
+        --    , class_ "btn btn-link text-error"
+        --    , target_ "_blank"] $ do
+        --   "Report an issue"
     div_ [id_ "main", class_ "container grid-xl mx-4"] $ do
-      div_ [class_ ""] $ do
+      div_ [class_ "under-navbar"] $ do
         -- p_ [class_ "text-muted text-small"] $ do
         --   "To learn more about each component of your chart, you can click on the zodiac signs, the houses, or the planets."
         --   " We encourage you to take the descriptions presented here to find your own meaning from what the chart presents! "
@@ -88,7 +74,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
         --   a_ [href_ "#signs"] "Zodiac Signs"
         --   " section and follow the links between all components!"
 
-        figure_ [id_ "chart", class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
+        figure_ [id_ "chart", class_ "figure p-centered my-2 blue-stars-bg", style_ "max-width: 600px;"] $ do
           div_ [] $ do
             -- unfortunately, the underlying library assigns `height` and `width` attributes to the SVG:
             -- https://github.com/circuithub/diagrams-svg/blob/master/src/Graphics/Rendering/SVG.hs#L92-L93
@@ -121,13 +107,13 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
                 span_ [class_ "text-tiny", title_ "Ascendant"] "Asc"
 
         details_ [id_ "planet-positions", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-secondary"] $ do
+          summary_ [class_ "accordion-header"] $ do
             headerIcon
             sectionHeading $ do
               "Planet Positions"
 
           div_ [class_ "accordion-body scrollable-container"] $ do
-            table_ [class_ "table table-striped table-hover"] $ do
+            table_ [class_ "table table-no-borders"] $ do
               thead_ [] $ do
                 tr_ [] $ do
                   th_ [] "Planet"
@@ -170,7 +156,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
               " (to learn more about house systems and the meaning of each house, see the "
               a_ [href_ "#houses"] "Houses"
               " section.)"
-            table_ [class_ "table table-striped table-hover"] $ do
+            table_ [class_ "table table-no-borders"] $ do
               thead_ [] $ do
                 tr_ [] $ do
                   th_ [] "House"
@@ -226,7 +212,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
             headerIcon
             sectionHeading "Orbs used"
           div_ [class_ "accordion-body scrollable-container"] $ do
-            table_ [class_ "table table-striped table-hover"] $ do
+            table_ [class_ "table table-no-borders"] $ do
               thead_ [] $ do
                 tr_ [] $ do
                   th_ "Aspect"
@@ -387,8 +373,8 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
   where
     assetPath = renderCtx ^. staticRootL
     -- markup helpers
-    headerIcon = i_ [class_ "icon icon-arrow-right mr-1 c-hand"] ""
-    sectionHeading = h3_ [class_ "d-inline"]
+    headerIcon = i_ [class_ "icon icon-arrow-right mr-1 c-hand icon-right icon-light"] ""
+    sectionHeading = h3_ [class_ "d-inline text-primary"]
     sunSign = (findSunSign horoscopePlanetPositions)
     asc = (findAscendant horoscopeHouses)
     planetsByHouse' = planetsByHouse horoscopeHouses horoscopePlanetPositions
@@ -502,7 +488,7 @@ formatDouble = printf "%.4f"
 
 htmlDegreesZodiac :: HasLongitude a => a -> Html ()
 htmlDegreesZodiac p =
-  abbr_ [title_ . pack . formatDouble $ pl] $ do
+  span_ [title_ . pack . formatDouble $ pl] $ do
     maybe mempty asIcon (split & longitudeZodiacSign)
     toHtml $ (" " <> (toText $ longitudeDegrees split)) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
@@ -632,13 +618,3 @@ latLngHtml Location {..} =
 
 toText :: Show a => a -> Text
 toText = pack . show
-
-renderTestChartPage :: IO ()
-renderTestChartPage = do
-  ephe <- pure $ "./config"
-  withTimeZoneDatabase "./config/timezone21.bin" $ \db -> do
-    birthplace <- pure $ Location "Tegucigalpa" (Latitude 14.0839053) (Longitude $ -87.2750137)
-    birthtime <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:30:00" :: IO LocalTime
-    let birthdata = BirthData birthplace birthtime
-    calculations <- horoscope db ephe birthdata
-    renderToFile "test/files/chart.html" $ render fixtureRenderContext birthdata calculations
