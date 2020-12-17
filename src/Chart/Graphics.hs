@@ -156,13 +156,13 @@ planets env planetPositions =
         correctedPosition = atCorrectedPosition onPlanets
         atEclipticPosition = flip longitudeToPoint $ getLongitude pos
         --eclipticPosition = atEclipticPosition onPlanets
-        aspectCircleLine = atEclipticPosition onAspects ~~ atEclipticPosition (onAspects + 0.03)
-        zodiacCircleLine = atEclipticPosition onZodiacs ~~ atEclipticPosition (onZodiacs - 0.03)
-        guideLines = (aspectCircleLine <> zodiacCircleLine) # lw medium
+        aspectCircleLine = atEclipticPosition onAspects ~~ atEclipticPosition (onAspects + 0.035)
+        zodiacCircleLine = atEclipticPosition onZodiacs ~~ atEclipticPosition (onZodiacs - 0.035)
+        guideLines = (aspectCircleLine <> zodiacCircleLine) # lw thin
         correctionLine =
           case corrected of
             Nothing -> mempty
-            Just _ -> (atCorrectedPosition (onPlanets + 0.02)) ~~ (atEclipticPosition (onZodiacs - 0.035))
+            Just _ -> (atCorrectedPosition (onPlanets + 0.02)) ~~ (atEclipticPosition (onZodiacs - 0.037))
         retrogradeMark =
           if (isRetrograde pos)
             then
@@ -174,6 +174,30 @@ planets env planetPositions =
 
 containerCircle :: Double -> Diagram B
 containerCircle r = circle r # lw thin # svgClass "container-circle"
+
+degreeMarkers :: Bool -> Double -> Diagram B 
+degreeMarkers radiatesOut r =
+  mconcat . map degreeLine $ [0..360]
+  where
+    degreeLine :: Int -> Diagram B
+    degreeLine degree = 
+      (longitudeToPoint startingPoint $ fromIntegral degree) ~~ (longitudeToPoint endingPoint $ fromIntegral degree)
+      # lw lineThickness
+      where
+        startingPoint = 
+          if radiatesOut then
+            r + lineLength
+          else
+            r
+        endingPoint = 
+          if radiatesOut then
+            r
+          else
+            r - lineLength
+        lineLength =
+          if (degree `mod` 5 == 0) then 0.025 else 0.02
+        lineThickness =
+          if (degree `mod` 5 == 0) then thin else ultraThin 
 
 chart :: ChartContext -> HoroscopeData -> Diagram B
 chart env HoroscopeData {..} =
@@ -187,6 +211,8 @@ chart env HoroscopeData {..} =
     <> containerCircle 1
     <> (containerCircle $ env ^. zodiacCircleRadiusL)
     <> (containerCircle $ env ^. aspectCircleRadiusL)
+    <> (degreeMarkers False $ env ^. zodiacCircleRadiusL)
+    <> (degreeMarkers True $ env ^. aspectCircleRadiusL)
 
 --
 -- CHART UTILS
