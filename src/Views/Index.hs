@@ -101,7 +101,7 @@ render ctx maybeForm = html_ $ do
                 -- audit accessibility: https://webaim.org/techniques/forms/controls
                 -- aria described by and invalid: https://webaim.org/techniques/formvalidation/
 
-            footer_ [class_ "navbar navbar-border-top"] $ do
+            footer_ [class_ "navbar navbar-border-top navbar-fixed navbar-fixed-bottom"] $ do
                 section_ [class_ "navbar-section"] $ do
                     otherLinks
                 section_ [class_ "navbar-center"] $ do
