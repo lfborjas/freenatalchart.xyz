@@ -38,6 +38,7 @@ module Ephemeris.Types
   , Longitude(..)
   , PlanetPosition(..)
   , HoroscopeData(..)
+  , Transit(..)
   -- smart constructors
   , mkLatitude
   , mkLongitude
@@ -211,3 +212,12 @@ data HoroscopeData = HoroscopeData
   , horoscopeJulianTime :: JulianTime
   -- TODO: delta time?
   } deriving (Eq, Show)
+
+data Transit a = Transit
+  {
+    transiting :: PlanetPosition
+  , transited :: a
+  , transitStarts :: Maybe UTCTime
+  , transitEnds :: Maybe UTCTime
+  , approximateTriggers :: [UTCTime]
+  } deriving stock (Eq, Show)

@@ -14,6 +14,7 @@ import Import
 import Ephemeris.Types
 import Control.Applicative
 import Control.Monad (ap)
+import Ephemeris.Internal.Approximations (maxSpeed)
 
 data ExactTransit a
   = OutsideBounds
@@ -43,6 +44,7 @@ instance Alternative ExactTransit where
   OutsideBounds <|> r = r
   r <|> OutsideBounds = r
   _ <|> r = r
+
 -- | Merely for numerical convenience. This is an unsafe, partial function!!
 unsafeCalculateEclipticLongitude :: Planet -> Double -> Double
 unsafeCalculateEclipticLongitude
@@ -57,9 +59,24 @@ unsafeCalculateEclipticLongitude
 
 -- | Given a transiting `Planet`, a @Longitude@ (`Double`) we're interested in
 -- and a @JulianTime@, return 0 if the given planet is found to cross
--- the given longitude at the given time.
+-- the given longitude at the given time. Note that, due to detection of
+-- 0/360 jumps, this function only works for positions at most 10 days
+-- apart (which means interpolation can't be done at a coarser level.)
+-- The heuristic is: if the difference is
+-- much greater than the max known speed of the planet,
+-- it clearly means we're dealing with a jump over 0/360,
+-- so we flip the operands to reflect that the position is actually
+-- "on the other side" of the sought longitude.
 longitudeIntersects :: Planet -> Double -> Double -> Double
-longitudeIntersects p soughtLongitude t = soughtLongitude - (unsafeCalculateEclipticLongitude p t)
+longitudeIntersects p soughtLongitude t = 
+  if ((abs difference) >= maxDayStep * (maxSpeed p)) then
+     position - soughtLongitude
+  else
+    difference
+  where
+    difference = soughtLongitude - position
+    position = unsafeCalculateEclipticLongitude p t
+    maxDayStep = 10
 
 -- | find a root, using the Ridder's method.
 -- we're favoring the Ridder's method since it's built into the math-functions package.

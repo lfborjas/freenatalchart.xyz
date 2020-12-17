@@ -173,7 +173,7 @@ instance FromHttpApiData DayPart where
         s <- parseUrlPiece a
         let parsed = mkDayPart s
         case parsed of
-            Nothing -> Left $ pack s <> " please chooose a part of day (AM or PM)"
+            Nothing -> Left $ pack s <> " Please choose a part of day (AM or PM)"
             Just d  -> Right d
 
 instance ToHttpApiData DayPart where

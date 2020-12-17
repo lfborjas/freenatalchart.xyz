@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d26b674088283c2e457283dbbc7f86934ad84fe73b7ddfc7d3dfd9a0709c26e4
+-- hash: 76ecbcdecb7a8b096992675611e4caac2d138f6bbbcd4048ed344540ab5eb639
 
 name:           freenatalchart
-version:        0.1.0.0
+version:        0.2.0.0
 description:    Please see the README on Github at <https://github.com/lfborjas/freenatalchart#readme>
 homepage:       https://github.com/lfborjas/freenatalchart#readme
 bug-reports:    https://github.com/lfborjas/freenatalchart/issues
@@ -28,11 +28,13 @@ library
   exposed-modules:
       Chart.Graphics
       Chart.Prerendered
+      Dev
       Ephemeris
       Ephemeris.Aspect
-      Ephemeris.Database
       Ephemeris.Horoscope
       Ephemeris.House
+      Ephemeris.Internal.Approximations
+      Ephemeris.Internal.Database
       Ephemeris.Planet
       Ephemeris.Transit
       Ephemeris.Types
@@ -78,7 +80,7 @@ library
     , servant-server
     , sqlite-simple >=0.4.18.0
     , svg-builder
-    , swiss-ephemeris >=1.2.0.0
+    , swiss-ephemeris >=1.2.1.0
     , time
     , timezone-detect >=0.3.0.0
     , unordered-containers
@@ -120,7 +122,7 @@ executable freenatalchart-exe
     , servant-server
     , sqlite-simple >=0.4.18.0
     , svg-builder
-    , swiss-ephemeris >=1.2.0.0
+    , swiss-ephemeris >=1.2.1.0
     , time
     , timezone-detect >=0.3.0.0
     , unordered-containers
@@ -178,7 +180,7 @@ test-suite freenatalchart-test
     , servant-server
     , sqlite-simple >=0.4.18.0
     , svg-builder
-    , swiss-ephemeris >=1.2.0.0
+    , swiss-ephemeris >=1.2.1.0
     , time
     , timezone-detect >=0.3.0.0
     , unordered-containers

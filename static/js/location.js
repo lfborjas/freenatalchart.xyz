@@ -61,7 +61,7 @@ function initGeolocation(appId, appKey) {
   navigator.geolocation.getCurrentPosition(
     function (pos) {
       let dayParts = currentDateComponents();
-      chartOfTheMomentLink.textContent = "Or see the chart of the moment for your location";
+      chartOfTheMomentLink.textContent = "Chart of the moment for your location";
       chartOfTheMomentLink.href = "/full-chart?location=Your+Location&month=" + dayParts.month
         + "&day=" + dayParts.day
         + "&year=" + dayParts.year

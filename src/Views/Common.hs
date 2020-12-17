@@ -31,9 +31,14 @@ assetRef renderCtx =
 
 stylesheets :: Html ()
 stylesheets = do
-    -- TODO: serve from our own assets:
-    -- https://picturepan2.github.io/spectre/getting-started/installation.html
-    link_ [rel_ "stylesheet", type_ "text/css", href_ "https://unpkg.com/spectre.css@0.5.9/dist/spectre.min.css"]
+    -- we're using our own theme:
+    -- https://github.com/natal-chart/firmament
+    link_ [rel_ "stylesheet", type_ "text/css", href_ "https://cdn.jsdelivr.net/gh/natal-chart/firmament@v0.0.1.0/dist/base.min.css"]
+
+fonts :: Html ()
+fonts = do
+    link_ [rel_ "preconnect", href_ "https://fonts.gstatic.com/"]
+    link_ [rel_ "stylesheet", href_ "https://fonts.googleapis.com/css2?family=Quattrocento&family=Roboto&display=swap"]
 
 favicon :: HasStaticRoot ctx => ctx -> Html ()
 favicon renderCtx = do
@@ -52,12 +57,16 @@ metaCeremony renderCtx = do
     meta_ [charset_ "UTF-8"]
     favicon renderCtx
     stylesheets
+    fonts
 
 broughtToYou :: Html ()
 broughtToYou = do
-    a_ [class_ "text-muted", href_ "https://www.lfborjas.com"] "Brought to you by a ♑"
+    a_ [class_ "text-muted", href_ "https://www.lfborjas.com"] $ do
+        "Brought to you by a "
+        i_ [class_ "fnc-Capricorn"] ""
+
 
 otherLinks :: Html ()
 otherLinks = do
-    a_ [href_ "/about", class_ "btn btn-link", title_ "tl;dr: we won't sell you anything, or store your data."] "About"
-    a_ [href_ "https://blog.freenatalchart.xyz/", class_ "btn btn-link", title_ "Announcements, technical writeups, notes on learning about astrology"] "Blog"
+    a_ [href_ "/about", class_ "btn btn-link text-white", title_ "tl;dr: your data is private, our source is free."] "About"
+    a_ [href_ "https://blog.freenatalchart.xyz/", class_ "btn btn-link text-white", title_ "Announcements, technical writeups, notes on learning about astrology."] "Blog"
