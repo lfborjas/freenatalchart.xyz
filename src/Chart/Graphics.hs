@@ -156,8 +156,8 @@ planets env planetPositions =
         correctedPosition = atCorrectedPosition onPlanets
         atEclipticPosition = flip longitudeToPoint $ getLongitude pos
         --eclipticPosition = atEclipticPosition onPlanets
-        aspectCircleLine = atEclipticPosition onAspects ~~ atEclipticPosition (onAspects + 0.035)
-        zodiacCircleLine = atEclipticPosition onZodiacs ~~ atEclipticPosition (onZodiacs - 0.035)
+        aspectCircleLine = atEclipticPosition onAspects ~~ atEclipticPosition (onAspects + 0.045)
+        zodiacCircleLine = atEclipticPosition onZodiacs ~~ atEclipticPosition (onZodiacs - 0.045)
         guideLines = (aspectCircleLine <> zodiacCircleLine) # lw thin
         correctionLine =
           case corrected of
