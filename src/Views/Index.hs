@@ -16,6 +16,12 @@ render ctx maybeForm = html_ $ do
     head_ $ do
         title_ "Free Natal Chart"
         metaCeremony ctx
+        -- NOTE: fixes style for algolia:
+        -- https://community.algolia.com/places/documentation.html#styling
+        style_ $ do
+            ".ap-dropdown-menu{ color: #333; }\
+            \.multiline-p{ white-space: pre-line; hyphens: auto; word-break: break-word; overflow-wrap: anywhere;}\
+            \"
         
     body_ $ do
         div_ [id_ "main", class_ "container grid-sm"] $ do
@@ -60,6 +66,7 @@ render ctx maybeForm = html_ $ do
                         numberInput "month" "Month" (1, 12) (val formMonth) (err InvalidMonth) "MM"
                         numberInput "day" "Day" (1, 31) (val formDay) (err InvalidDay) "DD"
                         numberInput "year" "Year" (1800, 2399) (val formYear) (err InvalidYear) "YYYY"
+                    errorHint (groupErr [InvalidMonth, InvalidDay, InvalidYear])
                     
                     div_ [class_ "form-group form-group-flex"] $ do
                         numberInput "hour" "Hour" (1, 12) (val formHour) (err InvalidHour) "HH"
@@ -75,7 +82,7 @@ render ctx maybeForm = html_ $ do
                                 i_ [class_ "form-icon"] ""
                                 "PM"
 
-                    errorHint (err InvalidDateTime)
+                    errorHint (groupErr [InvalidDateTime, InvalidHour, InvalidMinute, InvalidDayPart])
 
                 -- meant to be filled by the JS for geolocation,
                 -- the server should fall back to "best effort" location if these aren't available.
@@ -114,6 +121,8 @@ render ctx maybeForm = html_ $ do
         val = val' maybeForm
         err :: ChartFormValidationError -> Maybe Text
         err = err' maybeForm
+        groupErr :: [ChartFormValidationError] -> Maybe Text
+        groupErr = errors' maybeForm
         isChecked :: Text -> [Attribute]
         isChecked dayP
             | (not $ isEmpty $ val formDayPart) && (val formDayPart) == dayP = [checked_]
@@ -154,12 +163,11 @@ numberInput name' label' (start, end) value e placeholder'=
                , value_ value
                , placeholder_ placeholder'
                ]
-        errorHint e
     where
         asText = pack . show
 
 errorHint :: Maybe Text -> Html ()
-errorHint = maybe mempty (\e -> p_ [class_ "form-input-hint input-hint-highlighted"] (toHtml e))
+errorHint = maybe mempty (\e -> p_ [class_ "form-input-hint input-hint-highlighted text-error multiline-p"] (toHtml e))
 
 formGroupClass :: Text -> Maybe Text -> Text
 formGroupClass value e
@@ -199,4 +207,9 @@ errorMessagesFor errors errorT =
                 & map snd
                 & nub
 
--- | Render to a file on disk, purely for debugging.
+errors' :: Maybe FailedChartForm -> [ChartFormValidationError] -> Maybe Text
+errors' Nothing _ = Nothing
+errors' (Just failedForm) errorTypes =
+    map (errorMessagesFor $ failedForm & validationErrors) errorTypes
+    & catMaybes
+    & (\l -> if Import.null l then Nothing else Just $ intercalate "\n" l)
