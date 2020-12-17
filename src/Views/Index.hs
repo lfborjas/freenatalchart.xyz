@@ -26,10 +26,12 @@ render ctx maybeForm = html_ $ do
     body_ $ do
         div_ [id_ "main", class_ "container grid-sm"] $ do
             header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
-                section_ [class_ "navbar-section"] ""
-                section_ [class_ "navbar-section navbar-center"] $ do
-                    a_ [id_ "chart-of-the-moment", class_ "text-white text-italic", href_ "/full-chart?location=Queens&month=10&day=16&year=2020&hour=6&minute=36&day-part=pm&lat=40.6815&lng=-73.8365"] "Chart of the Moment"
-                section_ [class_ "navbar-section"] ""
+                section_ [class_ "navbar-section navbar-brand"] $ do
+                    a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
+                section_ [class_ "navbar-section navbar-center"] ""
+                section_ [class_ "navbar-section"] $ do
+                    a_ [id_ "chart-of-the-moment", class_ "text-white", href_ "/full-chart?location=Queens&month=10&day=16&year=2020&hour=6&minute=36&day-part=pm&lat=40.6815&lng=-73.8365"] "Chart of the Moment"
+
 
             h1_ [class_ "under-navbar text-primary text-center hero-title gold-stars-bg"] $ do
                 "Get your natal chart"

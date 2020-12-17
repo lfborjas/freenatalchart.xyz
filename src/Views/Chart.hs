@@ -50,14 +50,17 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
     style_ $ do
       "svg { height: auto; width: auto}\
       \.scrollable-container {overflow: auto !important;}\
+      \.planet text{ fill: #c8ad85; }\
+      \.container-circle{ stroke: white; }\
       \"
 
   body_ $ do
     header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
       section_ [class_ "navbar-section"] $ do
         a_ [href_ "/", class_ "mr-2"] $ do
-          i_ [class_ "icon icon-back", title_ "Draw Another Chart"] ""
-      section_ [class_ "navbar-section navbar-center text-muted"] "Your Natal Chart"
+          i_ [class_ "icon icon-refresh", title_ "Draw Another Chart"] ""
+      section_ [class_ "navbar-section navbar-center navbar-brand"] $ do
+         a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
       section_ [class_ "navbar-section"] $ do
         a_ [href_ "#chart"] $ do
           i_ [class_ "icon icon-upward", title_ "Back to Top"] ""

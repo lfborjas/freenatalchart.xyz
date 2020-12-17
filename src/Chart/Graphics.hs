@@ -41,7 +41,7 @@ zodiacCircle env =
   where
     zodiacBand (ZodiacSign signName (Longitude z) zElement) =
       g <> w
-        # lw thin
+        # lw ultraThin
         # (href $ "#" <> (show signName))
         -- can set `title`, `id` or `class`:
         -- https://hackage.haskell.org/package/diagrams-svg-1.4.3/docs/src/Diagrams.Backend.SVG.html
@@ -61,7 +61,7 @@ zodiacCircle env =
             # moveTo glyphPosition
             # rectifyAround glyphPosition env
             # fc black
-            # lw thin
+            # lw ultraThin
             # svgClass zodiacClass
         zodiacClass =
           case zElement of
@@ -78,7 +78,7 @@ cuspsCircle env c =
     onAspects = env ^. aspectCircleRadiusL
     pairedC = zip c $ rotateList 1 c
     cuspBand (House houseName (Longitude cuspBegin) _, House _ (Longitude cuspEnd) _) =
-      t <> w # lw thin
+      t <> w # lw ultraThin
         # lc black
         # (href $ "#house-" <> (show houseName))
         # svgClass "house-segment"
@@ -93,6 +93,7 @@ cuspsCircle env c =
             # moveTo textPosition
             # fontSize (local 0.05)
             # rectifyAround textPosition env
+            # svgClass "house-label"
 
 quadrants :: ChartContext -> Angles -> Diagram B
 quadrants env Angles {..} =
@@ -110,6 +111,7 @@ quadrants env Angles {..} =
             # fontSize (local 0.05)
             # fc black
             # rectifyAround textPosition env
+            # svgClass "house-label"
 
 aspects :: (HasLongitude a, HasLongitude b) => ChartContext -> [HoroscopeAspect a b] -> Diagram B
 aspects env pAspects = do
@@ -145,9 +147,9 @@ planets env planetPositions =
         # (keyVal $ ("title", label planetName))
         # (href $ "#" <> (label planetName))
         # svgClass "planet"
-        <> guideLines
-        <> (correctionLine # lw thin # lc black)
-        <> retrogradeMark
+        <> (guideLines # svgClass "planet-lines")
+        <> (correctionLine # lw thin # lc black # svgClass "planet-lines")
+        <> (retrogradeMark # svgClass "planet") 
       where
         drawPlanetAt = maybe (getLongitude pos) id corrected
         atCorrectedPosition = flip longitudeToPoint $ drawPlanetAt
@@ -156,7 +158,7 @@ planets env planetPositions =
         --eclipticPosition = atEclipticPosition onPlanets
         aspectCircleLine = atEclipticPosition onAspects ~~ atEclipticPosition (onAspects + 0.03)
         zodiacCircleLine = atEclipticPosition onZodiacs ~~ atEclipticPosition (onZodiacs - 0.03)
-        guideLines = (aspectCircleLine <> zodiacCircleLine) # lw thin
+        guideLines = (aspectCircleLine <> zodiacCircleLine) # lw medium
         correctionLine =
           case corrected of
             Nothing -> mempty
@@ -170,6 +172,9 @@ planets env planetPositions =
                 # fontSize (local 0.05)
             else mempty
 
+containerCircle :: Double -> Diagram B
+containerCircle r = circle r # lw thin # svgClass "container-circle"
+
 chart :: ChartContext -> HoroscopeData -> Diagram B
 chart env HoroscopeData {..} =
   do
@@ -179,6 +184,9 @@ chart env HoroscopeData {..} =
     <> (quadrants env horoscopeAngles)
     <> (aspects env horoscopePlanetaryAspects)
     <> (aspects env horoscopeAngleAspects)
+    <> containerCircle 1
+    <> (containerCircle $ env ^. zodiacCircleRadiusL)
+    <> (containerCircle $ env ^. aspectCircleRadiusL)
 
 --
 -- CHART UTILS
