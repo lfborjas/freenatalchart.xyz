@@ -22,7 +22,7 @@ render ctx maybeForm = html_ $ do
             header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
                 section_ [class_ "navbar-section"] ""
                 section_ [class_ "navbar-section navbar-center"] $ do
-                    a_ [id_ "chart-of-the-moment", class_ "text-light text-italic", href_ "/full-chart?location=Queens&month=10&day=16&year=2020&hour=6&minute=36&day-part=pm&lat=40.6815&lng=-73.8365"] "Chart of the Moment"
+                    a_ [id_ "chart-of-the-moment", class_ "text-white text-italic", href_ "/full-chart?location=Queens&month=10&day=16&year=2020&hour=6&minute=36&day-part=pm&lat=40.6815&lng=-73.8365"] "Chart of the Moment"
                 section_ [class_ "navbar-section"] ""
 
             h1_ [class_ "under-navbar text-primary text-center hero-title gold-stars-bg"] $ do
@@ -56,21 +56,24 @@ render ctx maybeForm = html_ $ do
                 -- if we want them tho, e.g.:
                 -- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date
                 fieldset_ [class_ isDateInvalidClass ] $ do
-                    numberInput "month" "Month" (1, 12) (val formMonth) (err InvalidMonth) "M"
-                    numberInput "day" "Day" (1, 31) (val formDay) (err InvalidDay) "D"
-                    numberInput "year" "Year" (1800, 2399) (val formYear) (err InvalidYear) "Y"
-                    numberInput "hour" "Hour" (1, 12) (val formHour) (err InvalidHour) "HH"
-                    numberInput "minute" "Minute" (0, 60) (val formMinute) (err InvalidMinute) "MM"
+                    div_ [class_ "form-group form-group-flex"] $ do
+                        numberInput "month" "Month" (1, 12) (val formMonth) (err InvalidMonth) "MM"
+                        numberInput "day" "Day" (1, 31) (val formDay) (err InvalidDay) "DD"
+                        numberInput "year" "Year" (1800, 2399) (val formYear) (err InvalidYear) "YYYY"
+                    
+                    div_ [class_ "form-group form-group-flex"] $ do
+                        numberInput "hour" "Hour" (1, 12) (val formHour) (err InvalidHour) "HH"
+                        numberInput "minute" "Minute" (0, 60) (val formMinute) (err InvalidMinute) "MM"
                 
-                    div_ [class_ "form-group"] $ do
-                        label_ [class_ "form-radio form-inline"] $ do
-                            input_ $ [type_ "radio", name_ "day-part", value_ "am"] <> (isChecked "am")
-                            i_ [class_ "form-icon"] ""
-                            "AM"
-                        label_ [class_ "form-radio form-inline"] $ do
-                            input_ $ [type_ "radio", name_ "day-part", value_ "pm"] <> (isChecked "pm")
-                            i_ [class_ "form-icon"] ""
-                            "PM"
+                        div_ [class_ "form-group", style_ "margin-top: 1.75rem; margin-left: .5rem"] $ do
+                            label_ [class_ "form-radio form-inline"] $ do
+                                input_ $ [type_ "radio", name_ "day-part", value_ "am"] <> (isChecked "am")
+                                i_ [class_ "form-icon"] ""
+                                "AM"
+                            label_ [class_ "form-radio form-inline"] $ do
+                                input_ $ [type_ "radio", name_ "day-part", value_ "pm"] <> (isChecked "pm")
+                                i_ [class_ "form-icon"] ""
+                                "PM"
 
                     errorHint (err InvalidDateTime)
 
