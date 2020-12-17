@@ -18,25 +18,21 @@ import Ephemeris
       Aspect(temperament),
       AspectTemperament(Neutral, Analytical, Synthetic),
       HoroscopeAspect(..),
-      Latitude(Latitude),
       Longitude(Longitude),
       westernZodiacSigns,
       angularDifference,
       isRetrograde,
       HoroscopeData(..),
-      PlanetPosition(..),
-      horoscope )
+      PlanetPosition(..) )
 import Chart.Prerendered as P
     ( prerenderedPlanet, prerenderedSign )
-import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
-import Diagrams.Backend.SVG ( Options(SVGOptions), SVG(SVG), B )
+import Diagrams.Backend.SVG (svgClass,  Options(SVGOptions), SVG(SVG), B )
 import Diagrams.Core.Types (keyVal)
 import Diagrams.Prelude hiding (aspect)
 import Diagrams.TwoD.Vector (e)
 import qualified Graphics.Svg as Svg
 import Import hiding ((^.), local)
 import RIO.List (groupBy, sortBy)
-import RIO.Time (LocalTime, defaultTimeLocale, parseTimeM)
 import Utils (rotateList)
 
 zodiacCircle :: ChartContext -> Diagram B
@@ -44,12 +40,13 @@ zodiacCircle env =
   mconcat $ map zodiacBand westernZodiacSigns
   where
     zodiacBand (ZodiacSign signName (Longitude z) zElement) =
-      g <> w # fc signColor
+      g <> w
         # lw thin
         # (href $ "#" <> (show signName))
         -- can set `title`, `id` or `class`:
         -- https://hackage.haskell.org/package/diagrams-svg-1.4.3/docs/src/Diagrams.Backend.SVG.html
         # (keyVal $ ("title", show signName))
+        # svgClass "zodiac-segment"
       where
         onZodiacs = env ^. zodiacCircleRadiusL
         d :: Direction V2 Double
@@ -65,12 +62,13 @@ zodiacCircle env =
             # rectifyAround glyphPosition env
             # fc black
             # lw thin
-        signColor =
+            # svgClass zodiacClass
+        zodiacClass =
           case zElement of
-            Earth -> darkgreen
-            Air -> yellow
-            Fire -> red
-            Water -> lightblue
+            Earth -> "earth-sign"
+            Air -> "air-sign"
+            Fire -> "fire-sign"
+            Water -> "water-sign"
 
 cuspsCircle :: ChartContext -> [House] -> Diagram B
 cuspsCircle env c =
@@ -81,7 +79,7 @@ cuspsCircle env c =
     pairedC = zip c $ rotateList 1 c
     cuspBand (House houseName (Longitude cuspBegin) _, House _ (Longitude cuspEnd) _) =
       t <> w # lw thin
-        # lc gray
+        # lc black
         # (href $ "#house-" <> (show houseName))
       where
         d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
@@ -93,7 +91,7 @@ cuspsCircle env c =
           (text $ houseLabel houseName)
             # moveTo textPosition
             # fontSize (local 0.05)
-            # fc gray
+            # svgClass "house-segment"
             # rectifyAround textPosition env
 
 quadrants :: ChartContext -> Angles -> Diagram B
@@ -118,17 +116,17 @@ aspects env pAspects = do
   mconcat $ map aspectLine pAspects
   where
     aspectLine HoroscopeAspect {..} =
-      aPos ~~ bPos # lc aspectColor
+      aPos ~~ bPos # svgClass aspectClass
         # lw thin
       where
         onAspect = env ^. aspectCircleRadiusL
         aPos = (fst bodies) & getLongitude & (longitudeToPoint onAspect)
         bPos = (snd bodies) & getLongitude & (longitudeToPoint onAspect)
-        aspectColor =
+        aspectClass =
           case (temperament aspect) of
-            Analytical -> red
-            Synthetic -> blue
-            Neutral -> green
+            Analytical -> "analytical-aspect"
+            Synthetic -> "synthetic-aspect"
+            Neutral -> "neutral-aspect"
 
 planets :: ChartContext -> [PlanetPosition] -> Diagram B
 planets env planetPositions =
@@ -146,8 +144,9 @@ planets env planetPositions =
         # lw ultraThin
         # (keyVal $ ("title", label planetName))
         # (href $ "#" <> (label planetName))
+        # svgClass "planet"
         <> guideLines
-        <> (correctionLine # lw thin # lc darkgray)
+        <> (correctionLine # lw thin # lc black)
         <> retrogradeMark
       where
         drawPlanetAt = maybe (getLongitude pos) id corrected
@@ -244,12 +243,3 @@ renderChart attrs width' z@HoroscopeData {..} =
         }
     birthChart = chart cfg z # rotateBy ((ascendantOffset @@ deg) ^. turn)
     ascendantOffset = 180 - (ascendant horoscopeAngles)
-
-renderTestChart :: IO ()
-renderTestChart = do
-  ephe <- pure $ "./config"
-  withTimeZoneDatabase "./config/timezone21.bin" $ \db -> do
-    birthplace <- pure $ Location "Tegucigalpa" (Latitude 14.0839053) (Longitude $ -87.2750137)
-    birthtime <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:00:00" :: IO LocalTime
-    calculations <- horoscope db ephe (BirthData birthplace birthtime)
-    Svg.renderToFile "circle.svg" $ renderChart [] 400 calculations

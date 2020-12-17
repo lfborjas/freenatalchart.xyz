@@ -8,3 +8,4 @@ dist-newstyle
 *.DS_Store
 # only golden files are preserved
 test/files/**/actual
+dev/files
