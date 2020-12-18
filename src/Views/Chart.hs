@@ -41,7 +41,7 @@ import Views.Chart.Explanations
       generalHousesExplanation,
       generalPlanetsExplanation,
       generalSignsExplanation,
-      Explicable(explain) )
+      Explicable(..), explanationAttribute )
 import Text.Printf (printf)
 import Ephemeris.Types
 
@@ -53,6 +53,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
     style_ $ do
       "svg { height: auto; width: auto}\
       \.table-hover-dark tr:hover{ border-bottom: .05rem solid #9da8ff !important; }\
+      \.flex-container{margin-top: 10px; margin-bottom: 10px;}\
       \"
 
   body_ $ do
@@ -254,38 +255,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
           
           div_ [] $ do
             generalSignsExplanation
-            -- forM_ [Aries .. Pisces] $ \zodiacSign -> do
-            --   h4_ [id_ $ toText zodiacSign] $ do
-            --     asIcon zodiacSign
-            --     " "
-            --     toHtml . toText $ zodiacSign
-            --   backToChart
-              
-            --   explain zodiacSign
-            --   let
-            --     planets' = planetsInSign' zodiacSign
-            --     in do
-            --         h5_ "Planets Contained: "
-            --         if null planets' then
-            --           p_ $ do
-            --             em_ "Your chart doesn't have any planets in this sign."
-            --         else
-            --           ul_ [] $ do
-            --             forM_ planets' $ \p -> do
-            --               li_ $ do
-            --                 planetDetails p
-            --   let
-            --     houses' = housesInSign' zodiacSign
-            --     in do
-            --         h5_ "House cusps contained: "
-            --         if null houses' then
-            --           p_ $ do
-            --             em_ "Your chart doesn't have any house cusps in this sign."
-            --         else
-            --           ul_ [] $ do
-            --             forM_ houses' $ \hs -> do
-            --               li_ $ do
-            --                 houseDetails hs
+
         divider_ 
         details_ [id_ "houses", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header"] $ do
@@ -396,6 +366,92 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
             attribution
 
         div_ [class_ "divider", id_ "introspect"] ""
+        
+        details_ [id_ "my-zodiac", class_ "accordion my-2", open_ ""] $ do
+          summary_ [class_ "accordion-header"] $ do
+            headerIcon
+            sectionHeading "My Zodiac Signs"
+
+          div_ [] $ do  
+            forM_ [Aries .. Pisces] $ \zodiacSign -> do
+              div_ [cardDark_] $ do
+                div_ [class_ "card-header"] $ do
+                  div_ [class_ "card-title"] $ do
+                    h4_ [id_ (toText zodiacSign), class_ $ elementClass zodiacSign] $ do
+                      asIcon zodiacSign
+                      " "
+                      toHtml . toText $ zodiacSign
+
+                div_ [class_ "card-body"] $ do
+                  div_ [class_ "flex-container"] $ do
+                    div_ [class_ "flex-item"] $ do
+                      attributeTitle_ "Strengths"
+                      span_ [class_ "text-italic"] $ do
+                        explanationAttribute zodiacSign "Strengths"
+
+                    div_ [class_ "flex-item"] $ do
+                      attributeTitle_ "Weaknesses"
+                      span_ [class_ "text-italic"] $ do
+                        explanationAttribute zodiacSign "Weaknesses"
+
+                  div_ [class_ "flex-container"] $ do
+                    div_ [class_ "flex-item"] $ do
+                      attributeTitle_ "Element"
+                      span_ [class_ $ "text-large " <> (elementClass zodiacSign)] $ do
+                        explanationAttribute zodiacSign "Element"
+
+                    div_ [class_ "flex-item"] $ do
+                      attributeTitle_ "Quality"
+                      span_ [class_ "text-large"] $ do
+                        explanationAttribute zodiacSign "Quality"
+
+                    div_ [class_ "flex-item"] $ do
+                      attributeTitle_ "Ruler"
+                      span_ [class_ "text-large"] $ do
+                        explanationAttribute zodiacSign "Ruler"
+
+                  div_ [class_ "flex-container"] $ do
+                    div_ [class_ "flex-item"] $ do
+                      attributeTitle_ "Related House"
+                      span_ [class_ "text-large"] $ do
+                        explanationAttribute zodiacSign "Related house"
+
+                    div_ [class_ "flex-item"] $ do
+                      attributeTitle_ "Motto"
+                      span_ [class_ "text-large text-quoted"] $ do
+                        explanationAttribute zodiacSign "Motto"
+
+                  div_ [class_ "divider divider-dark"] ""
+
+                  attributeTitle_ ("My Planets in " <> (toHtml . toText $ zodiacSign))
+                  let
+                    planets' = planetsInSign' zodiacSign
+                    in do
+                      if null planets' then
+                        p_ $ do
+                          em_ "Your chart doesn't have any planets in this sign."
+                      else
+                        table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
+                          tbody_ [] $ do
+                            forM_ planets' $ \p -> do
+                              planetDetails p
+
+                  attributeTitle_ ("My Houses in " <> (toHtml . toText $ zodiacSign))
+                  let
+                    houses' = housesInSign' zodiacSign
+                    in do
+                      if null houses' then
+                        p_ $ do 
+                          em_ "Your chart doesn't have any house cusps in this sign."
+                        else
+                          table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
+                            tbody_ [] $ do
+                              forM_ houses' $ \hs -> do
+                                houseDetails hs
+                
+
+                          
+
               
 
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
@@ -408,8 +464,10 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
         a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.", class_ "btn btn-link"] "Source Code"
   where
     -- markup helpers
+    cardDark_ = class_ "card card-dark mx-2 my-2 text-center"
+    attributeTitle_ = h5_ [class_ "text-light"] 
     headerIcon = i_ [class_ "icon icon-arrow-right mr-1 c-hand icon-right icon-light"] ""
-    sectionHeading = h3_ [class_ "d-inline text-primary"]
+    sectionHeading = h5_ [class_ "d-inline text-primary"]
     sunSign = (findSunSign horoscopePlanetPositions)
     moonSign = (findMoonSign horoscopePlanetPositions)
     asc = (findAscendant horoscopeHouses)
@@ -497,22 +555,25 @@ axisAspectDetails HoroscopeAspect{..} = do
   htmlDegrees' (True, True) orb
 
 planetDetails :: PlanetPosition -> Html ()
-planetDetails PlanetPosition{..} = 
-  span_ [] $ do
+planetDetails PlanetPosition{..} = tr_ [] $ do
+  td_ [] $ do
     asIcon planetName
     a_ [href_ $ "#" <> (pack . label) planetName] $ do
       planetLabel planetName
-    " — located in: "
+  td_ [] $ do
+    "located in "
     zodiacLink planetLng
 
 houseDetails :: House -> Html ()
 houseDetails House{..} =
-  span_ [] $ do
-    a_ [href_ $ "#house-" <> toText houseNumber] $ do
-      toHtml $ "House " <> toText houseNumber
-      houseLabel houseNumber
-    " — starting at: "
-    zodiacLink houseCusp
+  tr_ [] $ do
+    td_ [] $ do
+      a_ [href_ $ "#house-" <> toText houseNumber] $ do
+        toHtml $ "House " <> toText houseNumber
+        houseLabel houseNumber
+    td_ [] $ do
+      "with cusp in "
+      zodiacLink houseCusp
 
 asIcon :: HasLabel a => a -> Html ()
 asIcon z =
