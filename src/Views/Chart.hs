@@ -135,21 +135,29 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
 
           div_ [class_ "accordion-body scrollable-container"] $ do
             table_ [class_ "table table-no-borders"] $ do
-              thead_ [] $ do
+              thead_ [class_ "text-light"] $ do
                 tr_ [] $ do
                   th_ [] "Planet"
                   th_ [] "House"
-                  th_ [] "Longitude"
-                  th_ [] "Latitude"
-                  th_ [] "Speed"
-                  th_ [] "Declination"
+                  th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "Where in the ecliptic\n(zodiac band as seen from Earth)\n the planet is."] $ do
+                    "Longitude"
+                  th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "How many degrees a planet is moving per day.\nNegative speed means retrograde motion."] $ do
+                    "Speed"
+                  th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "Position above or below the ecliptic plane;\nmost planets appear to be 'on' the ecliptic,\nbut not all are."] $ do
+                     "Latitude"
+                  th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "Angle between the planet's position in the sky\nand the Earth's equator."] $ do
+                    "Declination"
               tbody_ [] $ do
                 forM_ (horoscopePlanetPositions) $ \pp@PlanetPosition {..} -> do
                   tr_ [] $ do
                     td_ $ do
-                      asIcon planetName
+                      span_ [class_ "text-light"] $ do
+                        asIcon planetName
                       planetLabel planetName
-                      if isRetrograde pp then "(r)" else ""
+                      if isRetrograde pp then
+                       span_ [class_ "text-light tooltip", data_ "tooltip" "Retrograde"] " (r)"
+                      else
+                        ""
 
                     td_ $ do
                       housePositionHtml $ housePosition horoscopeHouses planetLng
@@ -158,27 +166,29 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
                       htmlDegreesZodiac planetLng
 
                     td_ $ do
-                      htmlDegreesLatitude planetLat
+                      htmlDegrees planetLngSpeed
 
                     td_ $ do
-                      htmlDegrees planetLngSpeed
+                      htmlDegreesLatitude planetLat
 
                     td_ $ do
                       htmlDegreesLatitude $ Latitude planetDeclination
 
+        div_ [class_ "divider"] ""
+
         details_ [id_ "house-cusps", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-secondary"] $ do
+          summary_ [class_ "accordion-header "] $ do
             headerIcon
             sectionHeading "House Cusps"
           div_ [class_ "accordion-body scrollable-container"] $ do
             p_ $ do
               "System Used: "
-              mark_ $ toHtml $ toText horoscopeSystem
+              span_ [class_ "text-primary"] $ toHtml $ toText horoscopeSystem
               " (to learn more about house systems and the meaning of each house, see the "
               a_ [href_ "#houses"] "Houses"
               " section.)"
             table_ [class_ "table table-no-borders"] $ do
-              thead_ [] $ do
+              thead_ [class_ "text-light"] $ do
                 tr_ [] $ do
                   th_ [] "House"
                   th_ [] "Cusp"
@@ -194,8 +204,10 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
                     td_ $ do
                       htmlDegreesLatitude $ Latitude houseDeclination
 
+        div_ [class_ "divider"] ""
+
         details_ [id_ "aspects-summary", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-secondary"] $ do
+          summary_ [class_ "accordion-header"] $ do
             headerIcon
             sectionHeading "Aspects Summary"
           div_ [class_ "accordion-body scrollable-container"] $ do
@@ -203,7 +215,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
               "For more detailed descriptions of aspects, see the "
               a_ [href_ "#aspects"] "Aspects"
               " section."
-            table_ [class_ "table table-scroll table-hover"] $ do
+            table_ [class_ "table table-scroll"] $ do
               forM_ defaultPlanets $ \rowPlanet -> do
                 tr_ [] $ do
                   td_ [] $ do
@@ -228,28 +240,28 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
                   td_ [style_ "border: 1px solid", class_ "text-small"] $ do
                     aspectCell $ findAspectWithAngle horoscopeAngleAspects planetName X
 
-        details_ [id_ "orbs-used", class_ "accordion my-2"] $ do
-          summary_ [class_ "accordion-header bg-gray"] $ do
-            headerIcon
-            sectionHeading "Orbs used"
-          div_ [class_ "accordion-body scrollable-container"] $ do
-            table_ [class_ "table table-no-borders"] $ do
-              thead_ [] $ do
-                tr_ [] $ do
-                  th_ "Aspect"
-                  th_ "Angle"
-                  th_ "Orb"
-              tbody_ [] $ do
-                forM_ (majorAspects <> minorAspects) $ \Aspect {..} -> do
-                  tr_ [] $ do
-                    td_ $ do
-                      asIcon aspectName
-                      " "
-                      toHtml $ toText aspectName
-                    td_ $ do
-                      toHtml $ toText angle
-                    td_ $ do
-                      toHtml $ toText maxOrb
+        -- details_ [id_ "orbs-used", class_ "accordion my-2"] $ do
+        --   summary_ [class_ "accordion-header bg-gray"] $ do
+        --     headerIcon
+        --     sectionHeading "Orbs used"
+        --   div_ [class_ "accordion-body scrollable-container"] $ do
+        --     table_ [class_ "table table-no-borders"] $ do
+        --       thead_ [] $ do
+        --         tr_ [] $ do
+        --           th_ "Aspect"
+        --           th_ "Angle"
+        --           th_ "Orb"
+        --       tbody_ [] $ do
+        --         forM_ (majorAspects <> minorAspects) $ \Aspect {..} -> do
+        --           tr_ [] $ do
+        --             td_ $ do
+        --               asIcon aspectName
+        --               " "
+        --               toHtml $ toText aspectName
+        --             td_ $ do
+        --               toHtml $ toText angle
+        --             td_ $ do
+        --               toHtml $ toText maxOrb
 
         details_ [id_ "signs", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header bg-secondary"] $ do
