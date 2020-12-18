@@ -24,6 +24,13 @@ westernZodiacSigns =
     ,ZodiacSign { name = Pisces, zodiacLongitude = Longitude 330.0, zodiacElement = Water }
     ]
 
+zodiacSignElement :: ZodiacSignName -> Maybe Element
+zodiacSignElement sign =
+  westernZodiacSigns
+  & filter ((== sign) . name )
+  & headMaybe
+  <&> zodiacElement
+
 planetsBySign :: [PlanetPosition] -> [(ZodiacSignName, PlanetPosition)]
 planetsBySign planets' =
   map bySign planets'
@@ -50,6 +57,14 @@ findSunSign :: [PlanetPosition] -> Maybe ZodiacSignName
 findSunSign positions =
   positions
     & dropWhile (\PlanetPosition {..} -> planetName /= Sun)
+    & headMaybe
+    & fmap (longitudeZodiacSign . splitDegreesZodiac . getLongitudeRaw . planetLng)
+    & maybe Nothing id
+
+findMoonSign :: [PlanetPosition] -> Maybe ZodiacSignName
+findMoonSign positions =
+  positions
+    & dropWhile (\PlanetPosition {..} -> planetName /= Moon)
     & headMaybe
     & fmap (longitudeZodiacSign . splitDegreesZodiac . getLongitudeRaw . planetLng)
     & maybe Nothing id

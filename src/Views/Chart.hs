@@ -9,7 +9,7 @@ import Chart.Graphics (renderChart)
 import qualified Graphics.Svg as Svg
 import Import
 import Lucid
-import RIO.Text (pack)
+import RIO.Text (pack, toLower)
 import RIO.Time (rfc822DateFormat, formatTime, defaultTimeLocale)
 import Ephemeris
     ( majorAspects,
@@ -27,9 +27,12 @@ import Ephemeris
       housesBySign,
       housesInSign,
       findSunSign,
+      findMoonSign,
       splitDegrees,
       splitDegreesZodiac,
-      findAscendant )
+      findAscendant,
+      zodiacSignElement
+      )
 import Views.Common
     ( broughtToYou, metaCeremony, otherLinks )
 import Views.Chart.Explanations
@@ -52,6 +55,8 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
       \.scrollable-container {overflow: auto !important;}\
       \.planet text{ fill: #c8ad85; }\
       \.container-circle{ stroke: white; }\
+      \.flex-container{ display: flex; justify-content: space-between;}\
+      \.flex-container span{ flex: auto; }\
       \"
 
   body_ $ do
@@ -69,15 +74,28 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
         --    , target_ "_blank"] $ do
         --   "Report an issue"
     div_ [id_ "main", class_ "container grid-xl mx-4"] $ do
-      div_ [class_ "under-navbar"] $ do
-        -- p_ [class_ "text-muted text-small"] $ do
-        --   "To learn more about each component of your chart, you can click on the zodiac signs, the houses, or the planets."
-        --   " We encourage you to take the descriptions presented here to find your own meaning from what the chart presents! "
-        --   " You can also just scroll down to the "
-        --   a_ [href_ "#signs"] "Zodiac Signs"
-        --   " section and follow the links between all components!"
+      div_ [id_ "chart", class_ "under-navbar"] $ do
+        div_ [class_ "blue-stars-bg text-center", style_ "padding-bottom: 9px"] $ do
+          --h1_ [class_ "text-primary"] "Your Natal Chart"
+          p_ $ do
+            toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
+            br_ []
+            toHtml $ birthLocation & locationInput
+          div_ [class_ "flex-container text-large"] $ do
+            span_ $ do
+              span_ [class_ $ elementClassM sunSign] $ do
+                maybe mempty asIcon sunSign
+              " Sun"
+            span_ $ do
+              span_ [class_ $ elementClassM moonSign] $ do
+                maybe mempty asIcon moonSign
+              " Moon"
+            span_ $ do
+              span_ [class_ $ elementClassM asc] $ do
+                maybe mempty asIcon asc
+              " Asc"
 
-        figure_ [id_ "chart", class_ "figure p-centered my-2 blue-stars-bg", style_ "max-width: 600px;"] $ do
+        figure_ [class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
           div_ [] $ do
             -- unfortunately, the underlying library assigns `height` and `width` attributes to the SVG:
             -- https://github.com/circuithub/diagrams-svg/blob/master/src/Graphics/Rendering/SVG.hs#L92-L93
@@ -88,27 +106,27 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
             -- https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/height#svg
             (toHtmlRaw $ Svg.renderBS $ renderChart [Svg.makeAttribute "height" "not", Svg.makeAttribute "width" "not"] 600 h)
 
-          div_ [class_ "tile tile-centered text-center"] $ do
-            div_ [class_ "tile-icon"] $ do
-              div_ [class_ "px-2"] $ do
-                maybe mempty asIcon sunSign
-                br_ []
-                span_ [class_ "text-tiny", title_ "Sun Sign"] "Sun"
-            div_ [class_ "tile-content"] $ do
-              div_ [class_ "tile-title text-dark"] $ do
-                toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
-                "  ·  "                
-                toHtml $ birthLocation & locationInput
-              small_ [class_ "tile-subtitle text-gray"] $ do
-                toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z"
-                "  ·  "
-                latLngHtml birthLocation
-            div_ [class_ "tile-action"] $ do
-              div_ [class_ "px-2"] $ do
-                maybe mempty asIcon asc
-                br_ []
-                span_ [class_ "text-tiny", title_ "Ascendant"] "Asc"
-
+          -- div_ [class_ "tile tile-centered text-center"] $ do
+          --   div_ [class_ "tile-icon"] $ do
+          --     div_ [class_ "px-2"] $ do
+          --       maybe mempty asIcon sunSign
+          --       br_ []
+          --       span_ [class_ "text-tiny", title_ "Sun Sign"] "Sun"
+          --   div_ [class_ "tile-content"] $ do
+          --     div_ [class_ "tile-title text-dark"] $ do
+          --       toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
+          --       "  ·  "                
+          --       toHtml $ birthLocation & locationInput
+          --     small_ [class_ "tile-subtitle text-gray"] $ do
+          --       toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z"
+          --       "  ·  "
+          --       latLngHtml birthLocation
+          --   div_ [class_ "tile-action"] $ do
+          --     div_ [class_ "px-2"] $ do
+          --       maybe mempty asIcon asc
+          --       br_ []
+          --       span_ [class_ "text-tiny", title_ "Ascendant"] "Asc"
+        div_ [class_ "divider"] ""
         details_ [id_ "planet-positions", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header"] $ do
             headerIcon
@@ -363,8 +381,6 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
             attribution
               
 
-    -- the SVG font for all icons.
-    link_ [rel_ "stylesheet", href_ . pack $ assetPath <> "css/freenatalchart-icons.css"]
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footer_ [class_ "navbar bg-secondary"] $ do
       section_ [class_ "navbar-section"] $ do
@@ -374,11 +390,11 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
       section_ [class_ "navbar-section"] $ do
         a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.", class_ "btn btn-link"] "Source Code"
   where
-    assetPath = renderCtx ^. staticRootL
     -- markup helpers
     headerIcon = i_ [class_ "icon icon-arrow-right mr-1 c-hand icon-right icon-light"] ""
     sectionHeading = h3_ [class_ "d-inline text-primary"]
     sunSign = (findSunSign horoscopePlanetPositions)
+    moonSign = (findMoonSign horoscopePlanetPositions)
     asc = (findAscendant horoscopeHouses)
     planetsByHouse' = planetsByHouse horoscopeHouses horoscopePlanetPositions
     planetsInHouse' = planetsInHouse planetsByHouse'
@@ -492,7 +508,8 @@ formatDouble = printf "%.4f"
 htmlDegreesZodiac :: HasLongitude a => a -> Html ()
 htmlDegreesZodiac p =
   span_ [title_ . pack . formatDouble $ pl] $ do
-    maybe mempty asIcon (split & longitudeZodiacSign)
+    span_ [class_ $ elementClassM (split & longitudeZodiacSign)] $ do
+      maybe mempty asIcon (split & longitudeZodiacSign)
     toHtml $ (" " <> (toText $ longitudeDegrees split)) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
     toHtml $ (toText $ longitudeSeconds split) <> "\""
@@ -502,7 +519,7 @@ htmlDegreesZodiac p =
 
 htmlDegreesLatitude :: Latitude -> Html ()
 htmlDegreesLatitude l =
-  abbr_ [title_ . pack . formatDouble . unLatitude $ l] $ do
+  span_ [title_ . pack . formatDouble . unLatitude $ l] $ do
     toHtml $ (toText $ longitudeDegrees split) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
     toHtml $ (toText $ longitudeSeconds split) <> "\" "
@@ -517,7 +534,7 @@ htmlDegrees = htmlDegrees' (True, True)
 
 htmlDegrees' :: (Bool, Bool) -> Double -> Html ()
 htmlDegrees' (includeMinutes, includeSeconds) l =
-  abbr_ [title_ . pack . formatDouble $ l] $ do
+  span_ [title_ . pack . formatDouble $ l] $ do
     toHtml sign
     toHtml $ (toText $ longitudeDegrees split) <> "° "
     if includeMinutes then
@@ -608,7 +625,12 @@ aspectColor Synthetic = "blue"
 aspectColor Neutral = "green"
 
 aspectColorStyle :: Aspect -> Attribute
-aspectColorStyle aspect = style_ ("color: " <> (aspectColor . temperament $ aspect))
+aspectColorStyle aspect = 
+  class_ ("text-" <> (aspectClass . temperament $ aspect))
+  where
+    aspectClass Analytical = "analytic"
+    aspectClass Synthetic  = "synthetic"
+    aspectClass Neutral = "neutral"
 
 latLngHtml :: Location -> Html ()
 latLngHtml Location {..} =
@@ -621,3 +643,13 @@ latLngHtml Location {..} =
 
 toText :: Show a => a -> Text
 toText = pack . show
+
+elementClass :: ZodiacSignName -> Text
+elementClass signName = 
+  case (zodiacSignElement signName) of
+    Nothing -> "text-white"
+    Just e -> "text-" <> (toLower . pack . show $ e)
+
+elementClassM :: Maybe ZodiacSignName -> Text
+elementClassM =
+  maybe "" elementClass
