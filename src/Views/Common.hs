@@ -33,7 +33,7 @@ stylesheets :: Html ()
 stylesheets = do
     -- we're using our own theme:
     -- https://github.com/natal-chart/firmament
-    link_ [rel_ "stylesheet", type_ "text/css", href_ "https://cdn.jsdelivr.net/gh/natal-chart/firmament@v0.0.2.0/dist/base.min.css"]
+    link_ [rel_ "stylesheet", type_ "text/css", href_ "https://cdn.jsdelivr.net/gh/natal-chart/firmament@v0.0.3.0/dist/base.min.css"]
 
 fonts :: Html ()
 fonts = do

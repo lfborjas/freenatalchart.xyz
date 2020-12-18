@@ -52,11 +52,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
     metaCeremony renderCtx
     style_ $ do
       "svg { height: auto; width: auto}\
-      \.scrollable-container {overflow: auto !important;}\
-      \.planet text{ fill: #c8ad85; }\
-      \.container-circle{ stroke: white; }\
-      \.flex-container{ display: flex; justify-content: space-between;}\
-      \.flex-container span{ flex: auto; }\
+      \.table-hover-dark tr:hover{ border-bottom: .05rem solid #9da8ff !important; }\
       \"
 
   body_ $ do
@@ -126,7 +122,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
           --       maybe mempty asIcon asc
           --       br_ []
           --       span_ [class_ "text-tiny", title_ "Ascendant"] "Asc"
-        ul_ [class_ "tab tab-block"] $ do
+        ul_ [class_ "tab tab-block tab-block-dark"] $ do
           li_ [class_ "tab-item active"] $ do
             a_ [href_ "#analyze"] "Analyze"
           li_ [class_ "tab-item"] $ do
@@ -143,7 +139,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
               "Planet Positions"
 
           div_ [class_ "accordion-body scrollable-container"] $ do
-            table_ [class_ "table table-no-borders"] $ do
+            table_ [class_ "table table-no-borders table-hover-dark"] $ do
               thead_ [class_ "text-light"] $ do
                 tr_ [] $ do
                   th_ [] "Planet"
@@ -196,7 +192,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
               " (to learn more about house systems and the meaning of each house, see the "
               a_ [href_ "#houses"] "Houses"
               " section.)"
-            table_ [class_ "table table-no-borders"] $ do
+            table_ [class_ "table table-no-borders table-hover-dark"] $ do
               thead_ [class_ "text-light"] $ do
                 tr_ [] $ do
                   th_ [] "House"
@@ -372,10 +368,11 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
                   th_ "Angle"
                   th_ "Orb"
               tbody_ [] $ do
-                forM_ (majorAspects <> minorAspects) $ \Aspect {..} -> do
+                forM_ (majorAspects <> minorAspects) $ \a@Aspect {..} -> do
                   tr_ [] $ do
                     td_ $ do
-                      asIcon aspectName
+                      span_ [aspectColorStyle a] $ do
+                        asIcon aspectName
                       " "
                       toHtml $ toText aspectName
                     td_ $ do
