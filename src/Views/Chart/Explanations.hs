@@ -1,3 +1,6 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -6,7 +9,8 @@ module Views.Chart.Explanations where
 
 import CMark ( commonmarkToHtml, optUnsafe, optSmart)
 import Data.String.Interpolate.IsString ( i )
-import Import ( ($), Monoid(mempty), (.), Text, forM_ )
+import Import (Int, Generic, Show(show),  Eq, (&), HashMap,  ($), Monoid(mempty), (.), Text, forM_ )
+import RIO.Prelude.Types (Hashable (..))
 import Lucid ( Html, ToHtml(toHtml, toHtmlRaw), dd_, dl_, dt_ )
 import Ephemeris
     ( Planet(Chiron, Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn,
@@ -14,14 +18,72 @@ import Ephemeris
       ZodiacSignName(..),
       HouseNumber(..),
       AspectName(..) )
+import Data.HashMap.Strict (empty, fromList, lookupDefault)
+import Data.Hashable 
+import RIO.Text (pack)
+
+data HouseNumberAttribute
+  = Alias
+  | HouseKeywords
+  | Quadrant
+  | LatitudeHemisphere
+  | LongitudeHemisphere
+  deriving (Eq, Show, Generic)
+
+instance Hashable HouseNumberAttribute where
+  hash = enumHash
+  
+data ZodiacSignAttribute
+  = ElementName
+  | Quality
+  | Ruler
+  | Motto
+  | RelatedHouse
+  | Strengths
+  | Weakenesses
+  deriving (Eq, Show, Generic)
+
+instance Hashable ZodiacSignAttribute where
+  hash = enumHash
+
+data PlanetAttribute
+  = PlanetKeywords
+  | Rulership
+  | PlanetGroup
+  deriving (Eq, Show, Generic)
+
+instance Hashable PlanetAttribute where
+  hash = enumHash
+
+data AspectAttribute
+  = Classification
+  | Temperament
+  | AspectColor
+  | AspectAngle
+  | AspectOrb
+  deriving (Eq, Show, Generic)
+
+instance Hashable AspectAttribute where
+  hash = enumHash
+
+enumHash :: (Show a) => a -> Int
+enumHash = hash . pack . show
 
 markdownToHtml :: Text -> Html ()
 markdownToHtml = toHtmlRaw . commonmarkToHtml [optUnsafe, optSmart]
 
-class Explicable factor where
+class (Eq attr, Hashable attr) => Explicable factor attr where
   explain :: factor -> Html ()
+  explain _ = mempty
 
-instance Explicable HouseNumber where
+  explanationAttributes :: factor -> HashMap attr Text
+  explanationAttributes _ = empty
+
+  explanationAttribute :: factor -> attr -> Text
+  explanationAttribute f attr =
+    lookupDefault mempty attr (explanationAttributes f)
+
+instance Explicable HouseNumber HouseNumberAttribute where
   explain I =
     markdownToHtml
       [i|
@@ -35,8 +97,9 @@ instance Explicable HouseNumber where
 
   It is often described as the House of the **Self**.
 
-  **Keywords**: conscious self, identity, self expression, first impressions, appearance.
+  **Keywords**: 
   |]
+
   explain II =
     markdownToHtml
       [i|
@@ -171,7 +234,14 @@ instance Explicable HouseNumber where
   **Keywords**: dreams, hidden strengths/weaknessess, karma, secret enemies, withdrawal, transcendence, recuperation, mystical experience.
   |]
 
-instance Explicable ZodiacSignName where
+  explanationAttributes I =
+    [
+      (HouseKeywords, "conscious self, identity, self expression, first impressions, appearance.")
+    , (Quadrant, "")
+    , (Alias, "")
+    ] & fromList
+
+instance Explicable ZodiacSignName ZodiacSignAttribute where
   explain Aries =
     descriptions
       [ ("Element", "Fire"),
@@ -293,7 +363,7 @@ instance Explicable ZodiacSignName where
         ("Weaknesses", "escapist, unrealistic, submissive, codependent")
       ]
 
-instance Explicable Planet where
+instance Explicable Planet PlanetAttribute where
   explain Sun =
     descriptions
       [ ("Group", "Personal"),
@@ -373,7 +443,7 @@ instance Explicable Planet where
   explain _ = mempty
 
 -- https://www.astro.com/astrowiki/en/Aspect
-instance Explicable AspectName where
+instance Explicable AspectName AspectAttribute where
   explain Conjunction =
     markdownToHtml
       [i|
