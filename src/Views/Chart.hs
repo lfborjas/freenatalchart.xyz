@@ -73,7 +73,6 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
     div_ [id_ "main", class_ "container grid-xl mx-4"] $ do
       div_ [id_ "chart", class_ "under-navbar"] $ do
         div_ [class_ "blue-stars-bg text-center", style_ "padding-bottom: 9px"] $ do
-          --h1_ [class_ "text-primary"] "Your Natal Chart"
           p_ $ do
             toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
             br_ []
@@ -263,27 +262,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
             sectionHeading "Houses"
           div_ [] $ do
             generalHousesExplanation
-            -- forM_ horoscopeHouses $ \huis@House{..} -> do
-            --   h4_ [id_ $ "house-" <> toText houseNumber] $ do
-            --     toHtml $ "House " <> (toText houseNumber)
-            --   backToChart
-            --   p_ [] $ do
-            --     b_ "Starts at: "
-            --     zodiacLink huis
-            --   explain houseNumber
 
-            --   let
-            --     planets'  = planetsInHouse' huis
-            --     in do
-            --       h5_ "Planets contained: "
-            --       if null planets' then
-            --         p_ $ do
-            --           em_ "Your chart doesn't have any planets in this house."
-            --       else
-            --         ul_ [] $ do
-            --           forM_ planets' $ \p -> do
-            --             li_ $ do
-            --               planetDetails p
         divider_ 
         details_ [id_ "planets", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header"] $ do
@@ -448,7 +427,57 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
                             tbody_ [] $ do
                               forM_ houses' $ \hs -> do
                                 houseDetails hs
-                
+
+        divider_
+        details_ [id_ "my-houses", class_ "accordion my-2", open_ ""] $ do
+          summary_ [class_ "accordion-header"] $ do
+            headerIcon
+            sectionHeading "My Houses"
+
+          div_ [] $ do
+            forM_ horoscopeHouses $ \huis@House{..} -> do
+              div_ [cardDark_] $ do
+                div_ [class_ "card-header"] $ do
+                  div_ [class_ "card-title"] $ do
+                    h4_ [id_ $ "house-" <> toText houseNumber] $ do
+                      span_ [class_ "text-light"] $ do 
+                        toHtml $ toText houseNumber
+                        ". "
+                      explanationAttribute houseNumber "Alias"
+
+                div_ [class_ "card-body"] $ do
+                  p_ [class_ "text-italic"] $ do
+                    explanationAttribute houseNumber "Keywords"
+
+                  p_ [] $ do
+                    explain houseNumber
+
+                  attributeTitle_ $ do
+                    explanationAttribute houseNumber "Quadrant"
+                    " Quadrant"
+
+                  p_ [] $ do
+                    explanationAttribute houseNumber "LatitudeHemisphere"
+                    explanationAttribute houseNumber "LongitudeHemisphere"
+
+                  div_ [class_ "divider divider-dark"] ""
+
+                  attributeTitle_ ("My House " <> (toHtml . toText $ houseNumber) <> " Cusp")
+                  span_ [class_ "text-large"] $ do
+                    zodiacLink' True huis
+
+                  attributeTitle_ ("My Planets in House " <> (toHtml . toText $ houseNumber))
+                  let
+                    planets' = planetsInHouse' huis
+                    in do
+                      if null planets' then
+                        p_ $ do
+                          em_ "Your chart doesn't have any planets in this house."
+                      else
+                        table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
+                          tbody_ [] $ do
+                            forM_ planets' $ \p -> do
+                              planetDetails p
 
                           
 
@@ -631,9 +660,9 @@ htmlDegrees' (includeMinutes, includeSeconds) l =
     sign = if l < 0 then "-" else ""
 
 -- TODO: this is just htmlDegrees with a hat!
-zodiacLink :: HasLongitude a => a -> Html ()
-zodiacLink p =
-  a_  [href_ $ "#" <> link'] $ do
+zodiacLink' :: HasLongitude a => Bool -> a -> Html ()
+zodiacLink' elementColor p =
+  a_  [href_ $ "#" <> link', class_ colorClass] $ do
     maybe mempty asIcon (split & longitudeZodiacSign)
     toHtml $ (" " <> (toText $ longitudeDegrees split)) <> "° "
     toHtml $ (toText $ longitudeMinutes split) <> "\' "
@@ -641,7 +670,16 @@ zodiacLink p =
   where
     link' = maybe "chart" toText (split & longitudeZodiacSign)
     pl = getLongitudeRaw p
-    split = splitDegreesZodiac pl  
+    split = splitDegreesZodiac pl
+    sign = split & longitudeZodiacSign
+    colorClass = 
+      if elementColor then
+        elementClassM sign
+      else
+        mempty
+
+zodiacLink :: HasLongitude a => a -> Html ()
+zodiacLink = zodiacLink' False
 
 planetLink :: Planet -> Html ()
 planetLink p =
