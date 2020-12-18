@@ -4,7 +4,7 @@
 
 module Views.Chart.Explanations where
 
-import CMark ( commonmarkToHtml )
+import CMark ( commonmarkToHtml, optUnsafe, optSmart)
 import Data.String.Interpolate.IsString ( i )
 import Import ( ($), Monoid(mempty), (.), Text, forM_ )
 import Lucid ( Html, ToHtml(toHtml, toHtmlRaw), dd_, dl_, dt_ )
@@ -16,7 +16,7 @@ import Ephemeris
       AspectName(..) )
 
 markdownToHtml :: Text -> Html ()
-markdownToHtml = toHtmlRaw . commonmarkToHtml []
+markdownToHtml = toHtmlRaw . commonmarkToHtml [optUnsafe, optSmart]
 
 class Explicable factor where
   explain :: factor -> Html ()
@@ -566,16 +566,16 @@ _triplicity_. More recently, signs are related to a particular [**quality**](htt
 
 The combination of a sign's _element_ and _quality_ can be used to deduce some useful symbolism:
 
-* __Fire__ signs are said to be creative, passionate, spontaneous and forceful.
-* __Earth__ signs are said to be practical, dependable, builders, cautious and reliable.
-* __Air__ signs are said to be communicative, clever, curious, objective.
-* __Water__ signs are said to be intuitive, sensitive, compassionate, moody
+* <strong class="text-fire">Fire</strong> signs are said to be creative, passionate, spontaneous and forceful.
+* <strong class="text-earth">Earth</strong> signs are said to be practical, dependable, builders, cautious and reliable.
+* <strong class="text-air">Air</strong> signs are said to be communicative, clever, curious, objective.
+* <strong class="text-water">Water</strong> signs are said to be intuitive, sensitive, compassionate, moody
 
 Meanwhile,
 
-* __Cardinal__ signs mark the _beginning_ of a season, and as such are initiators, ambitious, driven, enthusiastic.
-* __Fixed__ signs are the _middle_ of a season, and as such are steady, stable, resolute, reliable
-* __Mutable__ signs are the _end_ of a season, and as such are adaptable, flexible, resourceful, versatile
+* <strong class="text-light">Cardinal</strong> signs mark the _beginning_ of a season, and as such are initiators, ambitious, driven, enthusiastic.
+* <strong class="text-light">Fixed</strong> signs are the _middle_ of a season, and as such are steady, stable, resolute, reliable
+* <strong class="text-light">Mutable</strong> signs are the _end_ of a season, and as such are adaptable, flexible, resourceful, versatile
     |]
 
 --
@@ -621,7 +621,7 @@ The deviation from exact angle that's allowed to still recognize an aspect is ca
 Different astrological practices have different orbs: sometimes bigger celestial bodies (as seen from Earth,) like the Sun or Moon 
 are given larger orbs, or bodies that are close to each other are allowed wider orbs (like the Sun with Mercury;)
 while certain points that don't cast any light (like the Mean Node or the Ascendant) are not allowed any orbs.
-In our practice, we use [fairly generous orbs uniformly](#orbs-used), but we always show you the orb of any 
+In our practice, [we use fairly generous orbs uniformly](#orbs-used), but we always show you the orb of any 
 aspects, as well as precise positions for all celestial bodies, so you can always choose to ignore aspects
 or add others if you believe they improve the psychological portrait of your chart!
 

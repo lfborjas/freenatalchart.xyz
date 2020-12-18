@@ -126,7 +126,16 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
           --       maybe mempty asIcon asc
           --       br_ []
           --       span_ [class_ "text-tiny", title_ "Ascendant"] "Asc"
-        div_ [class_ "divider"] ""
+        ul_ [class_ "tab tab-block"] $ do
+          li_ [class_ "tab-item active"] $ do
+            a_ [href_ "#analyze"] "Analyze"
+          li_ [class_ "tab-item"] $ do
+            a_ [href_ "#understand"] "Understand"
+          li_ [class_ "tab-item"] $ do
+            a_ [href_ "#introspect"] "Introspect"
+
+        div_ [class_ "divider", id_ "analyze"] ""
+
         details_ [id_ "planet-positions", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header"] $ do
             headerIcon
@@ -240,157 +249,156 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
                   td_ [style_ "border: 1px solid", class_ "text-small"] $ do
                     aspectCell $ findAspectWithAngle horoscopeAngleAspects planetName X
 
-        -- details_ [id_ "orbs-used", class_ "accordion my-2"] $ do
-        --   summary_ [class_ "accordion-header bg-gray"] $ do
-        --     headerIcon
-        --     sectionHeading "Orbs used"
-        --   div_ [class_ "accordion-body scrollable-container"] $ do
-        --     table_ [class_ "table table-no-borders"] $ do
-        --       thead_ [] $ do
-        --         tr_ [] $ do
-        --           th_ "Aspect"
-        --           th_ "Angle"
-        --           th_ "Orb"
-        --       tbody_ [] $ do
-        --         forM_ (majorAspects <> minorAspects) $ \Aspect {..} -> do
-        --           tr_ [] $ do
-        --             td_ $ do
-        --               asIcon aspectName
-        --               " "
-        --               toHtml $ toText aspectName
-        --             td_ $ do
-        --               toHtml $ toText angle
-        --             td_ $ do
-        --               toHtml $ toText maxOrb
+        div_ [class_ "divider", id_ "understand"] ""
 
         details_ [id_ "signs", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-secondary"] $ do
+          summary_ [class_ "accordion-header"] $ do
             headerIcon
             sectionHeading "Zodiac Signs"
           
           div_ [] $ do
             generalSignsExplanation
-            forM_ [Aries .. Pisces] $ \zodiacSign -> do
-              h4_ [id_ $ toText zodiacSign] $ do
-                asIcon zodiacSign
-                " "
-                toHtml . toText $ zodiacSign
-              backToChart
+            -- forM_ [Aries .. Pisces] $ \zodiacSign -> do
+            --   h4_ [id_ $ toText zodiacSign] $ do
+            --     asIcon zodiacSign
+            --     " "
+            --     toHtml . toText $ zodiacSign
+            --   backToChart
               
-              explain zodiacSign
-              let
-                planets' = planetsInSign' zodiacSign
-                in do
-                    h5_ "Planets Contained: "
-                    if null planets' then
-                      p_ $ do
-                        em_ "Your chart doesn't have any planets in this sign."
-                    else
-                      ul_ [] $ do
-                        forM_ planets' $ \p -> do
-                          li_ $ do
-                            planetDetails p
-              let
-                houses' = housesInSign' zodiacSign
-                in do
-                    h5_ "House cusps contained: "
-                    if null houses' then
-                      p_ $ do
-                        em_ "Your chart doesn't have any house cusps in this sign."
-                    else
-                      ul_ [] $ do
-                        forM_ houses' $ \hs -> do
-                          li_ $ do
-                            houseDetails hs
-
+            --   explain zodiacSign
+            --   let
+            --     planets' = planetsInSign' zodiacSign
+            --     in do
+            --         h5_ "Planets Contained: "
+            --         if null planets' then
+            --           p_ $ do
+            --             em_ "Your chart doesn't have any planets in this sign."
+            --         else
+            --           ul_ [] $ do
+            --             forM_ planets' $ \p -> do
+            --               li_ $ do
+            --                 planetDetails p
+            --   let
+            --     houses' = housesInSign' zodiacSign
+            --     in do
+            --         h5_ "House cusps contained: "
+            --         if null houses' then
+            --           p_ $ do
+            --             em_ "Your chart doesn't have any house cusps in this sign."
+            --         else
+            --           ul_ [] $ do
+            --             forM_ houses' $ \hs -> do
+            --               li_ $ do
+            --                 houseDetails hs
+        divider_ 
         details_ [id_ "houses", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-secondary"] $ do
+          summary_ [class_ "accordion-header"] $ do
             headerIcon
             sectionHeading "Houses"
           div_ [] $ do
             generalHousesExplanation
-            forM_ horoscopeHouses $ \huis@House{..} -> do
-              h4_ [id_ $ "house-" <> toText houseNumber] $ do
-                toHtml $ "House " <> (toText houseNumber)
-              backToChart
-              p_ [] $ do
-                b_ "Starts at: "
-                zodiacLink huis
-              explain houseNumber
+            -- forM_ horoscopeHouses $ \huis@House{..} -> do
+            --   h4_ [id_ $ "house-" <> toText houseNumber] $ do
+            --     toHtml $ "House " <> (toText houseNumber)
+            --   backToChart
+            --   p_ [] $ do
+            --     b_ "Starts at: "
+            --     zodiacLink huis
+            --   explain houseNumber
 
-              let
-                planets'  = planetsInHouse' huis
-                in do
-                  h5_ "Planets contained: "
-                  if null planets' then
-                    p_ $ do
-                      em_ "Your chart doesn't have any planets in this house."
-                  else
-                    ul_ [] $ do
-                      forM_ planets' $ \p -> do
-                        li_ $ do
-                          planetDetails p
-
+            --   let
+            --     planets'  = planetsInHouse' huis
+            --     in do
+            --       h5_ "Planets contained: "
+            --       if null planets' then
+            --         p_ $ do
+            --           em_ "Your chart doesn't have any planets in this house."
+            --       else
+            --         ul_ [] $ do
+            --           forM_ planets' $ \p -> do
+            --             li_ $ do
+            --               planetDetails p
+        divider_ 
         details_ [id_ "planets", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-secondary"] $ do
+          summary_ [class_ "accordion-header"] $ do
             headerIcon
             sectionHeading "Planets"
 
           div_ [] $ do
             generalPlanetsExplanation
-            forM_ horoscopePlanetPositions $ \p -> do
-              h4_ [id_ $ pack . label . planetName $ p] $ do
-                asIcon . planetName $ p
-                " "
-                toHtml . label . planetName $ p
-              backToChart
-              p_ [] $ do
-                b_ "Located in: "
-                zodiacLink . planetLng $ p
-                if (isRetrograde p) then
-                  b_ "(retrograde)"
-                else
-                  mempty
-              p_ [] $ do
-                b_ "House: "
-                maybe mempty houseDetails (housePosition' . planetLng $ p)
+            -- forM_ horoscopePlanetPositions $ \p -> do
+            --   h4_ [id_ $ pack . label . planetName $ p] $ do
+            --     asIcon . planetName $ p
+            --     " "
+            --     toHtml . label . planetName $ p
+            --   backToChart
+            --   p_ [] $ do
+            --     b_ "Located in: "
+            --     zodiacLink . planetLng $ p
+            --     if (isRetrograde p) then
+            --       b_ "(retrograde)"
+            --     else
+            --       mempty
+            --   p_ [] $ do
+            --     b_ "House: "
+            --     maybe mempty houseDetails (housePosition' . planetLng $ p)
 
-              explain . planetName $ p
+            --   explain . planetName $ p
 
-              let
-                aspects' = p & planetName & aspectsForPlanet' & catMaybes
-                axes'    = p & planetName & axesAspectsForPlanet' & catMaybes
-                in do
-                  h5_ "Aspects: "
-                  if (null aspects' && null axes') then
-                    p_ $ do
-                      em_ "This planet is unaspected. Note that not having any aspects is rare, which means this planet's sole influence can be quite significant."
-                  else
-                    aspectsList aspects' axes'
-
-
+            --   let
+            --     aspects' = p & planetName & aspectsForPlanet' & catMaybes
+            --     axes'    = p & planetName & axesAspectsForPlanet' & catMaybes
+            --     in do
+            --       h5_ "Aspects: "
+            --       if (null aspects' && null axes') then
+            --         p_ $ do
+            --           em_ "This planet is unaspected. Note that not having any aspects is rare, which means this planet's sole influence can be quite significant."
+            --       else
+            --         aspectsList aspects' axes'
+        divider_
         details_ [id_ "aspects", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header bg-secondary"] $ do
+          summary_ [class_ "accordion-header"] $ do
             headerIcon
             sectionHeading "Aspects"
 
           div_ [] $ do
             generalAspectsExplanation
+            h4_ "Orbs we use"
+            p_ "All aspects you see in this page are calculated using the following orbs:"
+            table_ [id_ "orbs-used", class_ "table table-no-borders"] $ do
+              thead_ [] $ do
+                tr_ [] $ do
+                  th_ "Aspect"
+                  th_ "Angle"
+                  th_ "Orb"
+              tbody_ [] $ do
+                forM_ (majorAspects <> minorAspects) $ \Aspect {..} -> do
+                  tr_ [] $ do
+                    td_ $ do
+                      asIcon aspectName
+                      " "
+                      toHtml $ toText aspectName
+                    td_ $ do
+                      toHtml $ toText angle
+                    td_ $ do
+                      toHtml $ toText maxOrb
 
-            h4_ "Major Aspects: "
-            forM_ majorAspects $ \a -> do
-              aspectDetails' a 
+            -- h4_ "Major Aspects: "
+            -- forM_ majorAspects $ \a -> do
+            --   aspectDetails' a 
 
-            h4_ "Minor Aspects: "
-            forM_ minorAspects $ \a -> do
-              aspectDetails' a
-
+            -- h4_ "Minor Aspects: "
+            -- forM_ minorAspects $ \a -> do
+            --   aspectDetails' a
+        divider_ 
         details_ [id_ "references", class_ "accordion my-2"] $ do
-          summary_ [class_ "accordion-header bg-secondary"] $ do
+          summary_ [class_ "accordion-header"] $ do
             headerIcon
             sectionHeading "References"
           div_ [class_ "accordion-body"] $ do
             attribution
+
+        div_ [class_ "divider", id_ "introspect"] ""
               
 
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
@@ -414,10 +422,12 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
     planetsInSign'  = planetsInSign planetsBySign'
     housesBySign'   = housesBySign horoscopeHouses
     housesInSign'   = housesInSign housesBySign'
-    housePosition'  = housePosition horoscopeHouses
+    --housePosition'  = housePosition horoscopeHouses
     aspectsForPlanet' p = map (findAspectBetweenPlanets horoscopePlanetaryAspects p) [Sun .. Chiron]
     axesAspectsForPlanet' p = map (findAspectWithAngle horoscopeAngleAspects p)  [I, X]
     aspectDetails' = aspectDetails horoscopePlanetaryAspects horoscopeAngleAspects
+    divider_ = div_ [class_ "divider"] ""
+
 
 
 aspectDetails :: [HoroscopeAspect PlanetPosition PlanetPosition] -> [HoroscopeAspect PlanetPosition House] -> Aspect -> Html ()
