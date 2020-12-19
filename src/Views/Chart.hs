@@ -512,14 +512,20 @@ planetCards planetPositions houseCusps planetaryAspects angleAspects =
         p_ [class_ "text-italic"] $ do
           explanationAttribute (planetName p) "Keywords"
         div_ [class_ "flex-container"] $ do
-          div_ [class_ "flex-item"] $ do
-            attributeTitle_ "Group"
-            span_ [class_ "text-large"] $ do
-              explanationAttribute (planetName p) "Group"
-          div_ [class_ "flex-item"] $ do
-            attributeTitle_ "Rulership"
-            span_ [class_ "text-large"] $ do
-              explanationAttribute (planetName p) "Rulership" 
+          if (p & planetName & (flip hasAttribute) "Group") then
+            div_ [class_ "flex-item"] $ do
+              attributeTitle_ "Group"
+              span_ [class_ "text-large"] $ do
+                explanationAttribute (planetName p) "Group"
+          else
+            mempty
+          if (p & planetName & (flip hasAttribute) "Rulership") then
+            div_ [class_ "flex-item"] $ do
+              attributeTitle_ "Rulership"
+              span_ [class_ "text-large"] $ do
+                explanationAttribute (planetName p) "Rulership" 
+          else
+            mempty
         div_ [class_ "divider divider-dark"] "" 
         div_ [class_ "flex-container"] $ do
           div_ [class_ "flex-item"] $ do
@@ -530,7 +536,7 @@ planetCards planetPositions houseCusps planetaryAspects angleAspects =
             attributeTitle_ "Position"
             span_ [class_ "text-large"] $ do
               (zodiacLink' True) . planetLng $ p  
-        attributeTitle_ ("My Aspects to " <> (toHtml . toText . planetName $ p))
+        attributeTitle_ ("My Aspects to " <> (toHtml . label . planetName $ p))
         let
           aspects' = p & planetName & aspectsForPlanet' & catMaybes
           axes' = p & planetName & axesAspectsForPlanet' & catMaybes
@@ -539,7 +545,7 @@ planetCards planetPositions houseCusps planetaryAspects angleAspects =
               p_ $ do
                 em_ "This planet is unaspected. Note that not having any aspects is rare, which means this planet's sole influence can be quite significant."
             else
-              aspectsTable aspects' axes'   
+              aspectsTable' (Just p) aspects' axes'   
   where
     housePosition'  = housePosition houseCusps
     aspectsForPlanet' p = map (findAspectBetweenPlanets planetaryAspects p) [Sun .. Chiron]
@@ -598,23 +604,26 @@ aspectDetails allPlanetAspects allAxesAspects a@Aspect {..} = do
         axesAspects = findAspectsByName allAxesAspects aspectName
 
 
-aspectsTable :: [HoroscopeAspect PlanetPosition PlanetPosition] -> [HoroscopeAspect PlanetPosition House] -> Html ()
-aspectsTable aspects' axes'= do
+aspectsTable' :: Maybe PlanetPosition -> [PlanetaryAspect] -> [AngleAspect] -> Html ()
+aspectsTable' aspectedPosition aspects' axes'= do
   table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
     tbody_ $ do
       forM_ aspects' $ \pa -> do
-        planetAspectDetails pa  
+        planetAspectDetails aspectedPosition pa  
       forM_ axes' $ \aa -> do
         axisAspectDetails aa
 
-planetAspectDetails :: (HoroscopeAspect PlanetPosition PlanetPosition) -> Html ()
-planetAspectDetails HoroscopeAspect{..} = do
+aspectsTable :: [PlanetaryAspect] -> [AngleAspect] -> Html ()
+aspectsTable = aspectsTable' Nothing 
+
+planetAspectDetails :: (Maybe PlanetPosition) -> PlanetaryAspect  -> Html ()
+planetAspectDetails aspectedPosition HoroscopeAspect{..} = do
   tr_ [class_ "light-links"] $ do
     td_ [] $ do
       span_ [class_ "text-light"] $ do
-        bodies & fst & planetName & asIcon
+        first' & planetName & asIcon
       " "
-      bodies & fst & planetName & planetLink
+      first' & planetName & planetLink
     td_ [] $ do
       span_ [aspectColorStyle aspect] $ do
         aspect & aspectName & asIcon
@@ -622,12 +631,21 @@ planetAspectDetails HoroscopeAspect{..} = do
       aspect & aspectName & aspectLink
     td_ [] $ do
       span_ [class_ "text-light"] $ do
-        bodies & snd & planetName & asIcon
+        second' & planetName & asIcon
       " "
-      bodies & snd & planetName & planetLink
+      second' & planetName & planetLink
     td_ [] $ do
       "with orb "
       htmlDegrees' (True, True) orb
+  where
+    (first', second') = 
+      case aspectedPosition of
+        Nothing -> (bodies & fst, bodies & snd)
+        Just aspected -> 
+          if ((bodies & fst) == aspected) then
+            (bodies & fst, bodies & snd)
+          else
+            (bodies & snd, bodies & fst)
 
 axisAspectDetails :: (HoroscopeAspect PlanetPosition House) -> Html ()
 axisAspectDetails HoroscopeAspect{..} = do

@@ -6,7 +6,7 @@ module Views.Chart.Explanations where
 
 import CMark ( commonmarkToHtml, optUnsafe, optSmart)
 import Data.String.Interpolate.IsString ( i )
-import Import ((&), HashMap,  ($), Monoid(mempty), (.), Text, forM_ )
+import Import (Bool, (&), HashMap,  ($), Monoid(mempty), (.), Text, forM_ )
 import Lucid ( Html, ToHtml(toHtml, toHtmlRaw), dd_, dl_, dt_ )
 import Ephemeris
     ( Planet(Chiron, Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn,
@@ -14,7 +14,7 @@ import Ephemeris
       ZodiacSignName(..),
       HouseNumber(..),
       AspectName(..) )
-import Data.HashMap.Strict (empty, fromList, lookupDefault)
+import Data.HashMap.Strict (member, empty, fromList, lookupDefault)
 
 markdownToHtml :: Text -> Html ()
 markdownToHtml = toHtmlRaw . commonmarkToHtml [optUnsafe, optSmart]
@@ -32,6 +32,10 @@ class Explicable factor where
   explanationAttribute :: factor -> Text -> (Html ())
   explanationAttribute f attr =
     lookupDefault mempty attr (explanationAttributes f)
+
+  hasAttribute :: factor -> Text -> Bool
+  hasAttribute f attr =
+    attr `member` (explanationAttributes f)
 
 instance Explicable HouseNumber  where
   explain I =
