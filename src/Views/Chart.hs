@@ -63,6 +63,10 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
     div_ [id_ "main", class_ "container grid-xl mx-4"] $ do
       div_ [id_ "chart", class_ "under-navbar"] $ do
         div_ [class_ "blue-stars-bg text-center", style_ "padding-bottom: 9px"] $ do
+          p_ [class_ "text-small text-light"] $ do
+            toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z"
+            "  ·  "
+            latLngHtml birthLocation
           p_ $ do
             toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
             br_ []
@@ -551,10 +555,6 @@ planetCards planetPositions houseCusps planetaryAspects angleAspects =
     aspectsForPlanet' p = map (findAspectBetweenPlanets planetaryAspects p) [Sun .. Chiron]
     axesAspectsForPlanet' p = map (findAspectWithAngle angleAspects p)  [I, X]
 
---
--- HELPERS
--- 
-
 cardDark_ :: Attribute
 cardDark_ = class_ "card card-dark mx-2 my-2 text-center"
 attributeTitle_ :: Html () -> Html ()
@@ -688,6 +688,11 @@ houseDetails House{..} =
       "with cusp in "
       zodiacLink houseCusp
 
+---
+--- HELPERS
+---
+
+
 asIcon :: HasLabel a => a -> Html ()
 asIcon z =
   i_ [class_ ("fnc-" <> shown <> " tooltip"), title_ shown, data_ "tooltip" label'] ""
@@ -721,6 +726,15 @@ htmlDegreesLatitude l =
     split = splitDegrees $ unLatitude l
     direction :: Text
     direction = if (unLatitude l) < 0 then "S" else "N"
+
+latLngHtml :: Location -> Html ()
+latLngHtml Location {..} =
+  toHtml $ " (" <> lnText <> ", " <> ltText <> ")"
+  where
+    lnSplit = splitDegrees . unLongitude $ locationLongitude
+    lnText = pack $ (show $ longitudeDegrees lnSplit) <> (if locationLongitude > 0 then "e" else "w") <> (show $ longitudeMinutes lnSplit)
+    ltSplit = splitDegrees . unLatitude $ locationLatitude
+    ltText = pack $ (show $ longitudeDegrees ltSplit) <> (if locationLatitude > 0 then "n" else "s") <> (show $ longitudeMinutes ltSplit)
 
 htmlDegrees :: Double -> Html ()
 htmlDegrees = htmlDegrees' (True, True)
