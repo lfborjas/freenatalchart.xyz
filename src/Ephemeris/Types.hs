@@ -42,7 +42,7 @@ module Ephemeris.Types
   -- smart constructors
   , mkLatitude
   , mkLongitude
-  )
+  ,AngleAspect,PlanetaryAspect)
 where
 
 import SwissEphemeris
@@ -168,6 +168,9 @@ data HoroscopeAspect a b = HoroscopeAspect
     , orb :: Double
     } deriving stock (Eq, Show)
 
+type PlanetaryAspect = HoroscopeAspect PlanetPosition PlanetPosition
+type AngleAspect = HoroscopeAspect PlanetPosition House
+
 newtype Latitude = Latitude {unLatitude :: Double}
     deriving newtype (Eq, Show, Num, Ord)
 
@@ -206,8 +209,8 @@ data HoroscopeData = HoroscopeData
   , horoscopeAngles :: Angles
   , horoscopeHouses :: [House]
   , horoscopeSystem :: HouseSystem
-  , horoscopePlanetaryAspects :: [HoroscopeAspect PlanetPosition PlanetPosition]
-  , horoscopeAngleAspects :: [HoroscopeAspect PlanetPosition House]
+  , horoscopePlanetaryAspects :: [PlanetaryAspect]
+  , horoscopeAngleAspects :: [AngleAspect]
   , horoscopeUniversalTime :: UTCTime
   , horoscopeJulianTime :: JulianTime
   -- TODO: delta time?
