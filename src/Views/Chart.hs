@@ -58,19 +58,8 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
       \"
 
   body_ $ do
-    header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
-      section_ [class_ "navbar-section"] $ do
-        a_ [href_ "/", class_ "mr-2"] $ do
-          i_ [class_ "icon icon-refresh", title_ "Draw Another Chart"] ""
-      section_ [class_ "navbar-section navbar-center navbar-brand"] $ do
-         a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
-      section_ [class_ "navbar-section"] $ do
-        a_ [href_ "#chart"] $ do
-          i_ [class_ "icon icon-upward", title_ "Back to Top"] ""
-        -- a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues/new/choose"
-        --    , class_ "btn btn-link text-error"
-        --    , target_ "_blank"] $ do
-        --   "Report an issue"
+    navbar_
+
     div_ [id_ "main", class_ "container grid-xl mx-4"] $ do
       div_ [id_ "chart", class_ "under-navbar"] $ do
         div_ [class_ "blue-stars-bg text-center", style_ "padding-bottom: 9px"] $ do
@@ -103,26 +92,6 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
             -- https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/height#svg
             (toHtmlRaw $ Svg.renderBS $ renderChart [Svg.makeAttribute "height" "not", Svg.makeAttribute "width" "not"] 600 h)
 
-          -- div_ [class_ "tile tile-centered text-center"] $ do
-          --   div_ [class_ "tile-icon"] $ do
-          --     div_ [class_ "px-2"] $ do
-          --       maybe mempty asIcon sunSign
-          --       br_ []
-          --       span_ [class_ "text-tiny", title_ "Sun Sign"] "Sun"
-          --   div_ [class_ "tile-content"] $ do
-          --     div_ [class_ "tile-title text-dark"] $ do
-          --       toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
-          --       "  ·  "                
-          --       toHtml $ birthLocation & locationInput
-          --     small_ [class_ "tile-subtitle text-gray"] $ do
-          --       toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z"
-          --       "  ·  "
-          --       latLngHtml birthLocation
-          --   div_ [class_ "tile-action"] $ do
-          --     div_ [class_ "px-2"] $ do
-          --       maybe mempty asIcon asc
-          --       br_ []
-          --       span_ [class_ "text-tiny", title_ "Ascendant"] "Asc"
         ul_ [class_ "tab tab-block tab-block-dark"] $ do
           li_ [class_ "tab-item active"] $ do
             a_ [href_ "#analyze"] "Analyze"
@@ -140,45 +109,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
               "Planet Positions"
 
           div_ [class_ "accordion-body scrollable-container"] $ do
-            table_ [class_ "table table-no-borders table-hover-dark"] $ do
-              thead_ [class_ "text-light"] $ do
-                tr_ [] $ do
-                  th_ [] "Planet"
-                  th_ [] "House"
-                  th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "Where in the ecliptic\n(zodiac band as seen from Earth)\n the planet is."] $ do
-                    "Longitude"
-                  th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "How many degrees a planet is moving per day.\nNegative speed means retrograde motion."] $ do
-                    "Speed"
-                  th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "Position above or below the ecliptic plane;\nmost planets appear to be 'on' the ecliptic,\nbut not all are."] $ do
-                     "Latitude"
-                  th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "Angle between the planet's position in the sky\nand the Earth's equator."] $ do
-                    "Declination"
-              tbody_ [] $ do
-                forM_ (horoscopePlanetPositions) $ \pp@PlanetPosition {..} -> do
-                  tr_ [] $ do
-                    td_ $ do
-                      span_ [class_ "text-light"] $ do
-                        asIcon planetName
-                      planetLabel planetName
-                      if isRetrograde pp then
-                       span_ [class_ "text-light tooltip", data_ "tooltip" "Retrograde"] " (r)"
-                      else
-                        ""
-
-                    td_ $ do
-                      housePositionHtml $ housePosition horoscopeHouses planetLng
-
-                    td_ $ do
-                      htmlDegreesZodiac planetLng
-
-                    td_ $ do
-                      htmlDegrees planetLngSpeed
-
-                    td_ $ do
-                      htmlDegreesLatitude planetLat
-
-                    td_ $ do
-                      htmlDegreesLatitude $ Latitude planetDeclination
+            planetPositionsTable horoscopePlanetPositions horoscopeHouses
 
         div_ [class_ "divider"] ""
 
@@ -187,28 +118,8 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
             headerIcon
             sectionHeading "House Cusps"
           div_ [class_ "accordion-body scrollable-container"] $ do
-            p_ $ do
-              "System Used: "
-              span_ [class_ "text-primary"] $ toHtml $ toText horoscopeSystem
-              " (to learn more about house systems and the meaning of each house, see the "
-              a_ [href_ "#houses"] "Houses"
-              " section.)"
-            table_ [class_ "table table-no-borders table-hover-dark"] $ do
-              thead_ [class_ "text-light"] $ do
-                tr_ [] $ do
-                  th_ [] "House"
-                  th_ [] "Cusp"
-                  th_ [] "Declination"
-              tbody_ [] $ do
-                forM_ (horoscopeHouses) $ \hc@House {..} -> do
-                  tr_ [] $ do
-                    td_ $ do
-                      housePositionHtml (Just hc)
-                      houseLabel houseNumber
-                    td_ $ do
-                      htmlDegreesZodiac houseCusp
-                    td_ $ do
-                      htmlDegreesLatitude $ Latitude houseDeclination
+            houseSystemDetails horoscopeSystem
+            houseCuspsTable horoscopeHouses
 
         div_ [class_ "divider"] ""
 
@@ -221,30 +132,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
               "For more detailed descriptions of aspects, see the "
               a_ [href_ "#aspects"] "Aspects"
               " section."
-            table_ [class_ "table table-scroll"] $ do
-              forM_ defaultPlanets $ \rowPlanet -> do
-                tr_ [] $ do
-                  td_ [] $ do
-                    if rowPlanet == Sun
-                      then mempty
-                      else asIcon rowPlanet
-                  forM_ (takeWhile (not . (== rowPlanet) . planetName) horoscopePlanetPositions) $ \PlanetPosition {..} -> do
-                    td_ [style_ "border: 1px solid", class_ "text-small"] $ do
-                      aspectCell $ findAspectBetweenPlanets horoscopePlanetaryAspects rowPlanet planetName
-                  td_ [style_ "border-bottom: 1px solid"] $ do
-                    asIcon rowPlanet
-              tr_ [] $ do
-                td_ [] $ do
-                  span_ [class_ "tooltip", data_ "tooltip" "Ascendant"] "AC"
-                forM_ (horoscopePlanetPositions) $ \PlanetPosition {..} -> do
-                  td_ [style_ "border: 1px solid", class_ "text-small"] $ do
-                    aspectCell $ findAspectWithAngle horoscopeAngleAspects planetName I
-              tr_ [] $ do
-                td_ [] $ do
-                  span_ [class_ "tooltip", data_ "tooltip" "Midheaven"] "MC"
-                forM_ (horoscopePlanetPositions) $ \PlanetPosition {..} -> do
-                  td_ [style_ "border: 1px solid", class_ "text-small"] $ do
-                    aspectCell $ findAspectWithAngle horoscopeAngleAspects planetName X
+            aspectDetailsTable horoscopePlanetPositions horoscopePlanetaryAspects horoscopeAngleAspects
 
         div_ [class_ "divider", id_ "understand"] ""
 
@@ -283,24 +171,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
             generalAspectsExplanation
             h4_ "Orbs we use"
             p_ "All aspects you see in this page are calculated using the following orbs:"
-            table_ [id_ "orbs-used", class_ "table table-no-borders"] $ do
-              thead_ [] $ do
-                tr_ [] $ do
-                  th_ "Aspect"
-                  th_ "Angle"
-                  th_ "Orb"
-              tbody_ [] $ do
-                forM_ (majorAspects <> minorAspects) $ \a@Aspect {..} -> do
-                  tr_ [] $ do
-                    td_ $ do
-                      span_ [aspectColorStyle a] $ do
-                        asIcon aspectName
-                      " "
-                      toHtml $ toText aspectName
-                    td_ $ do
-                      toHtml $ toText angle
-                    td_ $ do
-                      toHtml $ toText maxOrb
+            orbsTable
 
 
         divider_ 
@@ -319,81 +190,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
             sectionHeading "My Zodiac Signs"
 
           div_ [] $ do  
-            forM_ [Aries .. Pisces] $ \zodiacSign -> do
-              div_ [cardDark_] $ do
-                div_ [class_ "card-header"] $ do
-                  div_ [class_ "card-title"] $ do
-                    h4_ [id_ (toText zodiacSign), class_ $ elementClass zodiacSign] $ do
-                      asIcon zodiacSign
-                      " "
-                      toHtml . toText $ zodiacSign
-
-                div_ [class_ "card-body"] $ do
-                  div_ [class_ "flex-container"] $ do
-                    div_ [class_ "flex-item"] $ do
-                      attributeTitle_ "Strengths"
-                      span_ [class_ "text-italic"] $ do
-                        explanationAttribute zodiacSign "Strengths"
-
-                    div_ [class_ "flex-item"] $ do
-                      attributeTitle_ "Weaknesses"
-                      span_ [class_ "text-italic"] $ do
-                        explanationAttribute zodiacSign "Weaknesses"
-
-                  div_ [class_ "flex-container"] $ do
-                    div_ [class_ "flex-item"] $ do
-                      attributeTitle_ "Element"
-                      span_ [class_ $ "text-large " <> (elementClass zodiacSign)] $ do
-                        explanationAttribute zodiacSign "Element"
-
-                    div_ [class_ "flex-item"] $ do
-                      attributeTitle_ "Quality"
-                      span_ [class_ "text-large"] $ do
-                        explanationAttribute zodiacSign "Quality"
-
-                    div_ [class_ "flex-item"] $ do
-                      attributeTitle_ "Ruler"
-                      span_ [class_ "text-large"] $ do
-                        explanationAttribute zodiacSign "Ruler"
-
-                  div_ [class_ "flex-container"] $ do
-                    div_ [class_ "flex-item"] $ do
-                      attributeTitle_ "Related House"
-                      span_ [class_ "text-large"] $ do
-                        explanationAttribute zodiacSign "Related house"
-
-                    div_ [class_ "flex-item"] $ do
-                      attributeTitle_ "Motto"
-                      span_ [class_ "text-large text-quoted"] $ do
-                        explanationAttribute zodiacSign "Motto"
-
-                  div_ [class_ "divider divider-dark"] ""
-
-                  attributeTitle_ ("My Planets in " <> (toHtml . toText $ zodiacSign))
-                  let
-                    planets' = planetsInSign' zodiacSign
-                    in do
-                      if null planets' then
-                        p_ $ do
-                          em_ "Your chart doesn't have any planets in this sign."
-                      else
-                        table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
-                          tbody_ [] $ do
-                            forM_ planets' $ \p -> do
-                              planetDetails p
-
-                  attributeTitle_ ("My Houses in " <> (toHtml . toText $ zodiacSign))
-                  let
-                    houses' = housesInSign' zodiacSign
-                    in do
-                      if null houses' then
-                        p_ $ do 
-                          em_ "Your chart doesn't have any house cusps in this sign."
-                        else
-                          table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
-                            tbody_ [] $ do
-                              forM_ houses' $ \hs -> do
-                                houseDetails hs
+            zodiacCards horoscopePlanetPositions horoscopeHouses
 
         divider_
         details_ [id_ "my-houses", class_ "accordion my-2", open_ ""] $ do
@@ -402,49 +199,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
             sectionHeading "My Houses"
 
           div_ [] $ do
-            forM_ horoscopeHouses $ \huis@House{..} -> do
-              div_ [cardDark_] $ do
-                div_ [class_ "card-header"] $ do
-                  div_ [class_ "card-title"] $ do
-                    h4_ [id_ $ "house-" <> toText houseNumber] $ do
-                      span_ [class_ "text-light"] $ do 
-                        toHtml $ toText houseNumber
-                        ". "
-                      explanationAttribute houseNumber "Alias"
-
-                div_ [class_ "card-body"] $ do
-                  p_ [class_ "text-italic"] $ do
-                    explanationAttribute houseNumber "Keywords"
-
-                  p_ [] $ do
-                    explain houseNumber
-
-                  attributeTitle_ $ do
-                    explanationAttribute houseNumber "Quadrant"
-                    " Quadrant"
-
-                  p_ [] $ do
-                    explanationAttribute houseNumber "LatitudeHemisphere"
-                    explanationAttribute houseNumber "LongitudeHemisphere"
-
-                  div_ [class_ "divider divider-dark"] ""
-
-                  attributeTitle_ ("My House " <> (toHtml . toText $ houseNumber) <> " Cusp")
-                  span_ [class_ "text-large"] $ do
-                    zodiacLink' True huis
-
-                  attributeTitle_ ("My Planets in House " <> (toHtml . toText $ houseNumber))
-                  let
-                    planets' = planetsInHouse' huis
-                    in do
-                      if null planets' then
-                        p_ $ do
-                          em_ "Your chart doesn't have any planets in this house."
-                      else
-                        table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
-                          tbody_ [] $ do
-                            forM_ planets' $ \p -> do
-                              planetDetails p
+            houseCards horoscopePlanetPositions horoscopeHouses
 
         divider_
         details_ [id_ "my-planets", class_ "accordion my-2", open_ ""] $ do
@@ -453,55 +208,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
             sectionHeading "My Planets"
 
           div_ [] $ do
-            forM_ horoscopePlanetPositions $ \p -> do
-              div_ [cardDark_] $ do
-                div_ [class_ "card-header"] $ do
-                  div_ [class_ "card-title"] $ do
-                    h4_ [id_ $ pack . label . planetName $ p] $ do
-                      asIcon . planetName $ p
-                      " "
-                      toHtml . label . planetName $ p
-                  if (isRetrograde p) then
-                    div_ [class_ "card-subtitle"] $ do
-                      span_ [] "(retrograde)"
-                  else
-                    mempty
-
-                div_ [class_ "card-body"] $ do
-                  p_ [class_ "text-italic"] $ do
-                    explanationAttribute (planetName p) "Keywords"
-                  div_ [class_ "flex-container"] $ do
-                    div_ [class_ "flex-item"] $ do
-                      attributeTitle_ "Group"
-                      span_ [class_ "text-large"] $ do
-                        explanationAttribute (planetName p) "Group"
-                    div_ [class_ "flex-item"] $ do
-                      attributeTitle_ "Rulership"
-                      span_ [class_ "text-large"] $ do
-                        explanationAttribute (planetName p) "Rulership"
-
-                  div_ [class_ "divider divider-dark"] ""
-
-                  div_ [class_ "flex-container"] $ do
-                    div_ [class_ "flex-item"] $ do
-                      attributeTitle_ "House"
-                      span_ [class_ "text-large"] $ do
-                        maybe mempty (houseLinkFull . houseNumber) (housePosition' . planetLng $ p)
-                    div_ [class_ "flex-item"] $ do
-                      attributeTitle_ "Position"
-                      span_ [class_ "text-large"] $ do
-                        (zodiacLink' True) . planetLng $ p
-
-                  attributeTitle_ ("My Aspects to " <> (toHtml . toText . planetName $ p))
-                  let
-                    aspects' = p & planetName & aspectsForPlanet' & catMaybes
-                    axes' = p & planetName & axesAspectsForPlanet' & catMaybes
-                    in do
-                      if (null aspects' && null axes') then
-                        p_ $ do
-                          em_ "This planet is unaspected. Note that not having any aspects is rare, which means this planet's sole influence can be quite significant."
-                      else
-                        aspectsTable aspects' axes'
+            planetCards horoscopePlanetPositions horoscopeHouses horoscopePlanetaryAspects horoscopeAngleAspects
 
         divider_
         details_ [id_ "my-major-aspects", class_ "accordion my-2", open_ "" ] $ do
@@ -539,18 +246,308 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
     sunSign = (findSunSign horoscopePlanetPositions)
     moonSign = (findMoonSign horoscopePlanetPositions)
     asc = (findAscendant horoscopeHouses)
-    planetsByHouse' = planetsByHouse horoscopeHouses horoscopePlanetPositions
-    planetsInHouse' = planetsInHouse planetsByHouse'
-    planetsBySign'  = planetsBySign horoscopePlanetPositions
-    planetsInSign'  = planetsInSign planetsBySign'
-    housesBySign'   = housesBySign horoscopeHouses
-    housesInSign'   = housesInSign housesBySign'
-    housePosition'  = housePosition horoscopeHouses
-    aspectsForPlanet' p = map (findAspectBetweenPlanets horoscopePlanetaryAspects p) [Sun .. Chiron]
-    axesAspectsForPlanet' p = map (findAspectWithAngle horoscopeAngleAspects p)  [I, X]
     aspectDetails' = aspectDetails horoscopePlanetaryAspects horoscopeAngleAspects
     divider_ = div_ [class_ "divider"] ""
 
+--
+-- "COMPONENTS"
+--
+navbar_ :: Html ()
+navbar_ =
+  header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
+    section_ [class_ "navbar-section"] $ do
+      a_ [href_ "/", class_ "mr-2"] $ do
+        i_ [class_ "icon icon-refresh", title_ "Draw Another Chart"] ""
+    section_ [class_ "navbar-section navbar-center navbar-brand"] $ do
+       a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
+    section_ [class_ "navbar-section"] $ do
+      a_ [href_ "#chart"] $ do
+        i_ [class_ "icon icon-upward", title_ "Back to Top"] ""
+
+planetPositionsTable :: [PlanetPosition] -> [House] ->  Html ()
+planetPositionsTable planetPositions houses =
+  table_ [class_ "table table-no-borders table-hover-dark"] $ do
+    thead_ [class_ "text-light"] $ do
+      tr_ [] $ do
+        th_ [] "Planet"
+        th_ [] "House"
+        th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "Where in the ecliptic\n(zodiac band as seen from Earth)\n the planet is."] $ do
+          "Longitude"
+        th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "How many degrees a planet is moving per day.\nNegative speed means retrograde motion."] $ do
+          "Speed"
+        th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "Position above or below the ecliptic plane;\nmost planets appear to be 'on' the ecliptic,\nbut not all are."] $ do
+           "Latitude"
+        th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "Angle between the planet's position in the sky\nand the Earth's equator."] $ do
+          "Declination"
+    tbody_ [] $ do
+      forM_ (planetPositions) $ \pp@PlanetPosition {..} -> do
+        tr_ [] $ do
+          td_ $ do
+            span_ [class_ "text-light"] $ do
+              asIcon planetName
+            planetLabel planetName
+            if isRetrograde pp then
+             span_ [class_ "text-light tooltip", data_ "tooltip" "Retrograde"] " (r)"
+            else
+              ""  
+          td_ $ do
+            housePositionHtml $ housePosition houses planetLng 
+          td_ $ do
+            htmlDegreesZodiac planetLng 
+          td_ $ do
+            htmlDegrees planetLngSpeed  
+          td_ $ do
+            htmlDegreesLatitude planetLat 
+          td_ $ do
+            htmlDegreesLatitude $ Latitude planetDeclination  
+
+houseSystemDetails :: HouseSystem -> Html ()
+houseSystemDetails sys =
+  p_ $ do
+    "System Used: "
+    span_ [class_ "text-primary"] $ toHtml $ toText sys
+    " (to learn more about house systems and the meaning of each house, see the "
+    a_ [href_ "#houses"] "Houses"
+    " section.)"
+
+houseCuspsTable :: [House] -> Html ()
+houseCuspsTable houses =
+  table_ [class_ "table table-no-borders table-hover-dark"] $ do
+    thead_ [class_ "text-light"] $ do
+      tr_ [] $ do
+        th_ [] "House"
+        th_ [] "Cusp"
+        th_ [] "Declination"
+    tbody_ [] $ do
+      forM_ (houses) $ \hc@House {..} -> do
+        tr_ [] $ do
+          td_ $ do
+            housePositionHtml (Just hc)
+            houseLabel houseNumber
+          td_ $ do
+            htmlDegreesZodiac houseCusp
+          td_ $ do
+            htmlDegreesLatitude $ Latitude houseDeclination
+
+aspectDetailsTable :: [PlanetPosition] -> [PlanetaryAspect] -> [AngleAspect] -> Html () 
+aspectDetailsTable planetPositions planetAspects angleAspects =
+  table_ [class_ "table table-scroll"] $ do
+    forM_ defaultPlanets $ \rowPlanet -> do
+      tr_ [] $ do
+        td_ [] $ do
+          if rowPlanet == Sun
+            then mempty
+            else asIcon rowPlanet
+        forM_ (takeWhile (not . (== rowPlanet) . planetName) planetPositions) $ \PlanetPosition {..} -> do
+          td_ [style_ "border: 1px solid", class_ "text-small"] $ do
+            aspectCell $ findAspectBetweenPlanets planetAspects rowPlanet planetName
+        td_ [style_ "border-bottom: 1px solid"] $ do
+          asIcon rowPlanet
+    tr_ [] $ do
+      td_ [] $ do
+        span_ [class_ "tooltip", data_ "tooltip" "Ascendant"] "AC"
+      forM_ (planetPositions) $ \PlanetPosition {..} -> do
+        td_ [style_ "border: 1px solid", class_ "text-small"] $ do
+          aspectCell $ findAspectWithAngle angleAspects planetName I
+    tr_ [] $ do
+      td_ [] $ do
+        span_ [class_ "tooltip", data_ "tooltip" "Midheaven"] "MC"
+      forM_ (planetPositions) $ \PlanetPosition {..} -> do
+        td_ [style_ "border: 1px solid", class_ "text-small"] $ do
+          aspectCell $ findAspectWithAngle angleAspects planetName X
+
+orbsTable :: Html ()
+orbsTable =
+  table_ [id_ "orbs-used", class_ "table table-no-borders"] $ do
+   thead_ [] $ do
+     tr_ [] $ do
+       th_ "Aspect"
+       th_ "Angle"
+       th_ "Orb"
+   tbody_ [] $ do
+     forM_ (majorAspects <> minorAspects) $ \a@Aspect {..} -> do
+       tr_ [] $ do
+         td_ $ do
+           span_ [aspectColorStyle a] $ do
+             asIcon aspectName
+           " "
+           toHtml $ toText aspectName
+         td_ $ do
+           toHtml $ toText angle
+         td_ $ do
+           toHtml $ toText maxOrb
+
+
+zodiacCards :: [PlanetPosition] -> [House] -> Html ()
+zodiacCards planetPositions houseCusps =
+  forM_ [Aries .. Pisces] $ \zodiacSign -> do
+    div_ [cardDark_] $ do
+      div_ [class_ "card-header"] $ do
+        div_ [class_ "card-title"] $ do
+          h4_ [id_ (toText zodiacSign), class_ $ elementClass zodiacSign] $ do
+            asIcon zodiacSign
+            " "
+            toHtml . toText $ zodiacSign  
+      div_ [class_ "card-body"] $ do
+        div_ [class_ "flex-container"] $ do
+          div_ [class_ "flex-item"] $ do
+            attributeTitle_ "Strengths"
+            span_ [class_ "text-italic"] $ do
+              explanationAttribute zodiacSign "Strengths" 
+          div_ [class_ "flex-item"] $ do
+            attributeTitle_ "Weaknesses"
+            span_ [class_ "text-italic"] $ do
+              explanationAttribute zodiacSign "Weaknesses"  
+        div_ [class_ "flex-container"] $ do
+          div_ [class_ "flex-item"] $ do
+            attributeTitle_ "Element"
+            span_ [class_ $ "text-large " <> (elementClass zodiacSign)] $ do
+              explanationAttribute zodiacSign "Element" 
+          div_ [class_ "flex-item"] $ do
+            attributeTitle_ "Quality"
+            span_ [class_ "text-large"] $ do
+              explanationAttribute zodiacSign "Quality" 
+          div_ [class_ "flex-item"] $ do
+            attributeTitle_ "Ruler"
+            span_ [class_ "text-large"] $ do
+              explanationAttribute zodiacSign "Ruler" 
+        div_ [class_ "flex-container"] $ do
+          div_ [class_ "flex-item"] $ do
+            attributeTitle_ "Related House"
+            span_ [class_ "text-large"] $ do
+              explanationAttribute zodiacSign "Related house" 
+          div_ [class_ "flex-item"] $ do
+            attributeTitle_ "Motto"
+            span_ [class_ "text-large text-quoted"] $ do
+              explanationAttribute zodiacSign "Motto" 
+        div_ [class_ "divider divider-dark"] "" 
+        attributeTitle_ ("My Planets in " <> (toHtml . toText $ zodiacSign))
+        let
+          planets' = planetsInSign' zodiacSign
+          in do
+            if null planets' then
+              p_ $ do
+                em_ "Your chart doesn't have any planets in this sign."
+            else
+              table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
+                tbody_ [] $ do
+                  forM_ planets' $ \p -> do
+                    planetDetails p 
+        attributeTitle_ ("My Houses in " <> (toHtml . toText $ zodiacSign))
+        let
+          houses' = housesInSign' zodiacSign
+          in do
+            if null houses' then
+              p_ $ do 
+                em_ "Your chart doesn't have any house cusps in this sign."
+              else
+                table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
+                  tbody_ [] $ do
+                    forM_ houses' $ \hs -> do
+                      houseDetails hs
+  where
+    planetsBySign' = planetsBySign planetPositions
+    planetsInSign' = planetsInSign planetsBySign'
+    housesBySign'  = housesBySign houseCusps
+    housesInSign'  = housesInSign housesBySign'                   
+
+houseCards :: [PlanetPosition] -> [House] -> Html ()
+houseCards planetPositions houseCusps =
+  forM_ houseCusps $ \huis@House{..} -> do
+    div_ [cardDark_] $ do
+      div_ [class_ "card-header"] $ do
+        div_ [class_ "card-title"] $ do
+          h4_ [id_ $ "house-" <> toText houseNumber] $ do
+            span_ [class_ "text-light"] $ do 
+              toHtml $ toText houseNumber
+              ". "
+            explanationAttribute houseNumber "Alias"  
+      div_ [class_ "card-body"] $ do
+        p_ [class_ "text-italic"] $ do
+          explanationAttribute houseNumber "Keywords" 
+        p_ [] $ do
+          explain houseNumber 
+        attributeTitle_ $ do
+          explanationAttribute houseNumber "Quadrant"
+          " Quadrant" 
+        p_ [] $ do
+          explanationAttribute houseNumber "LatitudeHemisphere"
+          explanationAttribute houseNumber "LongitudeHemisphere"  
+        div_ [class_ "divider divider-dark"] "" 
+        attributeTitle_ ("My House " <> (toHtml . toText $ houseNumber) <> " Cusp")
+        span_ [class_ "text-large"] $ do
+          zodiacLink' True huis 
+        attributeTitle_ ("My Planets in House " <> (toHtml . toText $ houseNumber))
+        let
+          planets' = planetsInHouse' huis
+          in do
+            if null planets' then
+              p_ $ do
+                em_ "Your chart doesn't have any planets in this house."
+            else
+              table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
+                tbody_ [] $ do
+                  forM_ planets' $ \p -> do
+                    planetDetails p
+  where
+    planetsByHouse' = planetsByHouse houseCusps planetPositions
+    planetsInHouse' = planetsInHouse planetsByHouse'
+
+planetCards :: [PlanetPosition] -> [House] -> [PlanetaryAspect] -> [AngleAspect] -> Html ()
+planetCards planetPositions houseCusps planetaryAspects angleAspects =
+  forM_ planetPositions $ \p -> do
+    div_ [cardDark_] $ do
+      div_ [class_ "card-header"] $ do
+        div_ [class_ "card-title"] $ do
+          h4_ [id_ $ pack . label . planetName $ p] $ do
+            asIcon . planetName $ p
+            " "
+            toHtml . label . planetName $ p
+        if (isRetrograde p) then
+          div_ [class_ "card-subtitle"] $ do
+            span_ [] "(retrograde)"
+        else
+          mempty  
+      div_ [class_ "card-body"] $ do
+        p_ [class_ "text-italic"] $ do
+          explanationAttribute (planetName p) "Keywords"
+        div_ [class_ "flex-container"] $ do
+          div_ [class_ "flex-item"] $ do
+            attributeTitle_ "Group"
+            span_ [class_ "text-large"] $ do
+              explanationAttribute (planetName p) "Group"
+          div_ [class_ "flex-item"] $ do
+            attributeTitle_ "Rulership"
+            span_ [class_ "text-large"] $ do
+              explanationAttribute (planetName p) "Rulership" 
+        div_ [class_ "divider divider-dark"] "" 
+        div_ [class_ "flex-container"] $ do
+          div_ [class_ "flex-item"] $ do
+            attributeTitle_ "House"
+            span_ [class_ "text-large"] $ do
+              maybe mempty (houseLinkFull . houseNumber) (housePosition' . planetLng $ p)
+          div_ [class_ "flex-item"] $ do
+            attributeTitle_ "Position"
+            span_ [class_ "text-large"] $ do
+              (zodiacLink' True) . planetLng $ p  
+        attributeTitle_ ("My Aspects to " <> (toHtml . toText . planetName $ p))
+        let
+          aspects' = p & planetName & aspectsForPlanet' & catMaybes
+          axes' = p & planetName & axesAspectsForPlanet' & catMaybes
+          in do
+            if (null aspects' && null axes') then
+              p_ $ do
+                em_ "This planet is unaspected. Note that not having any aspects is rare, which means this planet's sole influence can be quite significant."
+            else
+              aspectsTable aspects' axes'   
+  where
+    housePosition'  = housePosition houseCusps
+    aspectsForPlanet' p = map (findAspectBetweenPlanets planetaryAspects p) [Sun .. Chiron]
+    axesAspectsForPlanet' p = map (findAspectWithAngle angleAspects p)  [I, X]
+
+--
+-- HELPERS
+-- 
 
 cardDark_ :: Attribute
 cardDark_ = class_ "card card-dark mx-2 my-2 text-center"
