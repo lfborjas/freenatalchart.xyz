@@ -756,13 +756,6 @@ planetLink p =
     toHtml textLabel
   where
     textLabel = p & label & pack
-
-houseLink :: HouseNumber -> Html ()
-houseLink h =
-  a_ [href_ $ "#house-" <> textLabel] $ do
-    houseToAxis h
-  where
-    textLabel = h & label & pack
   
 houseLinkFull :: HouseNumber -> Html ()
 houseLinkFull houseNumber =
@@ -775,12 +768,7 @@ aspectLink a =
   a_ [href_ $ "#" <> textLabel] $ do
     toHtml textLabel
   where
-    textLabel = a & toText
-
-backToChart :: Html  ()
-backToChart =
-  p_ [] $ do
-    a_ [href_ "#chart"] "(Back to chart)" 
+    textLabel = a & toText 
 
 housePositionHtml :: Maybe House -> Html ()
 housePositionHtml Nothing = mempty
@@ -799,11 +787,6 @@ houseLabel VII = toHtml (" (Desc)" :: Text)
 houseLabel X = toHtml (" (MC)" :: Text)
 houseLabel _ = mempty
 
-houseToAxis :: HouseNumber -> Html ()
-houseToAxis I = toHtml ("Ascendant"::Text)
-houseToAxis X = toHtml ("Midheaven"::Text)
-houseToAxis _ = mempty
-
 aspectCell :: Maybe (HoroscopeAspect a b) -> Html ()
 aspectCell Nothing = mempty
 aspectCell (Just HoroscopeAspect {..}) =
@@ -812,11 +795,6 @@ aspectCell (Just HoroscopeAspect {..}) =
     " "
     htmlDegrees' (True, False) orb
 
-aspectColor :: AspectTemperament -> Text
-aspectColor Analytical = "red"
-aspectColor Synthetic = "blue"
-aspectColor Neutral = "green"
-
 aspectColorStyle :: Aspect -> Attribute
 aspectColorStyle aspect = 
   class_ ("text-" <> (aspectClass . temperament $ aspect))
@@ -824,15 +802,6 @@ aspectColorStyle aspect =
     aspectClass Analytical = "analytic"
     aspectClass Synthetic  = "synthetic"
     aspectClass Neutral = "neutral"
-
-latLngHtml :: Location -> Html ()
-latLngHtml Location {..} =
-  toHtml $ " (" <> lnText <> ", " <> ltText <> ")"
-  where
-    lnSplit = splitDegrees . unLongitude $ locationLongitude
-    lnText = pack $ (show $ longitudeDegrees lnSplit) <> (if locationLongitude > 0 then "e" else "w") <> (show $ longitudeMinutes lnSplit)
-    ltSplit = splitDegrees . unLatitude $ locationLatitude
-    ltText = pack $ (show $ longitudeDegrees ltSplit) <> (if locationLatitude > 0 then "n" else "s") <> (show $ longitudeMinutes ltSplit)
 
 toText :: Show a => a -> Text
 toText = pack . show
