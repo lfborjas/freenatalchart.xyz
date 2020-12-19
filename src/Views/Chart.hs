@@ -302,13 +302,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
                     td_ $ do
                       toHtml $ toText maxOrb
 
-            -- h4_ "Major Aspects: "
-            -- forM_ majorAspects $ \a -> do
-            --   aspectDetails' a 
 
-            -- h4_ "Minor Aspects: "
-            -- forM_ minorAspects $ \a -> do
-            --   aspectDetails' a
         divider_ 
         details_ [id_ "references", class_ "accordion my-2"] $ do
           summary_ [class_ "accordion-header"] $ do
@@ -509,6 +503,26 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
                       else
                         aspectsTable aspects' axes'
 
+        divider_
+        details_ [id_ "my-major-aspects", class_ "accordion my-2", open_ "" ] $ do
+          summary_ [class_ "accordion-header"] $ do
+            headerIcon
+            sectionHeading "My Major Aspects"
+
+          div_ [] $ do
+            forM_ majorAspects $ \a -> do
+              aspectDetails' a
+
+        divider_
+        details_ [id_ "my-minor-aspects", class_ "accordion my-2", open_ "" ] $ do
+          summary_ [class_ "accordion-header"] $ do
+            headerIcon
+            sectionHeading "My Minor Aspects"
+
+          div_ [] $ do
+            forM_ minorAspects  $ \a -> do
+              aspectDetails' a
+
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footer_ [class_ "navbar bg-secondary"] $ do
       section_ [class_ "navbar-section"] $ do
@@ -519,8 +533,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
         a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.", class_ "btn btn-link"] "Source Code"
   where
     -- markup helpers
-    cardDark_ = class_ "card card-dark mx-2 my-2 text-center"
-    attributeTitle_ = h5_ [class_ "text-light"] 
+
     headerIcon = i_ [class_ "icon icon-arrow-right mr-1 c-hand icon-right icon-light"] ""
     sectionHeading = h5_ [class_ "d-inline text-primary"]
     sunSign = (findSunSign horoscopePlanetPositions)
@@ -539,45 +552,54 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
     divider_ = div_ [class_ "divider"] ""
 
 
+cardDark_ :: Attribute
+cardDark_ = class_ "card card-dark mx-2 my-2 text-center"
+attributeTitle_ :: Html () -> Html ()
+attributeTitle_ = h5_ [class_ "text-light"] 
 
 aspectDetails :: [HoroscopeAspect PlanetPosition PlanetPosition] -> [HoroscopeAspect PlanetPosition House] -> Aspect -> Html ()
-aspectDetails allPlanetAspects allAxesAspects Aspect {..} = do
-  h5_ [id_ $ toText aspectName] $ do
-    asIcon aspectName
-    " "
-    toHtml . toText $ aspectName
-  backToChart
-  dl_ $ do
-    dt_ "Classification"
-    dd_ . toHtml . toText $ aspectType
-    dt_ "Temperament"
-    dd_ . toHtml . toText $ temperament
-    dt_ "Traditional color"
-    dd_ . toHtml . aspectColor $ temperament
-    dt_ "Angle"
-    dd_ . toHtml . toText $ angle
-    dt_ "Orb used"
-    dd_ . toHtml . toText $ maxOrb
-  p_ [] $ do
-    explain aspectName  
-  h6_ . toHtml $ (toText aspectName) <> "s in your chart:"  
-  if (null planetAspects && null axesAspects) then
-    em_ . toHtml $ "No " <> (toText aspectName) <> "s appear in your chart."
-  else
-    aspectsList planetAspects axesAspects
-  where
-    planetAspects = findAspectsByName allPlanetAspects aspectName
-    axesAspects   = findAspectsByName allAxesAspects aspectName
+aspectDetails allPlanetAspects allAxesAspects a@Aspect {..} = do
+  div_ [cardDark_] $ do
+    div_ [class_ "card-header"] $ do
+      div_ [class_ "card-title"] $ do
+        h4_ [id_ $ toText aspectName] $ do
+          asIcon aspectName
+          " "
+          toHtml . toText $ aspectName
+    div_ [class_ "card-body"] $ do
+      p_ [class_ "text-small"] $ do
+        explain aspectName
 
-aspectsList :: [HoroscopeAspect PlanetPosition PlanetPosition] -> [HoroscopeAspect PlanetPosition House] -> Html ()
-aspectsList aspects' axes'= do
-  ul_ [] $ do
-    forM_ aspects' $ \pa -> do
-      li_ $ do
-        planetAspectDetails pa  
-    forM_ axes' $ \aa -> do
-      li_ $ do
-        axisAspectDetails aa
+      div_ [class_ "flex-container"] $ do
+        div_ [class_ "flex-item"] $ do
+          attributeTitle_ "Classification"
+          span_ [class_ "text-large"] $ do
+            toHtml . toText $ aspectType
+        div_ [class_ "flex-item"] $ do
+          attributeTitle_ "Temperament"
+          span_ [class_ "text-large"] $ do
+            span_ [aspectColorStyle a] $ do
+              toHtml . toText $ temperament
+
+      div_ [class_ "flex-container"] $ do
+        div_ [class_ "flex-item"] $ do
+          attributeTitle_ "Angle"
+          span_ [class_ "text-large"] $ do
+            toHtml . toText $ angle
+        div_ [class_ "flex-item"] $ do
+          attributeTitle_ "Orb Used"
+          span_ [class_ "text-large"] $ do
+            toHtml . toText $ maxOrb
+
+      attributeTitle_ . toHtml $ (toText aspectName) <> "s in your chart:"
+      if (null planetAspects && null axesAspects) then
+        em_ . toHtml $ "No " <> (toText aspectName) <> "s appear in your chart."
+      else
+        aspectsTable planetAspects axesAspects
+      where
+        planetAspects = findAspectsByName allPlanetAspects aspectName
+        axesAspects = findAspectsByName allAxesAspects aspectName
+
 
 aspectsTable :: [HoroscopeAspect PlanetPosition PlanetPosition] -> [HoroscopeAspect PlanetPosition House] -> Html ()
 aspectsTable aspects' axes'= do
