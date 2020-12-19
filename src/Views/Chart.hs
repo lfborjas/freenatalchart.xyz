@@ -34,7 +34,7 @@ import Ephemeris
       zodiacSignElement
       )
 import Views.Common
-    ( broughtToYou, metaCeremony, otherLinks )
+    ( broughtToYou, metaCeremony, otherLinks, sourceCode )
 import Views.Chart.Explanations
     ( attribution,
       generalAspectsExplanation,
@@ -530,10 +530,10 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
       section_ [class_ "navbar-center"] $ do
         broughtToYou
       section_ [class_ "navbar-section"] $ do
-        a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.", class_ "btn btn-link"] "Source Code"
+        sourceCode
+
   where
     -- markup helpers
-
     headerIcon = i_ [class_ "icon icon-arrow-right mr-1 c-hand icon-right icon-light"] ""
     sectionHeading = h5_ [class_ "d-inline text-primary"]
     sunSign = (findSunSign horoscopePlanetPositions)

@@ -70,3 +70,10 @@ otherLinks :: Html ()
 otherLinks = do
     a_ [href_ "/about", class_ "btn btn-link text-white", title_ "tl;dr: your data is private, our source is free."] "About"
     a_ [href_ "https://blog.freenatalchart.xyz/", class_ "btn btn-link text-white", title_ "Announcements, technical writeups, notes on learning about astrology."] "Blog"
+
+sourceCode :: Html ()
+sourceCode = 
+    a_ 
+        [ href_ "https://github.com/lfborjas/freenatalchart.xyz"
+        , title_ "Made in Haskell with love and a bit of insanity."
+        ,  class_ "btn btn-link text-white"] "Source Code"

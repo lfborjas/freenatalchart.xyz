@@ -109,8 +109,7 @@ render ctx maybeForm = html_ $ do
                 section_ [class_ "navbar-center"] $ do
                     broughtToYou
                 section_ [class_ "navbar-section"] $ do
-                    a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.",  class_ "btn btn-link text-white"] "Source Code"
-
+                    sourceCode
         -- TODO: host this ourselves.
         script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
         script_ [src_ . pack $ assetPath <> "js/location.js"] (""::Text)

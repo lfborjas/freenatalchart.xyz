@@ -2,7 +2,7 @@
 *.swp
 tarballs/
 .stack-work/
-
+.vscode/
 .env
 dist-newstyle
 *.DS_Store
