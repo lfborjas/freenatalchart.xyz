@@ -33,7 +33,7 @@ stylesheets :: Html ()
 stylesheets = do
     -- we're using our own theme:
     -- https://github.com/natal-chart/firmament
-    link_ [rel_ "stylesheet", type_ "text/css", href_ "https://cdn.jsdelivr.net/gh/natal-chart/firmament@v0.0.1.0/dist/base.min.css"]
+    link_ [rel_ "stylesheet", type_ "text/css", href_ "https://cdn.jsdelivr.net/gh/natal-chart/firmament@v0.0.3.0/dist/base.min.css"]
 
 fonts :: Html ()
 fonts = do
@@ -70,3 +70,10 @@ otherLinks :: Html ()
 otherLinks = do
     a_ [href_ "/about", class_ "btn btn-link text-white", title_ "tl;dr: your data is private, our source is free."] "About"
     a_ [href_ "https://blog.freenatalchart.xyz/", class_ "btn btn-link text-white", title_ "Announcements, technical writeups, notes on learning about astrology."] "Blog"
+
+sourceCode :: Html ()
+sourceCode = 
+    a_ 
+        [ href_ "https://github.com/lfborjas/freenatalchart.xyz"
+        , title_ "Made in Haskell with love and a bit of insanity."
+        ,  class_ "btn btn-link text-white"] "Source Code"

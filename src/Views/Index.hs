@@ -26,10 +26,12 @@ render ctx maybeForm = html_ $ do
     body_ $ do
         div_ [id_ "main", class_ "container grid-sm"] $ do
             header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
-                section_ [class_ "navbar-section"] ""
-                section_ [class_ "navbar-section navbar-center"] $ do
-                    a_ [id_ "chart-of-the-moment", class_ "text-white text-italic", href_ "/full-chart?location=Queens&month=10&day=16&year=2020&hour=6&minute=36&day-part=pm&lat=40.6815&lng=-73.8365"] "Chart of the Moment"
-                section_ [class_ "navbar-section"] ""
+                section_ [class_ "navbar-section navbar-brand"] $ do
+                    a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
+                section_ [class_ "navbar-section navbar-center"] ""
+                section_ [class_ "navbar-section"] $ do
+                    a_ [id_ "chart-of-the-moment", class_ "text-white", href_ "/full-chart?location=Queens&month=10&day=16&year=2020&hour=6&minute=36&day-part=pm&lat=40.6815&lng=-73.8365"] "Chart of the Moment"
+
 
             h1_ [class_ "under-navbar text-primary text-center hero-title gold-stars-bg"] $ do
                 "Get your natal chart"
@@ -101,14 +103,13 @@ render ctx maybeForm = html_ $ do
                 -- audit accessibility: https://webaim.org/techniques/forms/controls
                 -- aria described by and invalid: https://webaim.org/techniques/formvalidation/
 
-            footer_ [class_ "navbar navbar-border-top"] $ do
+            footer_ [class_ "navbar navbar-border-top navbar-fixed navbar-fixed-bottom"] $ do
                 section_ [class_ "navbar-section"] $ do
                     otherLinks
                 section_ [class_ "navbar-center"] $ do
                     broughtToYou
                 section_ [class_ "navbar-section"] $ do
-                    a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.",  class_ "btn btn-link text-white"] "Source Code"
-
+                    sourceCode
         -- TODO: host this ourselves.
         script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
         script_ [src_ . pack $ assetPath <> "js/location.js"] (""::Text)

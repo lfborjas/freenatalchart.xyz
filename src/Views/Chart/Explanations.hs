@@ -4,9 +4,9 @@
 
 module Views.Chart.Explanations where
 
-import CMark ( commonmarkToHtml )
+import CMark ( commonmarkToHtml, optUnsafe, optSmart)
 import Data.String.Interpolate.IsString ( i )
-import Import ( ($), Monoid(mempty), (.), Text, forM_ )
+import Import ((&), HashMap,  ($), Monoid(mempty), (.), Text, forM_ )
 import Lucid ( Html, ToHtml(toHtml, toHtmlRaw), dd_, dl_, dt_ )
 import Ephemeris
     ( Planet(Chiron, Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn,
@@ -14,166 +14,175 @@ import Ephemeris
       ZodiacSignName(..),
       HouseNumber(..),
       AspectName(..) )
+import Data.HashMap.Strict (empty, fromList, lookupDefault)
 
 markdownToHtml :: Text -> Html ()
-markdownToHtml = toHtmlRaw . commonmarkToHtml []
+markdownToHtml = toHtmlRaw . commonmarkToHtml [optUnsafe, optSmart]
+
+m_ :: Text -> Html ()
+m_ = markdownToHtml
 
 class Explicable factor where
   explain :: factor -> Html ()
+  explain _ = mempty
 
-instance Explicable HouseNumber where
+  explanationAttributes :: factor -> HashMap Text (Html ())
+  explanationAttributes _ = empty
+
+  explanationAttribute :: factor -> Text -> (Html ())
+  explanationAttribute f attr =
+    lookupDefault mempty attr (explanationAttributes f)
+
+instance Explicable HouseNumber  where
   explain I =
     markdownToHtml
       [i|
-  The first house (_Ascendant_) is in the **South-Eastern** quadrant.
-  The Southern (nocturnal) hemisphere symbolizes one's inner/unconscious qualities, while
-  the Eastern hemisphere symbolizes how the Self relates to the world.
-  
   The first house starting point is the **Ascendant**: where the Sun rose for the astrological event in the chart,
   and as such it is significant in understanding how an individual approaches life and
   is seen by others.
-
-  It is often described as the House of the **Self**.
-
-  **Keywords**: conscious self, identity, self expression, first impressions, appearance.
   |]
-  explain II =
-    markdownToHtml
-      [i|
-  The second house is in the **South-Eastern** quadrant.
-  The Southern (nocturnal) hemisphere symbolizes one's inner/unconscious qualities, while
-  the Eastern hemisphere symbolizes how the Self relates to the world.
+  
 
-  The second house is often named the house of **Value, Finances or Money**.
-
-  **Keywords**: material situation, finances, assets, property, self worth, moral values, stability, security.
-  |]
-  explain III =
-    markdownToHtml
-      [i|
-  The third house is in the **South-Eastern** quadrant.
-  The Southern (nocturnal) hemisphere symbolizes one's inner/unconscious qualities, while
-  the Eastern hemisphere symbolizes how the Self relates to the world.
-
-  It is known as the house of **Intellect**.
-
-  **Keywords**: communication, perception, education, immediate environment (neighbors, family).
-  |]
   explain IV =
     markdownToHtml
       [i|
-  The fourth house is in the **South-Western** quadrant.
-  The Southern (nocturnal) hemisphere symbolizes one's inner/unconscious qualities, while
-  the Western hemisphere symbolizes how others influence/relate to the self.
-
   The fourth house's starting point is the **Immum Coeli (IC)**, which is the lowest point in the sky
   (the Sun's Nadir,) and as such it symbolizes the depths of one's connection to the soul. 
-  
-  It's known as the house of **Origins**.
-
-  **Keywords**: home, family, ancestry, parents, childhood.
   |]
-  explain V =
-    markdownToHtml
-      [i|
-  The fifth house is in the **South-Western** quadrant.
-  The Southern (nocturnal) hemisphere symbolizes one's inner/unconscious qualities, while
-  the Western hemisphere symbolizes how others influence/relate to the self.
 
-  It's known as the house of **Pleasure**.
 
-  **Keywords**: inner child, creativity, hobbies, interests, entertainment.
-  |]
-  explain VI =
-    markdownToHtml
-      [i|
-  The sixth house is in the **South-Western** quadrant.
-  The Southern (nocturnal) hemisphere symbolizes one's inner/unconscious qualities, while
-  the Western hemisphere symbolizes how others influence/relate to the self.
-
-  It's known as the house of **Service**.
-
-  **Keywords**: health, body, wellbeing, work (vs. career,) obligations, pets, colleagues.
-  |]
   explain VII =
     markdownToHtml
       [i|
-  The seventh house is in the **North-Western** quadrant.
-  The Northern (diurnal) hemisphere symbolizes one's extroverted/conscious qualities, while
-  the Western hemisphere symbolizes how others influence/relate to the self.
-
   The seventh house's starting point is the **Descendant (DC)**, which is where the Sun sets,
   and marks the threshold between the inner and the outer worlds and qualities and as such
   indicates the kinds of relationships the individual seeks, and the kind of people she/he
   attracts.
-
-  It's known as the house of **Relationships**. 
-  
-  **Keywords**: one-to-one relationships, romantic partners, open enemies.
   |]
-  explain VIII =
-    markdownToHtml
-      [i|
-  The eighth house is in the **North-Western** quadrant.
-  The Northern (diurnal) hemisphere symbolizes one's extroverted/conscious qualities, while
-  the Western hemisphere symbolizes how others influence/relate to the self.
 
-  It's known as the house of **Transformation**.
-
-  **Keywords**: change, death, rebirth, crisis, sexuality, personal growth, shared assets, shared values.
-  |]
-  explain IX =
-    markdownToHtml
-      [i|
-  The ninth house is in the **North-Western** quadrant.
-  The Northern (diurnal) hemisphere symbolizes one's extroverted/conscious qualities, while
-  the Western hemisphere symbolizes how others influence/relate to the self.
-
-  It's known as the house of **Spirituality**.
-
-  **Keywords**: belief systems, ideologies, religion, higher learning, worldview.
-  |]
   explain X =
     markdownToHtml
       [i|
-  The tenth house is in the **North-Eastern** quadrant.
-  The Northern (diurnal) hemisphere symbolizes one's extroverted/conscious qualities, while
-  the Eastern hemisphere symbolizes how the Self relates to the world.
-
   The tenth house's starting point is the **Midheaven (Medium Coeli, MC)**, which is the highest point in the
   sky (the Sun's zenith,) and as such symbolizes the culmination/goal of an individual's life.
   Where the fourth house (its opposite) symbolizes _roots_, the tenth house symbolizes _fruits_.
-
-  It's known as the house of **Ambition**.
-
-  **Keywords**: vocation, career (vs. work,) ambitions, achievements, social standing, social recognition.
-  |]
-  explain XI =
-    markdownToHtml
-      [i|
-  The eleventh house is in the **North-Eastern** quadrant.
-  The Northern (diurnal) hemisphere symbolizes one's extroverted/conscious qualities, while
-  the Eastern hemisphere symbolizes how the Self relates to the world.
-
-  It's known as the house of **Friendships**.
-  
-  **Keywords**: social life, groups, communities, feeling of belonging, contributions to the collective, encouragement from others.
-  |]
-  explain XII =
-    markdownToHtml
-      [i|
-  The twelfth house is in the **North-Eastern** quadrant.
-  The Northern (diurnal) hemisphere symbolizes one's extroverted/conscious qualities, while
-  the Eastern hemisphere symbolizes how the Self relates to the world.
-
-  It's known as the house of **Secrets**.
-
-  **Keywords**: dreams, hidden strengths/weaknessess, karma, secret enemies, withdrawal, transcendence, recuperation, mystical experience.
   |]
 
-instance Explicable ZodiacSignName where
-  explain Aries =
-    descriptions
+  -- | No special explanations for the other houses, only the axes.
+  explain _ = mempty
+
+  explanationAttributes I =
+    [
+      ("Keywords", "conscious self, identity, self expression, first impressions, appearance.")
+    , ("Quadrant", "South-Eastern")
+    , ("Alias", "House of the Self")
+    , ("LongitudeHemisphere", m_ "**Eastern Hemisphere**: self-expression")
+    , ("LatitudeHemisphere", m_ "**Southern Hemisphere**: inner-world, unconscious")
+    ] & fromList
+
+  explanationAttributes II =
+    [
+      ("Keywords", "material situation, finances, assets, property, self worth, moral values, stability, security.")
+    , ("Quadrant", "South-Eastern")
+    , ("Alias", "House of Value, Finances or Money")
+    , ("LongitudeHemisphere", m_ "**Eastern Hemisphere**: self-expression")
+    , ("LatitudeHemisphere", m_ "**Southern Hemisphere**: inner-world, unconscious")
+    ] & fromList
+
+  explanationAttributes III =
+    [
+      ("Keywords", "communication, perception, education, immediate environment (neighbors, family).")
+    , ("Quadrant", "South-Eastern")
+    , ("Alias", "House of Intellect")
+    , ("LongitudeHemisphere", m_ "**Eastern Hemisphere**: self-expression")
+    , ("LatitudeHemisphere", m_ "**Southern Hemisphere**: inner-world, unconscious")
+    ] & fromList
+
+  explanationAttributes IV =
+    [
+      ("Keywords", "home, family, ancestry, parents, childhood.")
+    , ("Quadrant", "South-Western")
+    , ("Alias", "House of Origins")
+    , ("LongitudeHemisphere", m_ "**Western Hemisphere**: relations to others")
+    , ("LatitudeHemisphere", m_ "**Southern Hemisphere**: inner-world, unconscious")
+    ] & fromList
+
+  explanationAttributes V =
+    [
+      ("Keywords", "inner child, creativity, hobbies, interests, entertainment.")
+    , ("Quadrant", "South-Western")
+    , ("Alias", "House of Pleasure")
+    , ("LongitudeHemisphere", m_ "**Western Hemisphere**: relations to others")
+    , ("LatitudeHemisphere", m_ "**Southern Hemisphere**: inner-world, unconscious")
+    ] & fromList
+
+  explanationAttributes VI =
+    [
+      ("Keywords", "health, body, wellbeing, work (vs. career,) obligations, pets, colleagues.")
+    , ("Quadrant", "South-Western")
+    , ("Alias", "House of Service")
+    , ("LongitudeHemisphere", m_ "**Western Hemisphere**: relations to others")
+    , ("LatitudeHemisphere", m_ "**Southern Hemisphere**: inner-world, unconscious")
+    ] & fromList
+
+  explanationAttributes VII =
+    [
+      ("Keywords", "one-to-one relationships, romantic partners, open enemies.")
+    , ("Quadrant", "North-Western")
+    , ("Alias", "House of Relationships")
+    , ("LongitudeHemisphere", m_ "**Western Hemisphere**: relations to others")
+    , ("LatitudeHemisphere", m_ "**Northern Hemisphere**: outer world, conscious")
+    ] & fromList
+
+  explanationAttributes VIII =
+    [
+      ("Keywords", "change, death, rebirth, crisis, sexuality, personal growth, shared assets, shared values.")
+    , ("Quadrant", "North-Western")
+    , ("Alias", "House of Transformation")
+    , ("LongitudeHemisphere", m_ "**Western Hemisphere**: relations to others")
+    , ("LatitudeHemisphere", m_ "**Northern Hemisphere**: outer world, conscious")
+    ] & fromList
+
+  explanationAttributes IX =
+    [
+      ("Keywords", "belief systems, ideologies, religion, higher learning, worldview.")
+    , ("Quadrant", "North-Western")
+    , ("Alias", "House of Spirituality")
+    , ("LongitudeHemisphere", m_ "**Western Hemisphere**: relations to others")
+    , ("LatitudeHemisphere", m_ "**Northern Hemisphere**: outer world, conscious")
+    ] & fromList
+
+  explanationAttributes X =
+    [
+      ("Keywords", "vocation, career (vs. work,) ambitions, achievements, social standing, social recognition.")
+    , ("Quadrant", "North-Eastern")
+    , ("Alias", "House of Ambition")
+    , ("LongitudeHemisphere", m_ "**Eastern Hemisphere**: self-expression")
+    , ("LatitudeHemisphere", m_ "**Northern Hemisphere**: outer world, conscious")
+    ] & fromList
+
+  explanationAttributes XI =
+    [
+      ("Keywords", "social life, groups, communities, feeling of belonging, contributions to the collective, encouragement from others.")
+    , ("Quadrant", "North-Eastern")
+    , ("Alias", "House of Friendships")
+    , ("LongitudeHemisphere", m_ "**Eastern Hemisphere**: self-expression")
+    , ("LatitudeHemisphere", m_ "**Northern Hemisphere**: outer world, conscious")
+    ] & fromList
+
+  explanationAttributes XII =
+    [
+      ("Keywords", "dreams, hidden strengths/weaknessess, karma, secret enemies, withdrawal, transcendence, recuperation, mystical experience.")
+    , ("Quadrant", "North-Eastern")
+    , ("Alias", "House of Secrets")
+    , ("LongitudeHemisphere", m_ "**Eastern Hemisphere**: self-expression")
+    , ("LatitudeHemisphere", m_ "**Northern Hemisphere**: outer world, conscious")
+    ] & fromList
+
+
+instance Explicable ZodiacSignName  where
+  explanationAttributes Aries =
+    fromList
       [ ("Element", "Fire"),
         ("Quality", "Cardinal"),
         ("Ruler", "Mars"),
@@ -182,8 +191,9 @@ instance Explicable ZodiacSignName where
         ("Strengths", "brave, direct, fearless, independent, leader."),
         ("Weaknesses", "aggressive, self-centered, pushy, inconsistent.")
       ]
-  explain Taurus =
-    descriptions
+  
+  explanationAttributes Taurus =
+    fromList
       [ ("Element", "Earth"),
         ("Quality", "Fixed"),
         ("Ruler", "Venus"),
@@ -192,8 +202,8 @@ instance Explicable ZodiacSignName where
         ("Strengths", "steady, driven, tenacious, patient, persistent"),
         ("Weaknesses", "materialistic, stubborn, possessive, indulgent")
       ]
-  explain Gemini =
-    descriptions
+  explanationAttributes Gemini =
+    fromList
       [ ("Element", "Air"),
         ("Quality", "Mutable"),
         ("Ruler", "Mercury"),
@@ -202,8 +212,8 @@ instance Explicable ZodiacSignName where
         ("Strengths", "intelligent, adaptable, agile, informative"),
         ("Weaknesses", "exaggerating, deceptive, cunning, superficial")
       ]
-  explain Cancer =
-    descriptions
+  explanationAttributes Cancer =
+    fromList
       [ ("Element", "Water"),
         ("Quality", "Cardinal"),
         ("Ruler", "Moon"),
@@ -212,8 +222,8 @@ instance Explicable ZodiacSignName where
         ("Strengths", "nurturing, supportive, compassionate"),
         ("Weaknesses", "dependent, passive aggressive, moody")
       ]
-  explain Leo =
-    descriptions
+  explanationAttributes Leo =
+    fromList
       [ ("Element", "Fire"),
         ("Quality", "Fixed"),
         ("Ruler", "Sun"),
@@ -222,8 +232,8 @@ instance Explicable ZodiacSignName where
         ("Strengths", "brave, playful, warm, generous, charismatic"),
         ("Weaknesses", "egotistical, domineering, vain, controlling")
       ]
-  explain Virgo =
-    descriptions
+  explanationAttributes Virgo =
+    fromList
       [ ("Element", "Earth"),
         ("Quality", "Mutable"),
         ("Ruler", "Mercury"),
@@ -232,8 +242,8 @@ instance Explicable ZodiacSignName where
         ("Strengths", "modest, humble, orderly, altruistic, logical"),
         ("Weaknesses", "obsessive, overly critical, perfectionist")
       ]
-  explain Libra =
-    descriptions
+  explanationAttributes Libra =
+    fromList
       [ ("Element", "Air"),
         ("Quality", "Cardinal"),
         ("Ruler", "Venus"),
@@ -242,8 +252,8 @@ instance Explicable ZodiacSignName where
         ("Strengths", "charming, diplomatic, easy-going, polished"),
         ("Weaknesses", "indecisive, gullible, hypocritical, shallow")
       ]
-  explain Scorpio =
-    descriptions
+  explanationAttributes Scorpio =
+    fromList
       [ ("Element", "Water"),
         ("Quality", "Fixed"),
         ("Ruler", "Pluto (traditionally, Mars)"),
@@ -252,8 +262,8 @@ instance Explicable ZodiacSignName where
         ("Strengths", "passionate, perceptive, sacrificing, determined"),
         ("Weaknesses", "vindictive, paranoid, destructive, jealous")
       ]
-  explain Sagittarius =
-    descriptions
+  explanationAttributes Sagittarius =
+    fromList
       [ ("Element", "Fire"),
         ("Quality", "Mutable"),
         ("Ruler", "Jupiter"),
@@ -262,8 +272,8 @@ instance Explicable ZodiacSignName where
         ("Strengths", "optimistic, moral, enthusiastic, open-minded"),
         ("Weaknesses", "lazy, restless, irresponsible, tactless")
       ]
-  explain Capricorn =
-    descriptions
+  explanationAttributes Capricorn =
+    fromList 
       [ ("Element", "Earth"),
         ("Quality", "Cardinal"),
         ("Ruler", "Saturn"),
@@ -272,8 +282,8 @@ instance Explicable ZodiacSignName where
         ("Strengths", "disciplined, strategic, ambitious, responsible"),
         ("Weaknesses", "pessimistic, greedy, cynical, ruthless, rigid")
       ]
-  explain Aquarius =
-    descriptions
+  explanationAttributes Aquarius =
+    fromList 
       [ ("Element", "Air"),
         ("Quality", "Fixed"),
         ("Ruler", "Uranus (traditionally, Saturn)"),
@@ -282,8 +292,8 @@ instance Explicable ZodiacSignName where
         ("Strengths", "inventive, humanistic, friendly, reformative"),
         ("Weaknesses", "emotionally detached, impersonal, aloof")
       ]
-  explain Pisces =
-    descriptions
+  explanationAttributes Pisces =
+    fromList 
       [ ("Element", "Water"),
         ("Quality", "Mutable"),
         ("Ruler", "Neptune (traditionally, Jupiter)"),
@@ -293,87 +303,87 @@ instance Explicable ZodiacSignName where
         ("Weaknesses", "escapist, unrealistic, submissive, codependent")
       ]
 
-instance Explicable Planet where
-  explain Sun =
-    descriptions
+instance Explicable Planet  where
+  explanationAttributes Sun =
+    fromList 
       [ ("Group", "Personal"),
         ("Rulership", "Leo"),
         ("Keywords", "ego, basic personality, conscious, vitality, stamina, life energy, will, personal identity")
       ]
-  explain Moon =
-    descriptions
+  explanationAttributes Moon =
+    fromList 
       [ ("Group", "Personal"),
         ("Rulership", "Cancer"),
         ("Keywords", "subconscious, emotions, instincts, habits, moods, maternity")
       ]
-  explain Mercury =
-    descriptions
+  explanationAttributes Mercury =
+    fromList 
       [ ("Group", "Personal"),
-        ("Rulerships", "Gemini, Virgo"),
+        ("Rulership", "Gemini, Virgo"),
         ("Keywords", "mind, communication, intellect, reason, language, intelligence")
       ]
-  explain Venus =
-    descriptions
+  explanationAttributes Venus =
+    fromList 
       [ ("Group", "Personal"),
-        ("Rulerships", "Taurus, Libra"),
+        ("Rulership", "Taurus, Libra"),
         ("Keywords", "attraction, love, beauty, harmony, artistic sensibility")
       ]
-  explain Mars =
-    descriptions
+  explanationAttributes Mars =
+    fromList 
       [ ("Group", "Personal"),
         ("Rulership", "Aries"),
         ("Keywords", "aggression, drive, action, desire, competition, courage, passion, self-assertion")
       ]
-  explain Jupiter =
-    descriptions
+  explanationAttributes Jupiter =
+    fromList 
       [ ("Group", "Social"),
         ("Rulership", "Sagittarius"),
         ("Keywords", "luck, growth, expansion, optimism, abundance, faith")
       ]
-  explain Saturn =
-    descriptions
+  explanationAttributes Saturn =
+    fromList 
       [ ("Group", "Social"),
         ("Rulership", "Capricorn"),
         ("Keywords", "structure, restriction, discipline, responsibility, obligation, concentration, limitation, material form")
       ]
-  explain Uranus =
-    descriptions
+  explanationAttributes Uranus =
+    fromList 
       [ ("Group", "Spiritual"),
         ("Rulership", "Aquarius"),
         ("Keywords", "eccentricity, rebellion, reformation, unpredictable change, liberation, disruption")
       ]
-  explain Neptune =
-    descriptions
+  explanationAttributes Neptune =
+    fromList 
       [ ("Group", "Spiritual"),
         ("Rulership", "Pisces"),
         ("Keywords", "dreams, intution, mysticism, imagination, delusion, disintegration of limits")
       ]
-  explain Pluto =
-    descriptions
+  explanationAttributes Pluto =
+    fromList 
       [ ("Group", "Spiritual"),
         ("Rulership", "Scorpio"),
         ("Keywords", "transformation, power, death, rebirth, evolution")
       ]
-  explain MeanNode =
-    descriptions
+  explanationAttributes MeanNode =
+    fromList 
       [ ("Also known as", "Ascending Node, North Node"),
         ("Notes", "Some astrologers use the 'True Node': both values are calculated points in the Moon's orbit, and are only ever less than a degree apart."),
         ("Keywords", "future, life's direction, goals")
       ]
-  explain MeanApog =
-    descriptions
+  explanationAttributes MeanApog =
+    fromList 
       [ ("Also known as", "Black Moon Lilith, Mean apogee"),
         ("Notes", "Some astrologers calculate Lilith as a focal point in the Moon's orbit, we use the 'mean' value of the moon's apogee: the point in the moon's orbit farthest away from Earth."),
         ("Keywords", "repressed self, anguish, resentment, rejection")
       ]
-  explain Chiron =
-    descriptions
+  explanationAttributes Chiron =
+    fromList 
       [ ("Keywords", "wounded self, healer, suffering, acceptance")
       ]
-  explain _ = mempty
+  explanationAttributes _ = empty
 
 -- https://www.astro.com/astrowiki/en/Aspect
-instance Explicable AspectName where
+instance Explicable AspectName  where
   explain Conjunction =
     markdownToHtml
       [i|
@@ -566,16 +576,16 @@ _triplicity_. More recently, signs are related to a particular [**quality**](htt
 
 The combination of a sign's _element_ and _quality_ can be used to deduce some useful symbolism:
 
-* __Fire__ signs are said to be creative, passionate, spontaneous and forceful.
-* __Earth__ signs are said to be practical, dependable, builders, cautious and reliable.
-* __Air__ signs are said to be communicative, clever, curious, objective.
-* __Water__ signs are said to be intuitive, sensitive, compassionate, moody
+* <strong class="text-fire">Fire</strong> signs are said to be creative, passionate, spontaneous and forceful.
+* <strong class="text-earth">Earth</strong> signs are said to be practical, dependable, builders, cautious and reliable.
+* <strong class="text-air">Air</strong> signs are said to be communicative, clever, curious, objective.
+* <strong class="text-water">Water</strong> signs are said to be intuitive, sensitive, compassionate, moody
 
 Meanwhile,
 
-* __Cardinal__ signs mark the _beginning_ of a season, and as such are initiators, ambitious, driven, enthusiastic.
-* __Fixed__ signs are the _middle_ of a season, and as such are steady, stable, resolute, reliable
-* __Mutable__ signs are the _end_ of a season, and as such are adaptable, flexible, resourceful, versatile
+* <strong class="text-light">Cardinal</strong> signs mark the _beginning_ of a season, and as such are initiators, ambitious, driven, enthusiastic.
+* <strong class="text-light">Fixed</strong> signs are the _middle_ of a season, and as such are steady, stable, resolute, reliable
+* <strong class="text-light">Mutable</strong> signs are the _end_ of a season, and as such are adaptable, flexible, resourceful, versatile
     |]
 
 --
@@ -621,7 +631,7 @@ The deviation from exact angle that's allowed to still recognize an aspect is ca
 Different astrological practices have different orbs: sometimes bigger celestial bodies (as seen from Earth,) like the Sun or Moon 
 are given larger orbs, or bodies that are close to each other are allowed wider orbs (like the Sun with Mercury;)
 while certain points that don't cast any light (like the Mean Node or the Ascendant) are not allowed any orbs.
-In our practice, we use [fairly generous orbs uniformly](#orbs-used), but we always show you the orb of any 
+In our practice, [we use fairly generous orbs uniformly](#orbs-used), but we always show you the orb of any 
 aspects, as well as precise positions for all celestial bodies, so you can always choose to ignore aspects
 or add others if you believe they improve the psychological portrait of your chart!
 
