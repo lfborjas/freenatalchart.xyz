@@ -319,13 +319,13 @@ instance Explicable Planet  where
   explanationAttributes Mercury =
     fromList 
       [ ("Group", "Personal"),
-        ("Rulerships", "Gemini, Virgo"),
+        ("Rulership", "Gemini, Virgo"),
         ("Keywords", "mind, communication, intellect, reason, language, intelligence")
       ]
   explanationAttributes Venus =
     fromList 
       [ ("Group", "Personal"),
-        ("Rulerships", "Taurus, Libra"),
+        ("Rulership", "Taurus, Libra"),
         ("Keywords", "attraction, love, beauty, harmony, artistic sensibility")
       ]
   explanationAttributes Mars =

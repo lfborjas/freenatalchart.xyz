@@ -54,6 +54,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
       "svg { height: auto; width: auto}\
       \.table-hover-dark tr:hover{ border-bottom: .05rem solid #9da8ff !important; }\
       \.flex-container{margin-top: 10px; margin-bottom: 10px;}\
+      \.light-links a{ color: white !important; }\
       \"
 
   body_ $ do
@@ -271,35 +272,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
 
           div_ [] $ do
             generalPlanetsExplanation
-            -- forM_ horoscopePlanetPositions $ \p -> do
-            --   h4_ [id_ $ pack . label . planetName $ p] $ do
-            --     asIcon . planetName $ p
-            --     " "
-            --     toHtml . label . planetName $ p
-            --   backToChart
-            --   p_ [] $ do
-            --     b_ "Located in: "
-            --     zodiacLink . planetLng $ p
-            --     if (isRetrograde p) then
-            --       b_ "(retrograde)"
-            --     else
-            --       mempty
-            --   p_ [] $ do
-            --     b_ "House: "
-            --     maybe mempty houseDetails (housePosition' . planetLng $ p)
 
-            --   explain . planetName $ p
-
-            --   let
-            --     aspects' = p & planetName & aspectsForPlanet' & catMaybes
-            --     axes'    = p & planetName & axesAspectsForPlanet' & catMaybes
-            --     in do
-            --       h5_ "Aspects: "
-            --       if (null aspects' && null axes') then
-            --         p_ $ do
-            --           em_ "This planet is unaspected. Note that not having any aspects is rare, which means this planet's sole influence can be quite significant."
-            --       else
-            --         aspectsList aspects' axes'
         divider_
         details_ [id_ "aspects", class_ "accordion my-2", open_ ""] $ do
           summary_ [class_ "accordion-header"] $ do
@@ -479,9 +452,62 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
                             forM_ planets' $ \p -> do
                               planetDetails p
 
-                          
+        divider_
+        details_ [id_ "my-planets", class_ "accordion my-2", open_ ""] $ do
+          summary_ [class_ "accordion-header"] $ do
+            headerIcon
+            sectionHeading "My Planets"
 
-              
+          div_ [] $ do
+            forM_ horoscopePlanetPositions $ \p -> do
+              div_ [cardDark_] $ do
+                div_ [class_ "card-header"] $ do
+                  div_ [class_ "card-title"] $ do
+                    h4_ [id_ $ pack . label . planetName $ p] $ do
+                      asIcon . planetName $ p
+                      " "
+                      toHtml . label . planetName $ p
+                  if (isRetrograde p) then
+                    div_ [class_ "card-subtitle"] $ do
+                      span_ [] "(retrograde)"
+                  else
+                    mempty
+
+                div_ [class_ "card-body"] $ do
+                  p_ [class_ "text-italic"] $ do
+                    explanationAttribute (planetName p) "Keywords"
+                  div_ [class_ "flex-container"] $ do
+                    div_ [class_ "flex-item"] $ do
+                      attributeTitle_ "Group"
+                      span_ [class_ "text-large"] $ do
+                        explanationAttribute (planetName p) "Group"
+                    div_ [class_ "flex-item"] $ do
+                      attributeTitle_ "Rulership"
+                      span_ [class_ "text-large"] $ do
+                        explanationAttribute (planetName p) "Rulership"
+
+                  div_ [class_ "divider divider-dark"] ""
+
+                  div_ [class_ "flex-container"] $ do
+                    div_ [class_ "flex-item"] $ do
+                      attributeTitle_ "House"
+                      span_ [class_ "text-large"] $ do
+                        maybe mempty (houseLinkFull . houseNumber) (housePosition' . planetLng $ p)
+                    div_ [class_ "flex-item"] $ do
+                      attributeTitle_ "Position"
+                      span_ [class_ "text-large"] $ do
+                        (zodiacLink' True) . planetLng $ p
+
+                  attributeTitle_ ("My Aspects to " <> (toHtml . toText . planetName $ p))
+                  let
+                    aspects' = p & planetName & aspectsForPlanet' & catMaybes
+                    axes' = p & planetName & axesAspectsForPlanet' & catMaybes
+                    in do
+                      if (null aspects' && null axes') then
+                        p_ $ do
+                          em_ "This planet is unaspected. Note that not having any aspects is rare, which means this planet's sole influence can be quite significant."
+                      else
+                        aspectsTable aspects' axes'
 
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footer_ [class_ "navbar bg-secondary"] $ do
@@ -506,7 +532,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
     planetsInSign'  = planetsInSign planetsBySign'
     housesBySign'   = housesBySign horoscopeHouses
     housesInSign'   = housesInSign housesBySign'
-    --housePosition'  = housePosition horoscopeHouses
+    housePosition'  = housePosition horoscopeHouses
     aspectsForPlanet' p = map (findAspectBetweenPlanets horoscopePlanetaryAspects p) [Sun .. Chiron]
     axesAspectsForPlanet' p = map (findAspectWithAngle horoscopeAngleAspects p)  [I, X]
     aspectDetails' = aspectDetails horoscopePlanetaryAspects horoscopeAngleAspects
@@ -553,35 +579,56 @@ aspectsList aspects' axes'= do
       li_ $ do
         axisAspectDetails aa
 
+aspectsTable :: [HoroscopeAspect PlanetPosition PlanetPosition] -> [HoroscopeAspect PlanetPosition House] -> Html ()
+aspectsTable aspects' axes'= do
+  table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
+    tbody_ $ do
+      forM_ aspects' $ \pa -> do
+        planetAspectDetails pa  
+      forM_ axes' $ \aa -> do
+        axisAspectDetails aa
+
 planetAspectDetails :: (HoroscopeAspect PlanetPosition PlanetPosition) -> Html ()
 planetAspectDetails HoroscopeAspect{..} = do
-  span_ [aspectColorStyle aspect] $ do
-    bodies & fst & planetName & asIcon
-    aspect & aspectName & asIcon
-    bodies & snd & planetName & asIcon
-  " — "
-  bodies & fst & planetName & planetLink
-  " "
-  strong_ $ aspect & aspectName & aspectLink
-  " "
-  bodies & snd & planetName & planetLink
-  "; orb: "
-  htmlDegrees' (True, True) orb
+  tr_ [class_ "light-links"] $ do
+    td_ [] $ do
+      span_ [class_ "text-light"] $ do
+        bodies & fst & planetName & asIcon
+      " "
+      bodies & fst & planetName & planetLink
+    td_ [] $ do
+      span_ [aspectColorStyle aspect] $ do
+        aspect & aspectName & asIcon
+      " "
+      aspect & aspectName & aspectLink
+    td_ [] $ do
+      span_ [class_ "text-light"] $ do
+        bodies & snd & planetName & asIcon
+      " "
+      bodies & snd & planetName & planetLink
+    td_ [] $ do
+      "with orb "
+      htmlDegrees' (True, True) orb
 
 axisAspectDetails :: (HoroscopeAspect PlanetPosition House) -> Html ()
 axisAspectDetails HoroscopeAspect{..} = do
-  span_ [aspectColorStyle aspect] $ do
-    bodies & fst & planetName & asIcon
-    aspect & aspectName & asIcon
-    bodies & snd & houseNumber & houseLabel
-  " — "
-  bodies & fst & planetName & planetLink
-  " "
-  strong_ $ aspect & aspectName & aspectLink
-  " "
-  bodies & snd & houseNumber & houseLink
-  "; orb: "
-  htmlDegrees' (True, True) orb
+  tr_ [class_ "light-links"] $ do
+    td_ [] $ do
+      span_ [class_ "text-light"] $ do
+        bodies & fst & planetName & asIcon
+        " "
+      bodies & fst & planetName & planetLink
+    td_ [] $ do
+      span_ [aspectColorStyle aspect] $ do
+        aspect & aspectName & asIcon
+      " "
+      aspect & aspectName & aspectLink
+    td_ [] $ do
+      bodies & snd & houseNumber & asIcon
+      bodies & snd & houseNumber & houseLinkFull
+    td_ [] $ do
+      "orb: "
+      htmlDegrees' (True, True) orb
 
 planetDetails :: PlanetPosition -> Html ()
 planetDetails PlanetPosition{..} = tr_ [] $ do
@@ -695,6 +742,12 @@ houseLink h =
   where
     textLabel = h & label & pack
   
+houseLinkFull :: HouseNumber -> Html ()
+houseLinkFull houseNumber =
+  a_ [href_ $ "#house-" <> toText houseNumber] $ do
+    toHtml $ "House " <> toText houseNumber
+    houseLabel houseNumber
+
 aspectLink :: AspectName -> Html ()
 aspectLink a =
   a_ [href_ $ "#" <> textLabel] $ do
