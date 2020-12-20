@@ -16,16 +16,13 @@ render renderCtx = do
 
     body_ $ do
         div_ [id_ "main", class_ "container"] $ do
+            header_ [class_ "navbar bg-dark"] $ do
+                section_ [class_ "navbar-section navbar-brand"] $ do
+                    a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
             toHtmlRaw $ 
                 commonmarkToHtml [] pablum
             
-            footer_ [class_ "navbar bg-secondary"] $ do
-                section_ [class_ "navbar-section"] $ do
-                    a_ [href_ "/", class_ "btn btn-link", title_ "Start here to get your free natal chart"] "Draw me a chart"
-                section_ [class_ "navbar-center"] $ do
-                    broughtToYou
-                section_ [class_ "navbar-section"] $ do
-                    a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz", title_ "Made in Haskell with love and a bit of insanity.",  class_ "btn btn-link"] "Source Code"
+            footerNav
 
 
 pablum :: Text
