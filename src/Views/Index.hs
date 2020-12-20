@@ -26,7 +26,7 @@ render ctx maybeForm = html_ $ do
     body_ $ do
         div_ [id_ "main", class_ "container grid-sm"] $ do
             header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
-                section_ [class_ "navbar-section navbar-brand"] $ do
+                section_ [class_ "navbar-section navbar-brand hide-sm"] $ do
                     a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
                 section_ [class_ "navbar-section navbar-center"] ""
                 section_ [class_ "navbar-section"] $ do
@@ -41,7 +41,7 @@ render ctx maybeForm = html_ $ do
                 a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues/new/choose"] $ do
                     "Report an issue"
 
-            form_ [action_ "/full-chart", method_ "get"] $ do
+            form_ [action_ "/full-chart", method_ "get", style_ "min-height: 50vh;"] $ do
                 div_ [class_ (formGroupClass (val formLocation) (err InvalidLocation))] $ do
                     label_ [class_ "form-label", for_ "location"] "Born in"
                     input_ [ class_ "form-input input-transparent"
@@ -103,13 +103,7 @@ render ctx maybeForm = html_ $ do
                 -- audit accessibility: https://webaim.org/techniques/forms/controls
                 -- aria described by and invalid: https://webaim.org/techniques/formvalidation/
 
-            footer_ [class_ "navbar navbar-border-top navbar-fixed navbar-fixed-bottom"] $ do
-                section_ [class_ "navbar-section"] $ do
-                    otherLinks
-                section_ [class_ "navbar-center"] $ do
-                    broughtToYou
-                section_ [class_ "navbar-section"] $ do
-                    sourceCode
+            footerNav
         -- TODO: host this ourselves.
         script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
         script_ [src_ . pack $ assetPath <> "js/location.js"] (""::Text)

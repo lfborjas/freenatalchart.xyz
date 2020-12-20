@@ -34,7 +34,7 @@ import Ephemeris
       zodiacSignElement
       )
 import Views.Common
-    ( broughtToYou, metaCeremony, otherLinks, sourceCode )
+    (footerNav, metaCeremony)
 import Views.Chart.Explanations
     ( attribution,
       generalAspectsExplanation,
@@ -235,13 +235,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
               aspectDetails' a
 
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
-    footer_ [class_ "navbar bg-secondary"] $ do
-      section_ [class_ "navbar-section"] $ do
-        otherLinks
-      section_ [class_ "navbar-center"] $ do
-        broughtToYou
-      section_ [class_ "navbar-section"] $ do
-        sourceCode
+    footerNav
 
   where
     -- markup helpers
@@ -262,10 +256,12 @@ navbar_ =
     section_ [class_ "navbar-section"] $ do
       a_ [href_ "/", class_ "mr-2"] $ do
         i_ [class_ "icon icon-refresh", title_ "Draw Another Chart"] ""
+        span_ [class_ "hide-sm"] " Draw Another Chart"
     section_ [class_ "navbar-section navbar-center navbar-brand"] $ do
        a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
     section_ [class_ "navbar-section"] $ do
       a_ [href_ "#chart"] $ do
+        span_ [class_ "hide-sm"] "Back to Top "
         i_ [class_ "icon icon-upward", title_ "Back to Top"] ""
 
 planetPositionsTable :: [PlanetPosition] -> [House] ->  Html ()
