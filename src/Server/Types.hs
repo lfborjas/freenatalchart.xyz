@@ -10,7 +10,7 @@
 module Server.Types where
 
 import Import
-    (const,  ($),
+    (($),
       Eq,
       Monad((>>=)),
       Read,
@@ -59,10 +59,8 @@ import RIO.Text (pack)
 import Ephemeris.Types
     ( Latitude(unLatitude),
       Longitude(unLongitude),
-      HoroscopeData,
       mkLatitude,
       mkLongitude )
-import RIO.Prelude.Types (Identity)
 
 type Param' = QueryParam' '[Required, Lenient]
 

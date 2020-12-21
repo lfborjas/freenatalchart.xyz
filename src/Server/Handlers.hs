@@ -49,7 +49,7 @@ chart loc d m y h min' dp lt lng = do
             return $ cacheForOneDay $ TextDocument {asHtml = (Index.render env (Just f)), asText = (pack . show $ f)}
         Right birthData -> do
             renderedChartHtml <- renderChartPage birthData (ChartPage.render)
-            renderedChartText <- renderChartPage birthData (const mempty)
+            renderedChartText <- renderChartPage birthData (ChartPage.renderText)
             return $ cacheForOneDay $ TextDocument {asHtml = renderedChartHtml, asText = renderedChartText}
 
 --renderChartPage :: BirthData -> (BirthData -> Html ()) -> AppM (Html ())

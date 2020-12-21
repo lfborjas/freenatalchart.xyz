@@ -3,12 +3,12 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Views.Chart (render) where
+module Views.Chart (render, renderText) where
 
 import Chart.Graphics (renderChart)
 import qualified Graphics.Svg as Svg
 import Import
-import Lucid
+import Lucid hiding (renderText)
 import RIO.Text (pack, toLower)
 import RIO.Time (rfc822DateFormat, formatTime, defaultTimeLocale)
 import Ephemeris
@@ -44,6 +44,22 @@ import Views.Chart.Explanations
       Explicable(..), explanationAttribute )
 import Text.Printf (printf)
 import Ephemeris.Types
+import qualified RIO.Text as T
+import RIO.Writer (MonadWriter(tell), Writer(..), execWriter)
+
+renderText :: HasStaticRoot a => a -> BirthData -> HoroscopeData -> Text
+renderText _ BirthData {..} HoroscopeData{..}= 
+  -- Writer Text ()
+  execWriter $ do
+    tellLine "Freenatalchart.xyz"
+    tellLine "=================="
+    tellLine ""
+    tellLine "Horoscope for:"
+    tell . pack $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z"
+    tellLine "More coming soon."
+
+tellLine :: Text -> (Writer Text ())
+tellLine t = tell (t <> "\n")
 
 render :: HasStaticRoot a => a -> BirthData -> HoroscopeData -> Html ()
 render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
