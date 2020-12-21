@@ -17,6 +17,9 @@ import Control.Monad (ap)
 import Ephemeris.Internal.Approximations (maxSpeed)
 import Database.SQLite.Simple (withConnection)
 
+-- | Given planetary aspects (in which it's always "transiting aspects transited",)
+-- and a reference time, derive transit activity: when does it begin and end, and is it exact
+-- within a day of the reference time?
 transits :: EphemerisDatabase -> JulianTime -> [PlanetaryAspect] -> IO [PlanetaryTransit]
 transits epheDB momentOfTransit planetaryAspects = 
   withConnection epheDB $ \conn -> do

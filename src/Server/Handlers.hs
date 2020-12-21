@@ -16,7 +16,6 @@ import qualified Views.Index as Index
 import qualified Views.About as About
 import qualified Views.Chart as ChartPage
 import Ephemeris ( HoroscopeData, Latitude, Longitude, horoscope )
-import Lucid (Html)
 
 service :: ServerT Service AppM
 service = 
@@ -39,7 +38,7 @@ chart :: ParsedParameter Text ->
     ParsedParameter DayPart ->
     ParsedParameter Latitude ->
     ParsedParameter Longitude ->
-    AppM (Cached HoroscopeOrError)
+    AppM (Cached TextDocument)
 chart loc d m y h min' dp lt lng = do
     env <- ask
     let form = ChartForm loc lt lng y m d h min' dp
@@ -47,18 +46,20 @@ chart loc d m y h min' dp lt lng = do
     case validated of
         Left f -> do 
             logInfo $ fromString $ show f
-            return $ cacheForOneDay $ TryAgain (Index.render env (Just f))
+            return $ cacheForOneDay $ TextDocument {asHtml = (Index.render env (Just f)), asText = (pack . show $ f)}
         Right birthData -> do
-            return $ cacheForOneDay $ TryAgain (Index.render env Nothing)
-            --renderChartPage birthData
+            renderedChartHtml <- renderChartPage birthData (ChartPage.render)
+            renderedChartText <- renderChartPage birthData (const mempty)
+            return $ cacheForOneDay $ TextDocument {asHtml = renderedChartHtml, asText = renderedChartText}
 
-renderChartPage :: BirthData -> AppM CachedHtml
-renderChartPage birthData = do
+--renderChartPage :: BirthData -> (BirthData -> Html ()) -> AppM (Html ())
+renderChartPage :: (MonadReader t m, MonadIO m, HasTimeZoneDatabase t, HasEphePath t) => BirthData -> (t -> BirthData -> HoroscopeData -> b) -> m b
+renderChartPage birthData renderer = do
     env <- ask
     let ephemerides = env ^. ephePathL
         tzDatabase  = env ^. timeZoneDatabaseL
     horoscopeData <- liftIO $ horoscope tzDatabase ephemerides birthData
-    return $ cacheForOneDay $ ChartPage.render env birthData horoscopeData
+    return $ renderer env birthData horoscopeData
 
 about :: AppM CachedHtml
 about = do

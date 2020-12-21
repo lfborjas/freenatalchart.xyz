@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -9,7 +10,7 @@
 module Server.Types where
 
 import Import
-    ( ($),
+    (const,  ($),
       Eq,
       Monad((>>=)),
       Read,
@@ -39,7 +40,7 @@ import Import
       Month(..),
       Year(..) )
 import Servant
-    ( Handler,
+    (MimeRender(..), PlainText,  Handler,
       Header,
       type (:<|>),
       Headers,
@@ -52,7 +53,7 @@ import Servant
       ToHttpApiData(toUrlPiece),
       QueryParam' )
 import Servant.HTML.Lucid ( HTML )
-import Lucid.Base (Html)
+import Lucid.Base (relaxHtmlT, ToHtml(..), Html)
 import Validation (Validation)
 import RIO.Text (pack)
 import Ephemeris.Types
@@ -61,6 +62,7 @@ import Ephemeris.Types
       HoroscopeData,
       mkLatitude,
       mkLongitude )
+import RIO.Prelude.Types (Identity)
 
 type Param' = QueryParam' '[Required, Lenient]
 
@@ -77,7 +79,7 @@ type Service =
         :> Param' "day-part" DayPart
         :> Param' "lat" Latitude
         :> Param' "lng" Longitude
-        :> Get '[HTML] (Cached HoroscopeOrError)
+        :> Get '[HTML, PlainText] (Cached TextDocument)
     :<|> Raw
 
 type AppM = ReaderT AppContext Servant.Handler
@@ -85,10 +87,18 @@ type AppM = ReaderT AppContext Servant.Handler
 type Cached a = Headers '[Header "Cache-Control" Text] a
 type CachedHtml = Cached (Html ())
 
-type FormPage = Html ()
-data HoroscopeOrError
-    = Horoscope HoroscopeData 
-    | TryAgain FormPage
+data TextDocument = 
+    TextDocument {
+        asHtml :: Html ()
+    ,   asText :: Text
+    } 
+
+instance ToHtml TextDocument where
+    toHtml = relaxHtmlT . asHtml
+    toHtmlRaw = relaxHtmlT . asHtml
+
+instance MimeRender PlainText TextDocument where
+    mimeRender proxy val = mimeRender proxy $ asText val
 
 -- Form types:
 
