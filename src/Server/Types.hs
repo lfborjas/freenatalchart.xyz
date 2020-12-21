@@ -58,6 +58,7 @@ import RIO.Text (pack)
 import Ephemeris.Types
     ( Latitude(unLatitude),
       Longitude(unLongitude),
+      HoroscopeData,
       mkLatitude,
       mkLongitude )
 
@@ -76,12 +77,18 @@ type Service =
         :> Param' "day-part" DayPart
         :> Param' "lat" Latitude
         :> Param' "lng" Longitude
-        :> Get '[HTML]  (Headers '[Header "Cache-Control" Text] (Html ()))
+        :> Get '[HTML] (Cached HoroscopeOrError)
     :<|> Raw
 
 type AppM = ReaderT AppContext Servant.Handler
 
-type CachedHtml =  (Headers '[Header "Cache-Control" Text] (Html ()))
+type Cached a = Headers '[Header "Cache-Control" Text] a
+type CachedHtml = Cached (Html ())
+
+type FormPage = Html ()
+data HoroscopeOrError
+    = Horoscope HoroscopeData 
+    | TryAgain FormPage
 
 -- Form types:
 

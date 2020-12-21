@@ -15,7 +15,7 @@ import Control.Selective (ifS)
 import qualified Views.Index as Index
 import qualified Views.About as About
 import qualified Views.Chart as ChartPage
-import Ephemeris ( Latitude, Longitude, horoscope )
+import Ephemeris ( HoroscopeData, Latitude, Longitude, horoscope )
 import Lucid (Html)
 
 service :: ServerT Service AppM
@@ -39,7 +39,7 @@ chart :: ParsedParameter Text ->
     ParsedParameter DayPart ->
     ParsedParameter Latitude ->
     ParsedParameter Longitude ->
-    AppM CachedHtml
+    AppM (Cached HoroscopeOrError)
 chart loc d m y h min' dp lt lng = do
     env <- ask
     let form = ChartForm loc lt lng y m d h min' dp
@@ -47,9 +47,10 @@ chart loc d m y h min' dp lt lng = do
     case validated of
         Left f -> do 
             logInfo $ fromString $ show f
-            return $ cacheForOneDay $ Index.render env (Just f)
+            return $ cacheForOneDay $ TryAgain (Index.render env (Just f))
         Right birthData -> do
-            renderChartPage birthData
+            return $ cacheForOneDay $ TryAgain (Index.render env Nothing)
+            --renderChartPage birthData
 
 renderChartPage :: BirthData -> AppM CachedHtml
 renderChartPage birthData = do
@@ -73,7 +74,7 @@ about = do
 -- | Cache for a day, revalidate, but give 1 hour of "grace" while revalidating
 -- TODO: add a last-modified or etag header, but also need a way of returning 304s!
 -- informed by: https://csswizardry.com/2019/03/cache-control-for-civilians/
-cacheForOneDay :: Html () -> CachedHtml
+cacheForOneDay :: a -> Cached a
 cacheForOneDay = addHeader "public, max-age=86400, stale-while-revalidate=3600"
 
 ---
