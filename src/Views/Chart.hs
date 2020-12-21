@@ -9,7 +9,7 @@ import Chart.Graphics (renderChart)
 import qualified Graphics.Svg as Svg
 import Import
 import Lucid hiding (renderText)
-import RIO.Text (pack, toLower)
+import RIO.Text (intercalate, justifyLeft, pack, toLower)
 import RIO.Time (rfc822DateFormat, formatTime, defaultTimeLocale)
 import Ephemeris
     ( majorAspects,
@@ -44,19 +44,133 @@ import Views.Chart.Explanations
       Explicable(..), explanationAttribute )
 import Text.Printf (printf)
 import Ephemeris.Types
+import RIO.Writer (MonadWriter(tell), Writer, execWriter)
+import RIO.List.Partial (maximum)
 import qualified RIO.Text as T
-import RIO.Writer (MonadWriter(tell), Writer(..), execWriter)
 
-renderText :: HasStaticRoot a => a -> BirthData -> HoroscopeData -> Text
+renderText :: a -> BirthData -> HoroscopeData -> Text
 renderText _ BirthData {..} HoroscopeData{..}= 
   -- Writer Text ()
   execWriter $ do
-    tellLine "Freenatalchart.xyz"
-    tellLine "=================="
-    tellLine ""
-    tellLine "Horoscope for:"
-    tell . pack $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z"
-    tellLine "More coming soon."
+    ln_ "Freenatalchart.xyz"
+    ln_ "=================="
+    ln_ ""
+    ln_ "Horoscope for:"
+    ln_ . pack $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z"
+    ln_ $ (birthLocation & locationInput) <> " " <> (latLngTxt birthLocation)
+    ln_ ""
+    ln_ $ "Sun sign: " <> maybe mempty labelText sunSign
+    ln_ $ "Moon: " <> maybe mempty labelText moonSign
+    ln_ $ "Ascendant: " <> maybe mempty labelText asc
+    ln_ ""
+    ln_ "Planet Positions"
+    ln_ "----------------"
+    -- TODO: justifyLeft?
+    ln_ . heading $ 
+      [
+        justifyPlanetPos "Planet", justifyHouseNum "House",
+        justifyLongitude "Longitude", justifyDouble "Speed",
+        justifyLatitude "Latitude", justifyDeclination "Declination",
+        "Zodiac Longitude"
+      ]
+    forM_ horoscopePlanetPositions $ \pp@PlanetPosition {..} -> do
+      if isRetrograde pp then
+        tell . justifyPlanetPos $ (labelText planetName)  <> " (r)"
+      else
+        tell . justifyPlanetPos $ (labelText planetName)
+      tell "|"
+      tell . justifyHouseNum $ housePositionText $ housePosition horoscopeHouses planetLng
+      tell "|"
+      tell . justifyLongitude . pack $ formatDouble $ unLongitude planetLng
+      tell "|"
+      tell . justifyDouble . pack $ formatDouble $ planetLngSpeed
+      tell "|"
+      tell . justifyLatitude . pack $ formatDouble $ unLatitude planetLat
+      tell "|"
+      tell . justifyDeclination . pack $ formatDouble $ planetDeclination
+      tell "|"
+      tell $ textDegreesZodiac planetLng
+      ln_ ""
+    ln_ ""
+    ln_ $ "House Cusps" <> "( " <> (pack . show $ horoscopeSystem) <> " )"
+    ln_ "-----------"
+    ln_ . heading $
+      [
+        justifyHouseNum "House", justifyDouble "Cusp", justifyDeclination "Declination",
+        "Zodiac Longitude"
+      ] 
+    forM_ horoscopeHouses $ \hc@House {..} -> do
+      tell . justifyHouseNum . housePositionText $ (Just hc)
+      tell "|"
+      tell . justifyDouble . pack . formatDouble . unLongitude $ houseCusp
+      tell "|"
+      tell . justifyDeclination . pack . formatDouble $ houseDeclination
+      tell "|"
+      tell $ textDegreesZodiac houseCusp
+      ln_ ""
+    ln_ ""
+    ln_ "Planetary Aspects"
+    ln_ "-----------------"
+    ln_ aspectsHeading
+    forM_ horoscopePlanetaryAspects $ \(HoroscopeAspect aspect (aspecting, aspected) angle orb) -> do
+      tell . justifyAspecting . labelText . planetName $ aspecting
+      tell "|"
+      tell . justifyAspect . labelText . aspectName $ aspect
+      tell "|"
+      tell . justifyAspected . labelText . planetName $ aspected
+      tell "|"
+      tell . justifyDouble . pack $ formatDouble angle
+      tell "|"
+      tell . justifyDouble . pack $ formatDouble orb
+      ln_ ""
+    ln_ ""
+    ln_ "Axes Aspects"
+    ln_ "-----------------"
+    ln_ aspectsHeading
+    forM_ horoscopeAngleAspects $ \(HoroscopeAspect aspect (aspecting, aspected) angle orb) -> do
+      tell . justifyAspecting . labelText . planetName $ aspecting
+      tell "|"
+      tell . justifyAspect . labelText . aspectName $ aspect
+      tell "|"
+      tell . justifyAspected . houseAspectLabel . houseNumber $ aspected
+      tell "|"
+      tell . justifyDouble . pack $ formatDouble angle
+      tell "|"
+      tell . justifyDouble . pack $ formatDouble orb
+      ln_ ""
+  where
+    ln_ = tellLine
+    sunSign = (findSunSign horoscopePlanetPositions)
+    moonSign = (findMoonSign horoscopePlanetPositions)
+    asc = (findAscendant horoscopeHouses)
+    labelText :: (HasLabel a) => a -> Text
+    labelText = pack . label
+    houseAspectLabel :: HouseNumber -> Text
+    houseAspectLabel I = "Asc"
+    houseAspectLabel X = "MC"
+    houseAspectLabel h = labelText h
+    colWidth :: HasLabel a => [a] -> Int
+    colWidth = maximum . map (length . label)
+    planetWidth = colWidth defaultPlanets
+    doubleWidth = 8
+    aspectWidth = colWidth $ map aspectName (majorAspects <> minorAspects)
+    justifyPlanetPos = justifyLeft (planetWidth + 4) ' '
+    justifyHouseNum  = justifyLeft (length ("House"::String)) ' '
+    justifyLongitude = justifyLeft (length ("Longitude"::String)) ' '
+    justifyDouble    = justifyLeft doubleWidth ' '
+    justifyLatitude  = justifyLeft (length ("Latitude"::String)) ' '
+    justifyDeclination = justifyLeft (length ("Declination"::String)) ' '
+    heading = intercalate "|"
+    justifyAspecting = justifyLeft (maximum [length ("Aspecting"::String), planetWidth]) ' '
+    justifyAspected  = justifyLeft (maximum [length ("Aspected"::String), planetWidth]) ' '
+    justifyAspect    = justifyLeft (maximum [length ("Aspect"::String), aspectWidth]) ' '
+    aspectsHeading = 
+      heading [
+          justifyAspecting "Aspecting", justifyAspect "Aspect"
+        , justifyAspected "Aspected", justifyDouble "Angle"
+        , justifyDouble "Orb"
+        ]
+
 
 tellLine :: Text -> (Writer Text ())
 tellLine t = tell (t <> "\n")
@@ -727,6 +841,56 @@ htmlDegreesZodiac p =
     pl = getLongitudeRaw p
     split = splitDegreesZodiac pl
 
+textDegreesZodiac :: HasLongitude a => a -> Text
+textDegreesZodiac p =
+  T.concat [
+    maybe mempty asEmoji (split & longitudeZodiacSign)
+    , ((" " <> (toText $ longitudeDegrees split)) <> "° ")
+    , ((toText $ longitudeMinutes split) <> "\' ")
+    , ((toText $ longitudeSeconds split) <> "\"")
+  ]
+  where
+    pl = getLongitudeRaw p
+    split = splitDegreesZodiac pl
+    asEmoji :: ZodiacSignName -> Text
+    asEmoji z =
+      case z of
+        Aries ->
+            "♈️"
+
+        Taurus ->
+            "♉️"
+
+        Gemini ->
+            "♊️"
+
+        Cancer ->
+            "♋️"
+
+        Leo ->
+            "♌️"
+
+        Virgo ->
+            "♍️"
+
+        Libra ->
+            "♎️"
+
+        Scorpio ->
+            "♏️"
+
+        Sagittarius ->
+            "♐️"
+
+        Capricorn ->
+            "♑️"
+
+        Aquarius ->
+            "♒️"
+
+        Pisces ->
+            "♓️"
+
 htmlDegreesLatitude :: Latitude -> Html ()
 htmlDegreesLatitude l =
   span_ [title_ . pack . formatDouble . unLatitude $ l] $ do
@@ -739,14 +903,17 @@ htmlDegreesLatitude l =
     direction :: Text
     direction = if (unLatitude l) < 0 then "S" else "N"
 
-latLngHtml :: Location -> Html ()
-latLngHtml Location {..} =
-  toHtml $ " (" <> lnText <> ", " <> ltText <> ")"
+latLngTxt :: Location -> Text
+latLngTxt Location {..} =
+  " (" <> lnText <> ", " <> ltText <> ")"
   where
     lnSplit = splitDegrees . unLongitude $ locationLongitude
     lnText = pack $ (show $ longitudeDegrees lnSplit) <> (if locationLongitude > 0 then "e" else "w") <> (show $ longitudeMinutes lnSplit)
     ltSplit = splitDegrees . unLatitude $ locationLatitude
     ltText = pack $ (show $ longitudeDegrees ltSplit) <> (if locationLatitude > 0 then "n" else "s") <> (show $ longitudeMinutes ltSplit)
+
+latLngHtml :: Location -> Html ()
+latLngHtml = toHtml . latLngTxt
 
 htmlDegrees :: Double -> Html ()
 htmlDegrees = htmlDegrees' (True, True)
@@ -811,10 +978,13 @@ aspectLink a =
   where
     textLabel = a & toText 
 
+housePositionText :: Maybe House -> Text 
+housePositionText Nothing = mempty
+housePositionText (Just House {..}) =
+   toText . (+ 1) . fromEnum $ houseNumber
+
 housePositionHtml :: Maybe House -> Html ()
-housePositionHtml Nothing = mempty
-housePositionHtml (Just House {..}) =
-  toHtml . toText . (+ 1) . fromEnum $ houseNumber
+housePositionHtml = toHtml . housePositionText
 
 planetLabel :: Planet -> Html ()
 planetLabel MeanNode = toHtml (" Mean Node" :: Text)
