@@ -37,6 +37,17 @@ defaultAspects = majorAspects <> minorAspects
 transitAspects :: [Aspect]
 transitAspects = map (\a -> a{maxOrb = 1.0}) majorAspects
 
+-- TODO(luis) this may also suffer from the 0/360 false negative!
+exactAspectAngle ::  (HasLongitude a) => HoroscopeAspect a b -> Longitude
+exactAspectAngle (HoroscopeAspect aspect' (aspecting, _aspected) angle' orb') =
+  if angle' > (angle aspect') then
+    Longitude $ aspectingLongitude + orb'
+  else
+    Longitude $ aspectingLongitude - orb'
+  where
+    aspectingLongitude = aspecting & getLongitudeRaw
+  
+
 aspects' :: (HasLongitude a, HasLongitude b) => [Aspect] -> [a] -> [b] -> [HoroscopeAspect a b]
 aspects' possibleAspects bodiesA bodiesB =
   (concatMap aspectsBetween pairs) & catMaybes

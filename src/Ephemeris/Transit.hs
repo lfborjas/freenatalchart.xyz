@@ -16,6 +16,11 @@ import Control.Applicative
 import Control.Monad (ap)
 import Ephemeris.Internal.Approximations (maxSpeed)
 import Database.SQLite.Simple (withConnection)
+import Database.SQLite.Simple.Internal (Connection)
+import Ephemeris.Aspect (exactAspectAngle)
+import Ephemeris.Internal.Database (crossingCandidatesQuery, activityPeriodQuery)
+import Ephemeris.Utils (julianToUTC)
+import RIO.List (sortBy, sort)
 
 -- | Given planetary aspects (in which it's always "transiting aspects transited",)
 -- and a reference time, derive transit activity: when does it begin and end, and is it exact
@@ -23,7 +28,30 @@ import Database.SQLite.Simple (withConnection)
 transits :: EphemerisDatabase -> JulianTime -> [PlanetaryAspect] -> IO [PlanetaryTransit]
 transits epheDB momentOfTransit planetaryAspects = 
   withConnection epheDB $ \conn -> do
-    pure []
+    -- TODO: rank!
+    mapM (transit conn momentOfTransit) planetaryAspects
+
+transit :: Connection -> JulianTime -> PlanetaryAspect -> IO PlanetaryTransit 
+transit conn momentOfTransit a@(HoroscopeAspect _aspect' (transiting', transited') _angle' _orb') = 
+  do
+    let transitAspectLongitude = exactAspectAngle a
+        transitingPlanet = transiting' & planetName
+    (activityStarts, activityEnds) <- activityPeriodQuery conn transitingPlanet transitAspectLongitude momentOfTransit
+    crossingCandidates <- crossingCandidatesQuery conn transitingPlanet transitAspectLongitude momentOfTransit
+
+    -- only consider crossing candidates that are at most day before or after the reference date.
+    let immediateCrossings = filter ((<= 1) . abs . (subtract momentOfTransit)) crossingCandidates
+    -- this is the only moment where we actually touch swiss ephemeris:
+        exactImmediateCrossings =  [x | ExactAt x <- map (findExactTransitAround transitingPlanet transitAspectLongitude) immediateCrossings]
+    pure $
+      Transit {
+        transiting = transiting'
+      , transited  = transited'
+      , transitStarts = julianToUTC <$> activityStarts 
+      , transitEnds   = julianToUTC <$> activityEnds
+      -- triggers within a day of the reference moment, sorted from latest to earliest.
+      , immediateTriggers = map julianToUTC exactImmediateCrossings & (sortBy (comparing Down))
+      }
 
 data ExactTransit a
   = OutsideBounds

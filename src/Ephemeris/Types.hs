@@ -237,11 +237,11 @@ data TransitData = TransitData
 
 data Transit a = Transit
   {
-    transiting :: PlanetPosition
-  , transited :: a
-  , transitStarts :: Maybe UTCTime
-  , transitEnds :: Maybe UTCTime
-  , approximateTriggers :: [UTCTime]
+    transiting :: !PlanetPosition
+  , transited :: !a
+  , transitStarts :: !(Maybe UTCTime)
+  , transitEnds :: !(Maybe UTCTime)
+  , immediateTriggers :: ![UTCTime]
   } deriving stock (Eq, Show)
 
 type PlanetaryTransit = Transit PlanetPosition
