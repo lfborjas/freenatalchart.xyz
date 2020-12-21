@@ -15,6 +15,12 @@ import Ephemeris.Types
 import Control.Applicative
 import Control.Monad (ap)
 import Ephemeris.Internal.Approximations (maxSpeed)
+import Database.SQLite.Simple (withConnection)
+
+transits :: EphemerisDatabase -> JulianTime -> [PlanetaryAspect] -> IO [PlanetaryTransit]
+transits epheDB momentOfTransit planetaryAspects = 
+  withConnection epheDB $ \conn -> do
+    pure []
 
 data ExactTransit a
   = OutsideBounds
@@ -70,7 +76,7 @@ unsafeCalculateEclipticLongitude
 longitudeIntersects :: Planet -> Double -> Double -> Double
 longitudeIntersects p soughtLongitude t = 
   if ((abs difference) >= maxDayStep * (maxSpeed p)) then
-     position - soughtLongitude
+    position - soughtLongitude
   else
     difference
   where

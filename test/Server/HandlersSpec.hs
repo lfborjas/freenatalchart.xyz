@@ -65,6 +65,7 @@ testApp' runAs = do
         , appTimeZoneDatabase = tzDB
         , appEnvironment = runAs
         , appStaticRoot = "/"
+        , appEphemerisDatabase = "./config/precalculated_ephemeris.db"
         }
     in
       pure $ server ctx

@@ -31,6 +31,12 @@ minorAspects =
 defaultAspects :: [Aspect]
 defaultAspects = majorAspects <> minorAspects
 
+-- | Calculate aspects to use for transit insights.
+-- Note that we use an orb of at most 1 degree, which seems to be common
+-- practice: https://www.astro.com/astrowiki/en/Transit
+transitAspects :: [Aspect]
+transitAspects = map (\a -> a{maxOrb = 1.0}) majorAspects
+
 aspects' :: (HasLongitude a, HasLongitude b) => [Aspect] -> [a] -> [b] -> [HoroscopeAspect a b]
 aspects' possibleAspects bodiesA bodiesB =
   (concatMap aspectsBetween pairs) & catMaybes
@@ -52,6 +58,9 @@ planetaryAspects ps = aspects ps $ rotateList 1 ps
 
 celestialAspects :: [PlanetPosition] -> Angles -> [HoroscopeAspect PlanetPosition House]
 celestialAspects ps Angles {..} = aspects ps [House I (Longitude ascendant) 0, House X (Longitude mc) 0]
+
+transitingAspects :: (HasLongitude a, HasLongitude b) => [a] -> [b] -> [HoroscopeAspect a b]
+transitingAspects = aspects' transitAspects
 
 findAspectBetweenPlanets :: [HoroscopeAspect PlanetPosition PlanetPosition] -> Planet -> Planet -> Maybe (HoroscopeAspect PlanetPosition PlanetPosition)
 findAspectBetweenPlanets aspectList pa pb =

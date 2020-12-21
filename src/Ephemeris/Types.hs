@@ -39,10 +39,14 @@ module Ephemeris.Types
   , PlanetPosition(..)
   , HoroscopeData(..)
   , Transit(..)
+  , TransitData(..)
   -- smart constructors
   , mkLatitude
   , mkLongitude
-  ,AngleAspect,PlanetaryAspect)
+  , AngleAspect
+  , PlanetaryAspect
+  , PlanetaryTransit
+  )
 where
 
 import SwissEphemeris
@@ -209,11 +213,26 @@ data HoroscopeData = HoroscopeData
   , horoscopeAngles :: Angles
   , horoscopeHouses :: [House]
   , horoscopeSystem :: HouseSystem
+  -- TODO: all of the below could be derived ad-hoc.
   , horoscopePlanetaryAspects :: [PlanetaryAspect]
   , horoscopeAngleAspects :: [AngleAspect]
   , horoscopeUniversalTime :: UTCTime
   , horoscopeJulianTime :: JulianTime
   -- TODO: delta time?
+  } deriving (Eq, Show)
+
+data TransitData = TransitData
+  {
+    natalPlanetPositions :: ![PlanetPosition]
+  , natalAngles :: !Angles
+  , natalHouses :: ![House]
+  , natalHouseSystem :: !HouseSystem
+  , transitingPlanetPositions :: ![PlanetPosition]
+  , transitingHouses :: ![House]
+  , transitingAngles :: !Angles
+  , transitingHouseSystem :: !HouseSystem
+  , transitPlanetaryAspects :: ![PlanetaryAspect]
+  , transitActivity :: ![PlanetaryTransit]
   } deriving (Eq, Show)
 
 data Transit a = Transit
@@ -224,3 +243,5 @@ data Transit a = Transit
   , transitEnds :: Maybe UTCTime
   , approximateTriggers :: [UTCTime]
   } deriving stock (Eq, Show)
+
+type PlanetaryTransit = Transit PlanetPosition

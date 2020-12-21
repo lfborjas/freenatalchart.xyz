@@ -15,6 +15,7 @@ import Utils ( maybeBetween )
 -- | Reader context for the server
 
 type EphemeridesPath = FilePath
+type EphemerisDatabase = FilePath
 
 data Environment 
   = Development
@@ -35,6 +36,7 @@ data AppContext = AppContext
   , appTimeZoneDatabase :: !TimeZoneDatabase
   , appEnvironment :: !Environment
   , appStaticRoot :: !FilePath
+  , appEphemerisDatabase :: !EphemerisDatabase
   -- Add other app-specific configuration information here
   }
 
@@ -76,6 +78,11 @@ class HasStaticRoot env where
 instance HasStaticRoot AppContext where
   staticRootL = lens appStaticRoot (\x y -> x {appStaticRoot = y})
 
+class HasEphemerisDatabase env where
+  ephemerisDatabaseL :: Lens' env EphemerisDatabase
+instance HasEphemerisDatabase AppContext where
+  ephemerisDatabaseL = lens appEphemerisDatabase (\x y -> x {appEphemerisDatabase = y})
+
 -- | Options that can be set as environment variables
 data AppOptions = AppOptions
   {
@@ -84,6 +91,7 @@ data AppOptions = AppOptions
   , algoliaAppId :: String
   , algoliaAppKey :: String
   , timezoneDatabaseFile :: FilePath
+  , epheDbFile :: FilePath
   , deployEnv :: Environment
   } deriving (Generic, Show)
 
@@ -94,6 +102,7 @@ defaultConfig = AppOptions {
   algoliaAppId = "", 
   algoliaAppKey = "", 
   timezoneDatabaseFile = "./config/timezone21.bin",
+  epheDbFile = "./config/precalculated_ephemeris.db",
   deployEnv = Development
 }
 
