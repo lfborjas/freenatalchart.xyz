@@ -56,11 +56,15 @@ aspects' possibleAspects bodiesA bodiesB =
     pairs = [(x, y) | x <- bodiesA, y <- bodiesB]
     aspectsBetween bodyPair = map (haveAspect bodyPair) possibleAspects
     haveAspect (a, b) asp@Aspect {..} =
-      let angleBetween = angularDifference (getLongitudeRaw a) (getLongitudeRaw b)
-          orbBetween = (angle - (abs angleBetween)) & abs
-       in if orbBetween <= maxOrb
-            then Just $ HoroscopeAspect {aspect = asp, bodies = (a, b), aspectAngle = angleBetween, orb = orbBetween}
-            else Nothing
+      let angleBefore = angularDifference (getLongitudeRaw a) (getLongitudeRaw b)
+          orbBefore = (angle - (abs angleBefore)) & abs
+          angleAfter = angularDifference (getLongitudeRaw b) (getLongitudeRaw a)
+          orbAfter =  (angle - (abs angleAfter)) & abs
+        in if orbAfter <= maxOrb
+            then Just $ HoroscopeAspect {aspect = asp, bodies = (a, b), aspectAngle = angleAfter, orb = orbAfter}
+            else if orbBefore <= maxOrb then
+              Just $ HoroscopeAspect {aspect = asp, bodies = (a, b), aspectAngle = angleBefore, orb = orbBefore}
+              else Nothing
 
 aspects :: (HasLongitude a, HasLongitude b) => [a] -> [b] -> [HoroscopeAspect a b]
 aspects = aspects' defaultAspects
