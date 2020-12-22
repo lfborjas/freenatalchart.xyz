@@ -33,8 +33,8 @@ transits epheDB momentOfTransit aspects' =
     allTransits <- mapM (transit conn momentOfTransit) aspects'
     pure $ zipWith (,) aspects' allTransits
 
-transitActivityAround :: UTCTime -> [(TransitAspect a, Transit a)] -> [Transit a]
-transitActivityAround moment = map snd . (filter ((isActiveTransit moment) . snd))
+transitActivityAround :: UTCTime -> [(TransitAspect a, Transit a)] -> [(TransitAspect a, Transit a)]
+transitActivityAround moment = (filter ((isActiveTransit moment) . snd))
 
 transitAspects :: [(TransitAspect a, Transit a)] -> [TransitAspect a]
 transitAspects = map fst

@@ -121,12 +121,14 @@ transitActivity extraHeading moment transits = do
   ln_ $ "~~~~~~~~~~~~~~~~" <> pack (repeat '~' & take (T.length extraHeading))
   ln_ . heading $
     [
-      justifyTransiting "Transiting", justifyTransited "Transited",
+      justifyTransiting "Transiting", justifyAspect "Aspect", justifyTransited "Transited",
       justifyTimestamp "Starts", justifyTimestamp "Ends",
       justifyTimestamp "Exact On"
     ]
-  forM_ (transitActivityAround moment transits) $ \t -> do
+  forM_ (transitActivityAround moment transits) $ \(a,t) -> do
     tell . justifyTransiting . labelText . planetName . transiting $ t
+    tell "|"
+    tell . justifyAspect . labelText . aspectName . aspect $ a
     tell "|"
     tell . justifyTransited . labelText . transited $ t
     tell "|"
