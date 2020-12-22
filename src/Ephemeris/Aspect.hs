@@ -35,8 +35,8 @@ defaultAspects = majorAspects <> minorAspects
 -- Note that we use an orb of at most 5 degrees, which seems to be common.
 -- However, to consider the aspect "active", we use a smaller orb, of 1 degree.
 -- practice: https://www.astro.com/astrowiki/en/Transit
-transitAspects :: [Aspect]
-transitAspects = map (\a -> a{maxOrb = 5.0}) majorAspects
+aspectsForTransits :: [Aspect]
+aspectsForTransits = map (\a -> a{maxOrb = 5.0}) majorAspects
 
 -- TODO(luis) this may also suffer from the 0/360 false negative!
 exactAspectAngle ::  (HasLongitude a) => HoroscopeAspect a b -> Longitude
@@ -69,16 +69,19 @@ aspects' possibleAspects bodiesA bodiesB =
 aspects :: (HasLongitude a, HasLongitude b) => [a] -> [b] -> [HoroscopeAspect a b]
 aspects = aspects' defaultAspects
 
--- | calculate aspects between the same set of planets. Unlike `transitAspects`, don't
+-- | calculate aspects between the same set of planets. Unlike `transitingAspects`, don't
 -- keep aspects of a planet with itself.
 planetaryAspects :: [PlanetPosition] -> [HoroscopeAspect PlanetPosition PlanetPosition]
 planetaryAspects ps = filter (\a -> (a & bodies & fst) /= (a & bodies & snd)) $ aspects ps $ rotateList 1 ps
 
 celestialAspects :: [PlanetPosition] -> Angles -> [HoroscopeAspect PlanetPosition House]
-celestialAspects ps Angles {..} = aspects ps [House I (Longitude ascendant) 0, House X (Longitude mc) 0]
+celestialAspects ps as = aspects ps (aspectableAngles as)
+
+aspectableAngles :: Angles -> [House]
+aspectableAngles Angles {..} = [House I (Longitude ascendant) 0, House X (Longitude mc) 0]
 
 transitingAspects :: (HasLongitude a, HasLongitude b) => [a] -> [b] -> [HoroscopeAspect a b]
-transitingAspects = aspects' transitAspects
+transitingAspects = aspects' aspectsForTransits
 
 findAspectBetweenPlanets :: [HoroscopeAspect PlanetPosition PlanetPosition] -> Planet -> Planet -> Maybe (HoroscopeAspect PlanetPosition PlanetPosition)
 findAspectBetweenPlanets aspectList pa pb =

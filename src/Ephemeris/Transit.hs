@@ -24,30 +24,27 @@ import Ephemeris.Utils (julianToUTC)
 import RIO.List (sortBy)
 import RIO.Time (UTCTime)
 
--- | Given planetary aspects (in which it's always "transiting aspects transited",)
+-- | Given aspects (in which it's always "transiting aspects transited",)
 -- and a reference time, derive transit activity: when does it begin and end, and is it exact
 -- within a day of the reference time?
-transits :: EphemerisDatabase -> JulianTime -> [PlanetaryAspect] -> IO [(PlanetaryAspect, PlanetaryTransit)]
-transits epheDB momentOfTransit planetaryAspects = 
+transits :: EphemerisDatabase -> JulianTime -> [TransitAspect a] -> IO [(TransitAspect a, Transit a)]
+transits epheDB momentOfTransit aspects' = 
   withConnection epheDB $ \conn -> do
-    allTransits <- mapM (transit conn momentOfTransit) planetaryAspects
-    pure $ zipWith (,) planetaryAspects allTransits
+    allTransits <- mapM (transit conn momentOfTransit) aspects'
+    pure $ zipWith (,) aspects' allTransits
 
-transitActivityAround :: UTCTime -> [(PlanetaryAspect, PlanetaryTransit)] -> [PlanetaryTransit]
+transitActivityAround :: UTCTime -> [(TransitAspect a, Transit a)] -> [Transit a]
 transitActivityAround moment = map snd . (filter ((isActiveTransit moment) . snd))
 
-transitPlanetaryAspects :: [(PlanetaryAspect, PlanetaryTransit)] -> [PlanetaryAspect]
-transitPlanetaryAspects = map fst
-
-transitActivity :: [(PlanetaryAspect, PlanetaryTransit)] -> [PlanetaryTransit]
-transitActivity = map snd
+transitAspects :: [(TransitAspect a, Transit a)] -> [TransitAspect a]
+transitAspects = map fst
 
 isActiveTransit :: UTCTime -> Transit a -> Bool
 isActiveTransit moment Transit {..} = 
   (maybe True (<= moment) transitStarts) &&
   (maybe True (>= moment) transitEnds)
 
-transit :: Connection -> JulianTime -> PlanetaryAspect -> IO PlanetaryTransit 
+transit :: Connection -> JulianTime -> TransitAspect a -> IO (Transit a)
 transit conn momentOfTransit a@(HoroscopeAspect _aspect' (transiting', transited') _angle' _orb') = 
   do
     let transitAspectLongitude = exactAspectAngle a

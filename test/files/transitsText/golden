@@ -38,8 +38,11 @@ Mean Node    |8    |79.3827  |-0.0530 |0.0000  |23.0124    |♊️ 19° 22' 58"
 Lilith       |7    |36.8806  |0.1113  |-3.4814 |10.5182    |♉️ 6° 52' 50"
 Chiron       |6    |4.9583   |0.0056  |2.5787  |4.3370     |♈️ 4° 57' 30"
 
-Planetary Aspects
------------------
+Planetary Transits
+------------------
+
+All Aspects to Natal Planets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Aspecting|Aspect      |Aspected |Angle   |Orb     
 Sun      |Conjunction |Moon     |4.5267  |4.5267  
 Sun      |Conjunction |Uranus   |1.3798  |1.3798  
@@ -86,8 +89,8 @@ Chiron   |Square      |Saturn   |88.7445 |1.2555
 Chiron   |Square      |Uranus   |92.8906 |2.8906  
 Chiron   |Square      |Chiron   |88.5616 |1.4384  
 
-Transits
---------
+Active Transits to Natal Planets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Transiting|Transited|Starts                  |Ends                    |Exact On                
 Moon      |Mercury  |N/A                     |2020-12-23 00:00:00 UTC |N/A                     
 Moon      |Saturn   |N/A                     |2020-12-23 00:00:00 UTC |N/A                     
@@ -105,4 +108,21 @@ Lilith    |Saturn   |2020-12-20 00:00:00 UTC |2021-01-06 00:00:00 UTC |N/A
 Lilith    |Mean Node|2020-12-08 00:00:00 UTC |2020-12-25 00:00:00 UTC |N/A                     
 Chiron    |Mercury  |2019-05-06 00:00:00 UTC |2021-02-09 00:00:00 UTC |N/A                     
 Chiron    |Uranus   |2020-04-21 00:00:00 UTC |2022-01-18 00:00:00 UTC |N/A                     
+
+Axes Transits
+-------------
+
+All Aspects to Natal Axes
+~~~~~~~~~~~~~~~~~~~~~~~~~
+Aspecting|Aspect      |Aspected |Angle   |Orb     
+Mars     |Opposition  |Asc      |177.9226|2.0774  
+Mars     |Square      |MC       |90.8130 |0.8130  
+Pluto    |Square      |Asc      |88.4584 |1.5416  
+Pluto    |Opposition  |MC       |179.7228|0.2772  
+
+Active Transits to Natal Axes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Transiting|Transited|Starts                  |Ends                    |Exact On                
+Mars      |MC       |2020-08-14 00:00:00 UTC |2020-12-26 00:00:00 UTC |N/A                     
+Pluto     |MC       |2019-03-08 00:00:00 UTC |2021-11-09 00:00:00 UTC |N/A                     
 

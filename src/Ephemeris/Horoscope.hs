@@ -7,7 +7,7 @@ import Import
 import Ephemeris.Types
 import Data.Time.LocalTime.TimeZone.Detect (timeAtPointToUTC, TimeZoneDatabase)
 import SwissEphemeris (eclipticToEquatorial, calculateEclipticPosition, calculateObliquity, calculateCusps, withEphemerides)
-import Ephemeris.Aspect (transitingAspects, celestialAspects, planetaryAspects)
+import Ephemeris.Aspect (aspectableAngles, transitingAspects, celestialAspects, planetaryAspects)
 import Ephemeris.Utils (mkEcliptic, utcToJulian)
 import Ephemeris.Planet (defaultPlanets)
 import RIO.Time (UTCTime)
@@ -71,6 +71,8 @@ transitData ctx momentOfTransit BirthData {..} = do
 
     pAspects <- pure $ transitingAspects transitPositions natalPositions
     pTransits <- transits epheDB transitTime pAspects
+    aAspects <- pure $ transitingAspects transitPositions (aspectableAngles natalAngles')
+    aTransits <- transits epheDB transitTime aAspects
 
     return $
       TransitData {
@@ -83,6 +85,7 @@ transitData ctx momentOfTransit BirthData {..} = do
       , transitingAngles = transitAngles
       , transitingHouseSystem = transitSys
       , planetaryTransits = pTransits
+      , angleTransits = aTransits
       }
 
 locationToGeo :: Location -> GeographicPosition

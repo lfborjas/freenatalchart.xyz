@@ -46,7 +46,7 @@ module Ephemeris.Types
   , AngleAspect
   , PlanetaryAspect
   , PlanetaryTransit
-  )
+  ,AngleTransit,TransitAspect)
 where
 
 import SwissEphemeris
@@ -119,6 +119,14 @@ data House = House
   , houseDeclination :: Double
   } deriving stock (Eq, Show)
 
+instance HasLabel House where
+  label h =
+    case (houseNumber h) of
+      I -> "Asc"
+      IV -> "IC"
+      VII -> "Desc"
+      X -> "MC"
+      n -> label n 
 
 -- TODO(luis) fix this to be `Longitude houseCusp`?
 instance HasLongitude House where
@@ -174,6 +182,7 @@ data HoroscopeAspect a b = HoroscopeAspect
 
 type PlanetaryAspect = HoroscopeAspect PlanetPosition PlanetPosition
 type AngleAspect = HoroscopeAspect PlanetPosition House
+type TransitAspect a = HoroscopeAspect PlanetPosition a
 
 newtype Latitude = Latitude {unLatitude :: Double}
     deriving newtype (Eq, Show, Num, Ord)
@@ -207,6 +216,9 @@ data PlanetPosition = PlanetPosition
 instance HasLongitude PlanetPosition where
     getLongitude = planetLng
 
+instance HasLabel PlanetPosition where
+  label = label . planetName
+
 data HoroscopeData = HoroscopeData
   {
     horoscopePlanetPositions :: [PlanetPosition]
@@ -232,6 +244,7 @@ data TransitData = TransitData
   , transitingAngles :: !Angles
   , transitingHouseSystem :: !HouseSystem
   , planetaryTransits :: ![(PlanetaryAspect, PlanetaryTransit)]
+  , angleTransits :: ![(AngleAspect, AngleTransit)]
   } deriving (Eq, Show)
 
 data Transit a = Transit
@@ -244,3 +257,4 @@ data Transit a = Transit
   } deriving stock (Eq, Show)
 
 type PlanetaryTransit = Transit PlanetPosition
+type AngleTransit = Transit House
