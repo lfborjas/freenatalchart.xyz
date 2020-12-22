@@ -3,7 +3,7 @@
 
 module Dev where
 
-import Chart.Graphics (renderChart)
+import Chart.Graphics (renderTransitChart, renderChart)
 import Data.Time.LocalTime.TimeZone.Detect (openTimeZoneDatabase, TimeZoneDatabase, withTimeZoneDatabase)
 import Ephemeris
 import qualified Graphics.Svg as Svg
@@ -51,6 +51,18 @@ renderTestChart = do
     calculations <- horoscope db ephe (BirthData birthplace birthtime)
     Svg.renderToFile "dev/files/radix.svg" $ renderChart [] 400 calculations
 
+renderTestTransitChart :: IO ()
+renderTestTransitChart = do
+  birthplace <- pure $ Location "Tegucigalpa" (Latitude 14.0839053) (Longitude $ -87.2750137)
+  birthtime <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:30:00" :: IO LocalTime
+  -- see: 
+  -- https://hackage.haskell.org/package/time-1.11.1.1/docs/Data-Time-Format-ISO8601.html
+  -- for more useful 8601 functions
+  momentOfTransit <- iso8601ParseM "2020-12-22T02:14:58.450Z" :: IO UTCTime
+  let birthdata = BirthData birthplace birthtime
+  transits' <- transitData devContext momentOfTransit birthdata
+  Svg.renderToFile "dev/files/transit-radix.svg" $ renderTransitChart [] 400  transits'
+
 
 renderTestChartPage :: IO ()
 renderTestChartPage = do
@@ -71,5 +83,5 @@ renderTestTransitsText = do
   -- for more useful 8601 functions
   momentOfTransit <- iso8601ParseM "2020-12-22T02:14:58.450Z" :: IO UTCTime
   let birthdata = BirthData birthplace birthtime
-  transits <- transitData devContext momentOfTransit birthdata 
-  writeFileUtf8 "dev/files/transits20201222.txt" $ Transits.renderText devContext birthdata momentOfTransit transits
+  transits' <- transitData devContext momentOfTransit birthdata 
+  writeFileUtf8 "dev/files/transits20201222.txt" $ Transits.renderText devContext birthdata momentOfTransit transits'

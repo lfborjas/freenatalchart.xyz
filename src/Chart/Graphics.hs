@@ -8,7 +8,7 @@
 module Chart.Graphics where
 
 import Ephemeris
-    ( Angles(..),
+    (transitAspects,  Angles(..),
       ZodiacSign(ZodiacSign),
       Element(Water, Earth, Air, Fire),
       HasLabel(label),
@@ -23,6 +23,7 @@ import Ephemeris
       angularDifference,
       isRetrograde,
       HoroscopeData(..),
+      TransitData(..),
       PlanetPosition(..) )
 import Chart.Prerendered as P
     ( prerenderedPlanet, prerenderedSign )
@@ -214,6 +215,24 @@ chart env HoroscopeData {..} =
     <> (degreeMarkers False $ env ^. zodiacCircleRadiusL)
     <> (degreeMarkers True $ env ^. aspectCircleRadiusL)
 
+transitChart :: ChartContext -> TransitData -> Diagram B
+transitChart env TransitData {..} = 
+  do
+    (zodiacCircle env)
+    <> (planets env natalPlanetPositions)
+    <> (cuspsCircle env{chartZodiacCircleRadius = 0.6} natalHouses)
+    -- <> (quadrants env natalAngles)
+    <> (planets env{chartPlanetCircleRadius = 0.7} transitingPlanetPositions)
+    <> (cuspsCircle env{chartAspectCircleRadius = 0.6} transitingHouses)
+    <> (aspects env $ transitAspects planetaryTransits)
+    <> (aspects env $ transitAspects angleTransits)
+    <> containerCircle 1
+    <> (containerCircle $ env ^. zodiacCircleRadiusL)
+    <> (containerCircle $ env ^. aspectCircleRadiusL)
+    <> (degreeMarkers False $ env ^. zodiacCircleRadiusL)
+    <> (degreeMarkers True $ env ^. aspectCircleRadiusL)
+
+
 --
 -- CHART UTILS
 --
@@ -277,3 +296,17 @@ renderChart attrs width' z@HoroscopeData {..} =
         }
     birthChart = chart cfg z # rotateBy ((ascendantOffset @@ deg) ^. turn)
     ascendantOffset = 180 - (ascendant horoscopeAngles)
+
+renderTransitChart :: [Svg.Attribute] -> Double -> TransitData -> Svg.Element
+renderTransitChart attrs width' t@TransitData{..} =
+  renderDia SVG (SVGOptions (mkWidth width') Nothing "" attrs True) transitChart'
+  where
+    cfg =
+      ChartContext
+        { chartAscendantOffset = ascendantOffset
+        , chartZodiacCircleRadius = 0.8
+        , chartAspectCircleRadius = 0.3
+        , chartPlanetCircleRadius = 0.45
+        }
+    transitChart' = transitChart cfg t # rotateBy ((ascendantOffset @@ deg) ^. turn)
+    ascendantOffset = 180 - (ascendant natalAngles)
