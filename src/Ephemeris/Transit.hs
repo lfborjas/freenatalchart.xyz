@@ -34,8 +34,6 @@ transits epheDB momentOfTransit planetaryAspects =
     allTransits <- mapM (transit conn momentOfTransit) planetaryAspects
     pure $ filter (isActiveTransit (julianToUTC $ momentOfTransit)) allTransits
 
--- TODO: actually filter    
---isActiveTransit :: Applicative f => p -> Transit a -> f Bool
 isActiveTransit :: UTCTime -> Transit a -> Bool
 isActiveTransit moment Transit {..} = 
   (maybe True (<= moment) transitStarts) &&
