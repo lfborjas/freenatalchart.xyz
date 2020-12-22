@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 76ecbcdecb7a8b096992675611e4caac2d138f6bbbcd4048ed344540ab5eb639
+-- hash: f791b7014fe0246c919be97aeffd62565f9531dc9f8c5520fa778719ccabce68
 
 name:           freenatalchart
 version:        0.2.0.0
@@ -49,9 +49,11 @@ library
       Utils
       Views.About
       Views.Chart
+      Views.Chart.Common
       Views.Chart.Explanations
       Views.Common
       Views.Index
+      Views.Transits
   other-modules:
       Paths_freenatalchart
   hs-source-dirs:

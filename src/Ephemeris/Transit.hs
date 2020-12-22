@@ -20,7 +20,7 @@ import Database.SQLite.Simple.Internal (Connection)
 import Ephemeris.Aspect (exactAspectAngle)
 import Ephemeris.Internal.Database (crossingCandidatesQuery, activityPeriodQuery)
 import Ephemeris.Utils (julianToUTC)
-import RIO.List (sortBy, sort)
+import RIO.List (sortBy)
 
 -- | Given planetary aspects (in which it's always "transiting aspects transited",)
 -- and a reference time, derive transit activity: when does it begin and end, and is it exact

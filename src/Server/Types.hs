@@ -61,6 +61,7 @@ import Ephemeris.Types
       Longitude(unLongitude),
       mkLatitude,
       mkLongitude )
+import RIO.Time (UTCTime)
 
 type Param' = QueryParam' '[Required, Lenient]
 
@@ -68,6 +69,18 @@ type Service =
     Get '[HTML] (Headers '[Header "Cache-Control" Text] (Html ()))
     :<|> "about" :> Get '[HTML]  (Headers '[Header "Cache-Control" Text] (Html ()))
     :<|> "full-chart" 
+        :> Param' "location" Text
+        :> Param' "day" Day
+        :> Param' "month" Month
+        :> Param' "year" Year
+        :> Param' "hour" Hour
+        :> Param' "minute" Minute
+        :> Param' "day-part" DayPart
+        :> Param' "lat" Latitude
+        :> Param' "lng" Longitude
+        :> Get '[HTML, PlainText] (Cached TextDocument)
+    :<|> "transits" 
+        :> Param' "at" UTCTime
         :> Param' "location" Text
         :> Param' "day" Day
         :> Param' "month" Month

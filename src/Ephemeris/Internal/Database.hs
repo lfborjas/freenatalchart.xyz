@@ -123,7 +123,7 @@ activityPeriodQuery conn crossingPlanet soughtLongitude (JulianTime soughtTime) 
           where planet = :planet 
           and julian_time between :start and :end
           and longitude between :longitude and :upperBound
-      )
+      ) where t between :start and :end
     |] [ ":planet" := crossingPlanet
        , ":start" := lowerTimeBound
        , ":end" := upperTimeBound
