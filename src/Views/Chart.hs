@@ -151,9 +151,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
     metaCeremony renderCtx
     style_ $ do
       "svg { height: auto; width: auto}\
-      \.table-hover-dark tr:hover{ border-bottom: .05rem solid #9da8ff !important; }\
       \.flex-container{margin-top: 10px; margin-bottom: 10px;}\
-      \.light-links a{ color: white !important; }\
       \"
 
   body_ $ do

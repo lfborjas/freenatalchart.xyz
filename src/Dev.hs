@@ -85,3 +85,16 @@ renderTestTransitsText = do
   let birthdata = BirthData birthplace birthtime
   transits' <- transitData devContext momentOfTransit birthdata 
   writeFileUtf8 "dev/files/transits20201222.txt" $ Transits.renderText devContext birthdata momentOfTransit transits'
+
+
+renderTestTransitsPage :: IO ()
+renderTestTransitsPage = do
+  birthplace <- pure $ Location "Tegucigalpa" (Latitude 14.0839053) (Longitude $ -87.2750137)
+  birthtime <- parseTimeM True defaultTimeLocale "%Y-%-m-%-d %T" "1989-01-06 00:30:00" :: IO LocalTime
+  -- see: 
+  -- https://hackage.haskell.org/package/time-1.11.1.1/docs/Data-Time-Format-ISO8601.html
+  -- for more useful 8601 functions
+  momentOfTransit <- iso8601ParseM "2020-12-22T02:14:58.450Z" :: IO UTCTime
+  let birthdata = BirthData birthplace birthtime
+  transits' <- transitData devContext momentOfTransit birthdata 
+  renderToFile "dev/files/transits.html" $ Transits.render fixtureRenderContext birthdata momentOfTransit transits'
