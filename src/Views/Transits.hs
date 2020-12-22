@@ -13,6 +13,7 @@ import RIO.Writer (MonadWriter(tell), execWriter)
 import RIO.Text (justifyLeft, pack)
 import Data.Foldable (Foldable(maximum))
 import RIO.List (headMaybe)
+import Ephemeris.Transit (transitActivityAround, transitPlanetaryAspects, transitActivity)
 
 
 renderText :: a -> BirthData -> UTCTime -> TransitData -> Text
@@ -85,7 +86,7 @@ renderText _ BirthData {..} transitMoment TransitData {..} =
     ln_ "Planetary Aspects"
     ln_ "-----------------"
     ln_ aspectsHeading
-    forM_  transitPlanetaryAspects $ \(HoroscopeAspect aspect (aspecting, aspected) angle orb) -> do
+    forM_  (transitPlanetaryAspects planetaryTransits) $ \(HoroscopeAspect aspect (aspecting, aspected) angle orb) -> do
       tell . justifyAspecting . labelText . planetName $ aspecting
       tell "|"
       tell . justifyAspect . labelText . aspectName $ aspect
@@ -105,7 +106,7 @@ renderText _ BirthData {..} transitMoment TransitData {..} =
         justifyTimestamp "Starts", justifyTimestamp "Ends",
         justifyTimestamp "Exact On"
       ]
-    forM_ transitActivity $ \t -> do
+    forM_ (transitActivityAround transitMoment planetaryTransits) $ \t -> do
       tell . justifyTransiting . labelText . planetName . transiting $ t
       tell "|"
       tell . justifyTransited . labelText . planetName . transited $ t

@@ -231,8 +231,7 @@ data TransitData = TransitData
   , transitingHouses :: ![House]
   , transitingAngles :: !Angles
   , transitingHouseSystem :: !HouseSystem
-  , transitPlanetaryAspects :: ![PlanetaryAspect]
-  , transitActivity :: ![PlanetaryTransit]
+  , planetaryTransits :: ![(PlanetaryAspect, PlanetaryTransit)]
   } deriving (Eq, Show)
 
 data Transit a = Transit

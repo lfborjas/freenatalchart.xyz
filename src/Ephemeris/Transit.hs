@@ -27,12 +27,20 @@ import RIO.Time (UTCTime)
 -- | Given planetary aspects (in which it's always "transiting aspects transited",)
 -- and a reference time, derive transit activity: when does it begin and end, and is it exact
 -- within a day of the reference time?
-transits :: EphemerisDatabase -> JulianTime -> [PlanetaryAspect] -> IO [PlanetaryTransit]
+transits :: EphemerisDatabase -> JulianTime -> [PlanetaryAspect] -> IO [(PlanetaryAspect, PlanetaryTransit)]
 transits epheDB momentOfTransit planetaryAspects = 
   withConnection epheDB $ \conn -> do
-    -- TODO: rank!
     allTransits <- mapM (transit conn momentOfTransit) planetaryAspects
-    pure $ filter (isActiveTransit (julianToUTC $ momentOfTransit)) allTransits
+    pure $ zipWith (,) planetaryAspects allTransits
+
+transitActivityAround :: UTCTime -> [(PlanetaryAspect, PlanetaryTransit)] -> [PlanetaryTransit]
+transitActivityAround moment = map snd . (filter ((isActiveTransit moment) . snd))
+
+transitPlanetaryAspects :: [(PlanetaryAspect, PlanetaryTransit)] -> [PlanetaryAspect]
+transitPlanetaryAspects = map fst
+
+transitActivity :: [(PlanetaryAspect, PlanetaryTransit)] -> [PlanetaryTransit]
+transitActivity = map snd
 
 isActiveTransit :: UTCTime -> Transit a -> Bool
 isActiveTransit moment Transit {..} = 

@@ -70,7 +70,7 @@ transitData ctx momentOfTransit BirthData {..} = do
     (CuspsCalculation transitCusps transitAngles transitSys) <- calculateCusps Placidus transitTime place
 
     pAspects <- pure $ transitingAspects transitPositions natalPositions
-    pTransitActivity <- transits epheDB transitTime pAspects
+    pTransits <- transits epheDB transitTime pAspects
 
     return $
       TransitData {
@@ -82,8 +82,7 @@ transitData ctx momentOfTransit BirthData {..} = do
       , transitingHouses = houses transitObliquity transitCusps
       , transitingAngles = transitAngles
       , transitingHouseSystem = transitSys
-      , transitPlanetaryAspects = pAspects
-      , transitActivity = pTransitActivity
+      , planetaryTransits = pTransits
       }
 
 locationToGeo :: Location -> GeographicPosition
