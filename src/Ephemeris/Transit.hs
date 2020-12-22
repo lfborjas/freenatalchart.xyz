@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 module Ephemeris.Transit where
 
@@ -21,6 +22,7 @@ import Ephemeris.Aspect (exactAspectAngle)
 import Ephemeris.Internal.Database (crossingCandidatesQuery, activityPeriodQuery)
 import Ephemeris.Utils (julianToUTC)
 import RIO.List (sortBy)
+import RIO.Time (UTCTime)
 
 -- | Given planetary aspects (in which it's always "transiting aspects transited",)
 -- and a reference time, derive transit activity: when does it begin and end, and is it exact
@@ -29,7 +31,15 @@ transits :: EphemerisDatabase -> JulianTime -> [PlanetaryAspect] -> IO [Planetar
 transits epheDB momentOfTransit planetaryAspects = 
   withConnection epheDB $ \conn -> do
     -- TODO: rank!
-    mapM (transit conn momentOfTransit) planetaryAspects
+    allTransits <- mapM (transit conn momentOfTransit) planetaryAspects
+    pure $ filter (isActiveTransit (julianToUTC $ momentOfTransit)) allTransits
+
+-- TODO: actually filter    
+--isActiveTransit :: Applicative f => p -> Transit a -> f Bool
+isActiveTransit :: UTCTime -> Transit a -> Bool
+isActiveTransit moment Transit {..} = 
+  (maybe True (<= moment) transitStarts) &&
+  (maybe True (>= moment) transitEnds)
 
 transit :: Connection -> JulianTime -> PlanetaryAspect -> IO PlanetaryTransit 
 transit conn momentOfTransit a@(HoroscopeAspect _aspect' (transiting', transited') _angle' _orb') = 

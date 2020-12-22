@@ -67,7 +67,9 @@ renderText _ BirthData {..} transitMoment TransitData {..} =
       else
         tell . justifyPlanetPos $ (labelText planetName)
       tell "|"
-      tell . justifyHouseNum $ housePositionText $ housePosition transitingHouses planetLng
+      -- NOTE(luis) this is intentional: we want to show which natal house a transiting
+      -- planet is in.
+      tell . justifyHouseNum $ housePositionText $ housePosition natalHouses planetLng
       tell "|"
       tell . justifyLongitude . pack $ formatDouble $ unLongitude planetLng
       tell "|"
