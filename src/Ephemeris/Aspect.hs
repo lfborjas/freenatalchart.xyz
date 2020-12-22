@@ -65,8 +65,10 @@ aspects' possibleAspects bodiesA bodiesB =
 aspects :: (HasLongitude a, HasLongitude b) => [a] -> [b] -> [HoroscopeAspect a b]
 aspects = aspects' defaultAspects
 
+-- | calculate aspects between the same set of planets. Unlike `transitAspects`, don't
+-- keep aspects of a planet with itself.
 planetaryAspects :: [PlanetPosition] -> [HoroscopeAspect PlanetPosition PlanetPosition]
-planetaryAspects ps = aspects ps $ rotateList 1 ps
+planetaryAspects ps = filter (\a -> (a & bodies & fst) /= (a & bodies & snd)) $ aspects ps $ rotateList 1 ps
 
 celestialAspects :: [PlanetPosition] -> Angles -> [HoroscopeAspect PlanetPosition House]
 celestialAspects ps Angles {..} = aspects ps [House I (Longitude ascendant) 0, House X (Longitude mc) 0]
