@@ -78,11 +78,12 @@ cuspsCircle env c =
     onZodiacs = env ^. zodiacCircleRadiusL
     onAspects = env ^. aspectCircleRadiusL
     pairedC = zip c $ rotateList 1 c
+    classPrefix = env & chartHouseClassPrefix
     cuspBand (House houseName (Longitude cuspBegin) _, House _ (Longitude cuspEnd) _) =
       t <> w # lw ultraThin
         # lc black
         # (href $ "#house-" <> (show houseName))
-        # svgClass "house-segment"
+        # svgClass (classPrefix <> "-segment")
       where
         d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
         a = (angularDifference cuspBegin cuspEnd) @@ deg
@@ -94,7 +95,7 @@ cuspsCircle env c =
             # moveTo textPosition
             # fontSize (local 0.05)
             # rectifyAround textPosition env
-            # svgClass "house-label"
+            # svgClass (classPrefix <> "-label")
 
 quadrants :: ChartContext -> Angles -> Diagram B
 quadrants env Angles {..} =
@@ -112,7 +113,7 @@ quadrants env Angles {..} =
             # fontSize (local 0.05)
             # fc black
             # rectifyAround textPosition env
-            # svgClass "house-label"
+            # svgClass ((env & chartHouseClassPrefix) <> "-label")
 
 aspects :: (HasLongitude a, HasLongitude b) => ChartContext -> [HoroscopeAspect a b] -> Diagram B
 aspects env pAspects = do
@@ -138,6 +139,7 @@ planets env planetPositions =
     onAspects = env ^. aspectCircleRadiusL
     onZodiacs = env ^. zodiacCircleRadiusL
     onPlanets = env ^. planetCircleRadiusL
+    classPrefix = env & chartPlanetClassPrefix
     drawPlanet (corrected, pos@PlanetPosition {..}) =
       (stroke $ P.prerenderedPlanet planetName)
         # scale 0.1
@@ -147,10 +149,10 @@ planets env planetPositions =
         # lw ultraThin
         # (keyVal $ ("title", label planetName))
         # (href $ "#" <> (label planetName))
-        # svgClass "planet"
-        <> (guideLines # svgClass "planet-lines")
-        <> (correctionLine # lw thin # lc black # svgClass "planet-lines")
-        <> (retrogradeMark # svgClass "planet") 
+        # svgClass classPrefix
+        <> (guideLines # svgClass (classPrefix <> "-lines"))
+        <> (correctionLine # lw thin # lc black # svgClass (classPrefix <> "-lines"))
+        <> (retrogradeMark # svgClass classPrefix) 
       where
         drawPlanetAt = maybe (getLongitude pos) id corrected
         atCorrectedPosition = flip longitudeToPoint $ drawPlanetAt
@@ -222,8 +224,8 @@ transitChart env TransitData {..} =
     <> (planets env natalPlanetPositions)
     <> (cuspsCircle env{chartZodiacCircleRadius = 0.6} natalHouses)
     -- <> (quadrants env natalAngles)
-    <> (planets env{chartPlanetCircleRadius = 0.7} transitingPlanetPositions)
-    <> (cuspsCircle env{chartAspectCircleRadius = 0.6} transitingHouses)
+    <> (planets env{chartPlanetCircleRadius = 0.7, chartPlanetClassPrefix = "transiting-planet"} transitingPlanetPositions)
+    <> (cuspsCircle env{chartAspectCircleRadius = 0.6, chartHouseClassPrefix = "transiting-house"} transitingHouses)
     <> (aspects env $ transitAspects planetaryTransits)
     <> (aspects env $ transitAspects angleTransits)
     <> containerCircle 1
@@ -292,7 +294,9 @@ renderChart attrs width' z@HoroscopeData {..} =
         { chartAscendantOffset = ascendantOffset,
           chartZodiacCircleRadius = 0.8,
           chartAspectCircleRadius = 0.5,
-          chartPlanetCircleRadius = 0.65
+          chartPlanetCircleRadius = 0.65,
+          chartPlanetClassPrefix = "planet",
+          chartHouseClassPrefix = "house"
         }
     birthChart = chart cfg z # rotateBy ((ascendantOffset @@ deg) ^. turn)
     ascendantOffset = 180 - (ascendant horoscopeAngles)
@@ -307,6 +311,8 @@ renderTransitChart attrs width' t@TransitData{..} =
         , chartZodiacCircleRadius = 0.8
         , chartAspectCircleRadius = 0.3
         , chartPlanetCircleRadius = 0.45
+        , chartPlanetClassPrefix = "planet"
+        , chartHouseClassPrefix = "house"
         }
     transitChart' = transitChart cfg t # rotateBy ((ascendantOffset @@ deg) ^. turn)
     ascendantOffset = 180 - (ascendant natalAngles)

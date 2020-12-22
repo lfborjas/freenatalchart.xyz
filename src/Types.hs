@@ -116,6 +116,8 @@ data ChartContext = ChartContext
   , chartZodiacCircleRadius :: !Double
   , chartAspectCircleRadius :: !Double
   , chartPlanetCircleRadius :: !Double
+  , chartHouseClassPrefix :: !String
+  , chartPlanetClassPrefix :: !String
   } deriving (Show)
 
 class HasAscendantOffset env where
