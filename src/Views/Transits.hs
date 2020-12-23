@@ -168,7 +168,7 @@ render renderCtx BirthData {..} transitMoment t@TransitData{..} = html_ $ do
 
     main_ [id_ "main", class_ "container grid-xl mx-4 under-navbar"] $ do
       div_ [class_ "blue-stars-bg text-center"] $ do
-        p_ $ do
+        p_ [class_ "text-small text-light"] $ do
           toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
           br_ []
           toHtml $ birthLocation & locationInput
@@ -238,24 +238,7 @@ render renderCtx BirthData {..} transitMoment t@TransitData{..} = html_ $ do
 
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footerNav
-  script_ [src_ . pack $ (renderCtx ^. staticRootL) <> "js/date.js"] (""::Text)
-
-navbar_ :: Html ()
-navbar_ =
-  header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
-    section_ [class_ "navbar-section"] $ do
-      -- NOTE: there's a bit of JS in date.js that will find this element
-      -- and replace its click event with navigating to transits at the 
-      -- moment of click. In the absence of JS, it simply refreshes the page.
-      a_ [id_ "moment-link", href_ "", class_ "mr-2"] $ do
-        i_ [class_ "icon icon-time", title_ "Show transits as of right now"] ""
-        span_ [class_ "hide-sm"] " Current Transits"
-    section_ [class_ "navbar-section navbar-center navbar-brand"] $ do
-       a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
-    section_ [class_ "navbar-section"] $ do
-      a_ [href_ "#main"] $ do
-        span_ [class_ "hide-sm"] "Back to Top "
-        i_ [class_ "icon icon-upward", title_ "Back to Top"] ""
+    script_ [src_ . pack $ (renderCtx ^. staticRootL) <> "js/date.js"] (""::Text)
 
 transitAspectDetailsTable :: [PlanetPosition] -> [(PlanetaryAspect, PlanetaryTransit)] -> [(AngleAspect, AngleTransit)] -> Html ()
 transitAspectDetailsTable  transitingPlanets planetTransits angleTransits =

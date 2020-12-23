@@ -350,3 +350,20 @@ cardDark_ :: Attribute
 cardDark_ = class_ "card card-dark mx-2 my-2 text-center"
 attributeTitle_ :: Html () -> Html ()
 attributeTitle_ = h5_ [class_ "text-light"] 
+
+navbar_ :: Html ()
+navbar_ =
+  header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
+    section_ [class_ "navbar-section"] $ do
+      -- NOTE: there's a bit of JS in date.js that will find this element
+      -- and replace its click event with navigating to transits at the 
+      -- moment of click. In the absence of JS, it simply refreshes the page.
+      a_ [id_ "moment-link", href_ "", class_ "mr-2"] $ do
+        i_ [class_ "icon icon-time", title_ "Show transits as of right now"] ""
+        span_ [class_ "hide-sm"] " Current Transits"
+    section_ [class_ "navbar-section navbar-center navbar-brand"] $ do
+       a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
+    section_ [class_ "navbar-section"] $ do
+      a_ [href_ "#main"] $ do
+        span_ [class_ "hide-sm"] "Back to Top "
+        i_ [class_ "icon icon-upward", title_ "Back to Top"] ""

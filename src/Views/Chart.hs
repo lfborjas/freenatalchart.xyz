@@ -333,7 +333,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
 
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footerNav
-
+    script_ [src_ . pack $ (renderCtx ^. staticRootL) <> "js/date.js"] (""::Text)
   where
     sunSign = (findSunSign horoscopePlanetPositions)
     moonSign = (findMoonSign horoscopePlanetPositions)
@@ -344,21 +344,6 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
 --
 -- "COMPONENTS"
 --
-navbar_ :: Html ()
-navbar_ =
-  header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
-    section_ [class_ "navbar-section"] $ do
-      a_ [href_ "/", class_ "mr-2"] $ do
-        i_ [class_ "icon icon-refresh", title_ "Draw Another Chart"] ""
-        span_ [class_ "hide-sm"] " Draw Another Chart"
-    section_ [class_ "navbar-section navbar-center navbar-brand"] $ do
-       a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
-    section_ [class_ "navbar-section"] $ do
-      a_ [href_ "#chart"] $ do
-        span_ [class_ "hide-sm"] "Back to Top "
-        i_ [class_ "icon icon-upward", title_ "Back to Top"] ""
-
-
 houseSystemDetails :: HouseSystem -> Html ()
 houseSystemDetails sys =
   p_ $ do
