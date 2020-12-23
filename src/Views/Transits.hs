@@ -237,30 +237,26 @@ navbar_ =
 
 transitAspectDetailsTable :: [PlanetPosition] -> [(PlanetaryAspect, PlanetaryTransit)] -> [(AngleAspect, AngleTransit)] -> Html ()
 transitAspectDetailsTable  transitingPlanets planetTransits angleTransits =
-  table_ [class_ "table table-hover table-scroll"] $ do
-    tr_ $ do
+  table_ [class_ "table table-hover-dark table-scroll table-borders-dark"] $ do
+    tr_ [class_ "text-primary" ]$ do
       td_ [] ""
       forM_ defaultPlanets $ \transitPlanet -> do
         td_ [] $ do
           asIcon transitPlanet
-          " (tr)"
+          " (nat)"
+      td_ [] "Asc (nat)"
+      td_ [] "MC (nat)"
     forM_ defaultPlanets $ \rowPlanet -> do
       tr_ [] $ do
-        td_ [] $ do
+        td_ [class_ "text-earth"] $ do
           asIcon rowPlanet
-          " (nat)"
+          " (tr)"
         forM_ transitingPlanets $ \PlanetPosition {..} -> do
           td_ [style_ "border: 1px solid", class_ "text-small"] $ do
-            aspectCell $ findAspectBetweenPlanets (transitAspects planetTransits) rowPlanet planetName
-    tr_ [] $ do
-      td_ [] $ do
-        span_ [class_ "tooltip", data_ "tooltip" "Ascendant"] "AC"
-      forM_ transitingPlanets $ \PlanetPosition {..} -> do
+            aspectCell $ findAspectWithPlanet (transitAspects planetTransits) rowPlanet planetName
+
         td_ [style_ "border: 1px solid", class_ "text-small"] $ do
-          aspectCell $ findAspectWithAngle (transitAspects angleTransits) planetName I
-    tr_ [] $ do
-      td_ [] $ do
-        span_ [class_ "tooltip", data_ "tooltip" "Midheaven"] "MC"
-      forM_ transitingPlanets $ \PlanetPosition {..} -> do
+          aspectCell $ findAspectWithAngle (transitAspects angleTransits) rowPlanet I
+  
         td_ [style_ "border: 1px solid", class_ "text-small"] $ do
-          aspectCell $ findAspectWithAngle (transitAspects angleTransits) planetName X
+          aspectCell $ findAspectWithAngle (transitAspects angleTransits) rowPlanet X

@@ -88,10 +88,19 @@ aspectableAngles Angles {..} = [House I (Longitude ascendant) 0, House X (Longit
 transitingAspects :: (HasLongitude a, HasLongitude b) => [a] -> [b] -> [HoroscopeAspect a b]
 transitingAspects = aspects' aspectsForTransits
 
+-- TODO(luis): these find* functions are _so_ wasteful. We could clearly do it in one pass vs. traverse the whole
+-- list for each planet. However, I always find myself updating this file at midnight when my neurons are
+-- not ready for the magic.
 findAspectBetweenPlanets :: [HoroscopeAspect PlanetPosition PlanetPosition] -> Planet -> Planet -> Maybe (HoroscopeAspect PlanetPosition PlanetPosition)
 findAspectBetweenPlanets aspectList pa pb =
   aspectList
     & filter (\HoroscopeAspect {..} -> (planetName . fst $ bodies, planetName . snd $ bodies) `elem` [(pa, pb), (pb, pa)])
+    & headMaybe
+
+findAspectWithPlanet :: [PlanetaryAspect] -> Planet -> Planet -> Maybe PlanetaryAspect 
+findAspectWithPlanet aspectList aspecting aspected =
+  aspectList
+    & filter (\HoroscopeAspect {..} -> (planetName . fst $ bodies, planetName . snd $ bodies) == (aspecting, aspected))
     & headMaybe
 
 findAspectWithAngle :: [HoroscopeAspect PlanetPosition House] -> Planet -> HouseNumber -> Maybe (HoroscopeAspect PlanetPosition House)
