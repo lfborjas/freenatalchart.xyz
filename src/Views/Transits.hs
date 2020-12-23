@@ -99,16 +99,16 @@ aspectsHeading =
   heading [
       justifyAspecting "Aspecting", justifyAspect "Aspect"
     , justifyAspected "Aspected", justifyDouble "Angle"
-    , justifyDouble "Orb"
+    , justifyDouble "Orb", "Phase"
     ]
 
-transitActivity :: HasLabel a => Text -> UTCTime -> [(TransitAspect a, Transit a)] -> (Writer Text ())
+transitActivity :: (HasLabel a, HasLongitude a) => Text -> UTCTime -> [(TransitAspect a, Transit a)] -> (Writer Text ())
 transitActivity extraHeading moment transits' = do
   ln_ ""
   ln_ $ "All Aspects " <> extraHeading
   ln_ $ "~~~~~~~~~~~~" <> pack (repeat '~' & take (T.length extraHeading))
   ln_ aspectsHeading
-  forM_  (transitAspects transits') $ \(HoroscopeAspect aspect (aspecting, aspected) angle orb) -> do
+  forM_  (transitAspects transits') $ \a@(HoroscopeAspect aspect (aspecting, aspected) angle orb) -> do
     tell . justifyAspecting . labelText . planetName $ aspecting
     tell "|"
     tell . justifyAspect . labelText . aspectName $ aspect
@@ -118,6 +118,8 @@ transitActivity extraHeading moment transits' = do
     tell . justifyDouble . pack $ formatDouble angle
     tell "|"
     tell . justifyDouble . pack $ formatDouble orb
+    tell "|"
+    tell . pack . show $ aspectPhase a
     ln_ ""
   ln_ ""
   ln_ $ "Active Transits " <> extraHeading
@@ -253,10 +255,10 @@ transitAspectDetailsTable  transitingPlanets planetTransits angleTransits =
           " (tr)"
         forM_ (defaultPlanets & sort) $ \transitedPlanet -> do
           td_ [style_ "border: 1px solid", class_ "text-small"] $ do
-            aspectCell $ findAspectWithPlanet (transitAspects planetTransits) transitingPlanet transitedPlanet
+            planetaryAspectCell $ findAspectWithPlanet (transitAspects planetTransits) transitingPlanet transitedPlanet
 
         td_ [style_ "border: 1px solid", class_ "text-small"] $ do
-          aspectCell $ findAspectWithAngle (transitAspects angleTransits) transitingPlanet I
+          planetaryAspectCell $ findAspectWithAngle (transitAspects angleTransits) transitingPlanet I
   
         td_ [style_ "border: 1px solid", class_ "text-small"] $ do
-          aspectCell $ findAspectWithAngle (transitAspects angleTransits) transitingPlanet X
+          planetaryAspectCell $ findAspectWithAngle (transitAspects angleTransits) transitingPlanet X

@@ -32,6 +32,7 @@ module Ephemeris.Types
   , AspectName(..)
   , AspectTemperament(..)
   , AspectType(..)
+  , AspectPhase(..)
   , Aspect(..)
   , HoroscopeAspect(..)
   , Latitude(..)
@@ -163,6 +164,15 @@ data AspectType
   = Major
   | Minor
   deriving stock (Eq, Show, Ord, Enum)
+
+data AspectPhase
+  = Applying
+  | Separating
+  deriving stock (Eq, Show, Ord, Enum)
+
+instance HasLabel AspectPhase where
+  label Applying = "a"
+  label Separating  = "s"
 
 data Aspect = Aspect 
   { aspectName :: AspectName

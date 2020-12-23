@@ -2,7 +2,6 @@ module Ephemeris.TransitSpec (spec) where
 
 import Ephemeris
 import Test.Hspec (xit, Spec, describe, it, shouldBe)
-import Ephemeris.Transit (ExactTransit (..), findExactTransit, findExactTransitAround)
 
 exactAt :: Double -> ExactTransit JulianTime
 exactAt = ExactAt . JulianTime

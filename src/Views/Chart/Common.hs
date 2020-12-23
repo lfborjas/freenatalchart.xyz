@@ -241,6 +241,19 @@ aspectCell (Just HoroscopeAspect {..}) =
     " "
     htmlDegrees' (True, False) orb
 
+-- | aspect cell, but specialized to the aspecting body being a planet.
+planetaryAspectCell :: HasLongitude a => Maybe (HoroscopeAspect PlanetPosition a) -> Html ()
+planetaryAspectCell Nothing = mempty
+planetaryAspectCell (Just (a@HoroscopeAspect {..})) =
+  span_ [aspectColorStyle aspect] $ do
+    asIcon . aspectName $ aspect
+    " "
+    htmlDegrees' (True, False) orb
+    span_ [class_ "text-tiny tooltip", data_ "tooltip" (pack . show $ phase)] $ do
+      toHtml . pack . label $ phase
+  where
+    phase = aspectPhase a
+
 aspectColorStyle :: Aspect -> Attribute
 aspectColorStyle aspect = 
   class_ ("text-" <> (aspectClass . temperament $ aspect))
