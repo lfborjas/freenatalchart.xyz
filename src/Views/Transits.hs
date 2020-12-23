@@ -154,7 +154,7 @@ transitActivity extraHeading moment transits' = do
 
 
 render :: HasStaticRoot a => a -> BirthData -> UTCTime -> TransitData -> Html ()
-render renderCtx BirthData {..} transitMoment t@TransitData{..} = html_ $ do
+render renderCtx bd@BirthData {..} transitMoment t@TransitData{..} = html_ $ do
   head_ $ do
     title_ "Your Current Transits"
     metaCeremony renderCtx
@@ -169,9 +169,10 @@ render renderCtx BirthData {..} transitMoment t@TransitData{..} = html_ $ do
     main_ [id_ "main", class_ "container grid-xl mx-4 under-navbar"] $ do
       div_ [class_ "blue-stars-bg text-center"] $ do
         p_ [class_ "text-small text-light"] $ do
-          toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
-          br_ []
-          toHtml $ birthLocation & locationInput
+          a_ [href_ $ natalChartLink bd] $ do
+            toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
+            br_ []
+            toHtml $ birthLocation & locationInput
         p_ $ do
           "Transits as of: "
           localTime_ transitMoment
