@@ -226,8 +226,8 @@ navbar_ =
       -- and replace its click event with navigating to transits at the 
       -- moment of click. In the absence of JS, it simply refreshes the page.
       a_ [id_ "moment-link", href_ "", class_ "mr-2"] $ do
-        i_ [class_ "icon icon-refresh", title_ "Recalculate Transits"] ""
-        span_ [class_ "hide-sm"] " Recalculate Transits"
+        i_ [class_ "icon icon-time", title_ "Show transits as of right now"] ""
+        span_ [class_ "hide-sm"] " Current Transits"
     section_ [class_ "navbar-section navbar-center navbar-brand"] $ do
        a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
     section_ [class_ "navbar-section"] $ do
