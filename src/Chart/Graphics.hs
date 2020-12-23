@@ -25,7 +25,7 @@ import Ephemeris
       HoroscopeData(..),
       TransitData(..),
       PlanetPosition(..),
-      selectSignificantAspects)
+      triggeredTransits)
 import Chart.Prerendered as P
     ( prerenderedPlanet, prerenderedSign )
 import Diagrams.Backend.SVG (svgClass,  Options(SVGOptions), SVG(SVG), B )
@@ -227,9 +227,9 @@ transitChart env TransitData {..} =
     -- <> (quadrants env natalAngles)
     <> (planets env{chartPlanetCircleRadius = 0.7, chartPlanetClassPrefix = "transiting-planet"} transitingPlanetPositions)
     <> (cuspsCircle env{chartAspectCircleRadius = 0.6, chartHouseClassPrefix = "transiting-house"} transitingHouses)
-    -- Only draw aspects with less than 1 degree orb. Gets real noisy otherwise!
-    <> ((aspects env) . selectSignificantAspects . transitAspects $ planetaryTransits)
-    <> ((aspects env) . selectSignificantAspects . transitAspects $ angleTransits)
+    -- Only draw aspects that become active in the investigated period:
+    <> ((aspects env) . transitAspects . triggeredTransits $ planetaryTransits)
+    <> ((aspects env) . transitAspects . triggeredTransits $ angleTransits)
     <> containerCircle 1
     <> (containerCircle $ env ^. zodiacCircleRadiusL)
     <> (containerCircle $ env ^. aspectCircleRadiusL)

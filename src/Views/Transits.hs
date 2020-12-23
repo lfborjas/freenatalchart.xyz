@@ -241,7 +241,7 @@ transitAspectDetailsTable :: [PlanetPosition] -> [(PlanetaryAspect, PlanetaryTra
 transitAspectDetailsTable  transitingPlanets planetTransits angleTransits =
   table_ [class_ "table table-hover-dark table-scroll table-borders-dark"] $ do
     tr_ [class_ "text-primary" ]$ do
-      td_ [] ""
+      td_ [style_ "border-bottom-style: none !important;"] ""
       forM_ (defaultPlanets & sort) $ \natalPlanet -> do
         td_ [] $ do
           asIcon natalPlanet
@@ -250,7 +250,7 @@ transitAspectDetailsTable  transitingPlanets planetTransits angleTransits =
       td_ [] "MC (nat)"
     forM_ (transitingPlanets & map planetName & sort) $ \transitingPlanet -> do
       tr_ [] $ do
-        td_ [class_ "text-earth"] $ do
+        td_ [class_ "text-earth", style_ "border-bottom-style: none !important;"] $ do
           asIcon transitingPlanet
           " (tr)"
         forM_ (defaultPlanets & sort) $ \transitedPlanet -> do

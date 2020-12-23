@@ -39,6 +39,12 @@ transitActivityAround moment = (filter ((isActiveTransit moment) . snd))
 transitAspects :: [(TransitAspect a, Transit a)] -> [TransitAspect a]
 transitAspects = map fst
 
+-- | Filter down to only aspects that have a moment of exactness in the queried
+-- period.
+triggeredTransits :: [(TransitAspect a, Transit a)] -> [(TransitAspect a, Transit a)]
+triggeredTransits =
+  filter (not . null . immediateTriggers . snd)
+
 isActiveTransit :: UTCTime -> Transit a -> Bool
 isActiveTransit moment Transit {..} = 
   (maybe True (<= moment) transitStarts) &&
