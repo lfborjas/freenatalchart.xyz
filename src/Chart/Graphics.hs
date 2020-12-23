@@ -24,7 +24,8 @@ import Ephemeris
       isRetrograde,
       HoroscopeData(..),
       TransitData(..),
-      PlanetPosition(..) )
+      PlanetPosition(..),
+      selectExactAspects)
 import Chart.Prerendered as P
     ( prerenderedPlanet, prerenderedSign )
 import Diagrams.Backend.SVG (svgClass,  Options(SVGOptions), SVG(SVG), B )
@@ -226,8 +227,9 @@ transitChart env TransitData {..} =
     -- <> (quadrants env natalAngles)
     <> (planets env{chartPlanetCircleRadius = 0.7, chartPlanetClassPrefix = "transiting-planet"} transitingPlanetPositions)
     <> (cuspsCircle env{chartAspectCircleRadius = 0.6, chartHouseClassPrefix = "transiting-house"} transitingHouses)
-    <> (aspects env $ transitAspects planetaryTransits)
-    <> (aspects env $ transitAspects angleTransits)
+    -- Only draw aspects with less than 1 degree orb. Gets real noisy otherwise!
+    <> ((aspects env) . selectExactAspects . transitAspects $ planetaryTransits)
+    <> ((aspects env) . selectExactAspects . transitAspects $ angleTransits)
     <> containerCircle 1
     <> (containerCircle $ env ^. zodiacCircleRadiusL)
     <> (containerCircle $ env ^. aspectCircleRadiusL)

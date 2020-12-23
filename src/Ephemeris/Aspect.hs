@@ -86,7 +86,17 @@ aspectableAngles Angles {..} = [House I (Longitude ascendant) 0, House X (Longit
 -- at the DB,) but it does mean fewer aspects are shown when using this than in
 -- e.g. the chart of the moment. On the other hand, it's less sifting through "inactive" aspects.
 transitingAspects :: (HasLongitude a, HasLongitude b) => [a] -> [b] -> [HoroscopeAspect a b]
-transitingAspects = aspects' aspectsForTransits
+transitingAspects = aspects --aspects' aspectsForTransits
+
+-- | Given a list of aspects, keep only major aspects.
+-- useful as a helper when plotting/showing tables.
+selectMajorAspects :: [HoroscopeAspect a b] -> [HoroscopeAspect a b]
+selectMajorAspects = filter ((== Major) . aspectType . aspect)
+
+
+-- | Select aspects with an orb of at most 1 degree. Useful for plotting.
+selectExactAspects :: [HoroscopeAspect a b] -> [HoroscopeAspect a b]
+selectExactAspects = filter ((<= 1) . orb)
 
 -- TODO(luis): these find* functions are _so_ wasteful. We could clearly do it in one pass vs. traverse the whole
 -- list for each planet. However, I always find myself updating this file at midnight when my neurons are
