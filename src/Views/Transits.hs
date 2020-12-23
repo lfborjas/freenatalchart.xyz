@@ -17,6 +17,7 @@ import qualified RIO.Text as T
 import Views.Common
 import qualified Graphics.Svg as Svg
 import Chart.Graphics (renderTransitChart)
+import Data.Time.Format.ISO8601 (iso8601Show)
 
 
 renderText :: a -> BirthData -> UTCTime -> TransitData -> Text
@@ -156,7 +157,6 @@ render renderCtx BirthData {..} transitMoment t@TransitData{..} = html_ $ do
     metaCeremony renderCtx
     style_ $ do
       "svg { height: auto; width: auto}\
-      \.table-hover-dark tr:hover{ border-bottom: .05rem solid #9da8ff !important; }\
       \.light-links a{ color: white !important; }\
       \.transiting-planet{ stroke: purple; fill: purple; }\
       \"
@@ -172,7 +172,8 @@ render renderCtx BirthData {..} transitMoment t@TransitData{..} = html_ $ do
           toHtml $ birthLocation & locationInput
         p_ $ do
           "Transits as of: "
-          toHtml $ transitMoment & formatTime defaultTimeLocale rfc822DateFormat
+          time_ [class_ "local-datetime", datetime_ $ transitMoment & iso8601Show & pack] $ do
+            toHtml $ transitMoment & formatTime defaultTimeLocale rfc822DateFormat 
 
       figure_ [class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
         div_ [] $ do
@@ -208,12 +209,16 @@ render renderCtx BirthData {..} transitMoment t@TransitData{..} = html_ $ do
 
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footerNav
+  script_ [src_ . pack $ (renderCtx ^. staticRootL) <> "js/date.js"] (""::Text)
 
 navbar_ :: Html ()
 navbar_ =
   header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
     section_ [class_ "navbar-section"] $ do
-      a_ [href_ "/", class_ "mr-2"] $ do
+      -- NOTE: there's a bit of JS in date.js that will find this element
+      -- and replace its click event with navigating to transits at the 
+      -- moment of click. In the absence of JS, it simply refreshes the page.
+      a_ [id_ "moment-link", href_ "", class_ "mr-2"] $ do
         i_ [class_ "icon icon-refresh", title_ "Recalculate Transits"] ""
         span_ [class_ "hide-sm"] " Recalculate Transits"
     section_ [class_ "navbar-section navbar-center navbar-brand"] $ do
