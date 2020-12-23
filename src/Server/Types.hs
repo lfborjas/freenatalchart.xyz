@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -9,7 +10,7 @@
 module Server.Types where
 
 import Import
-    ( ($),
+    (($),
       Eq,
       Monad((>>=)),
       Read,
@@ -39,7 +40,7 @@ import Import
       Month(..),
       Year(..) )
 import Servant
-    ( Handler,
+    (MimeRender(..), PlainText,  Handler,
       Header,
       type (:<|>),
       Headers,
@@ -52,7 +53,7 @@ import Servant
       ToHttpApiData(toUrlPiece),
       QueryParam' )
 import Servant.HTML.Lucid ( HTML )
-import Lucid.Base (Html)
+import Lucid.Base (relaxHtmlT, ToHtml(..), Html)
 import Validation (Validation)
 import RIO.Text (pack)
 import Ephemeris.Types
@@ -60,6 +61,7 @@ import Ephemeris.Types
       Longitude(unLongitude),
       mkLatitude,
       mkLongitude )
+import RIO.Time (UTCTime)
 
 type Param' = QueryParam' '[Required, Lenient]
 
@@ -76,12 +78,38 @@ type Service =
         :> Param' "day-part" DayPart
         :> Param' "lat" Latitude
         :> Param' "lng" Longitude
-        :> Get '[HTML]  (Headers '[Header "Cache-Control" Text] (Html ()))
+        :> Get '[HTML, PlainText] (Cached TextDocument)
+    :<|> "transits" 
+        :> Param' "at" UTCTime
+        :> Param' "location" Text
+        :> Param' "day" Day
+        :> Param' "month" Month
+        :> Param' "year" Year
+        :> Param' "hour" Hour
+        :> Param' "minute" Minute
+        :> Param' "day-part" DayPart
+        :> Param' "lat" Latitude
+        :> Param' "lng" Longitude
+        :> Get '[HTML, PlainText] (Cached TextDocument)
     :<|> Raw
 
 type AppM = ReaderT AppContext Servant.Handler
 
-type CachedHtml =  (Headers '[Header "Cache-Control" Text] (Html ()))
+type Cached a = Headers '[Header "Cache-Control" Text] a
+type CachedHtml = Cached (Html ())
+
+data TextDocument = 
+    TextDocument {
+        asHtml :: Html ()
+    ,   asText :: Text
+    } 
+
+instance ToHtml TextDocument where
+    toHtml = relaxHtmlT . asHtml
+    toHtmlRaw = relaxHtmlT . asHtml
+
+instance MimeRender PlainText TextDocument where
+    mimeRender proxy val = mimeRender proxy $ asText val
 
 -- Form types:
 

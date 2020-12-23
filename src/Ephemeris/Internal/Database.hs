@@ -134,7 +134,7 @@ activityPeriodQuery conn crossingPlanet soughtLongitude (JulianTime soughtTime) 
   case results of
     [] -> pure (Nothing, Nothing)
     (Only s):(Only e):_ -> pure (JulianTime <$> s, JulianTime <$> e)
-    [(Only _)] -> pure (Nothing, Nothing)
+    [(Only s)] -> pure (JulianTime <$> s, JulianTime <$> s)
   where
     lowerTimeBound = soughtTime - (maxDayDelta crossingPlanet)
     upperTimeBound = soughtTime + (maxDayDelta crossingPlanet)

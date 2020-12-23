@@ -32,6 +32,7 @@ module Ephemeris.Types
   , AspectName(..)
   , AspectTemperament(..)
   , AspectType(..)
+  , AspectPhase(..)
   , Aspect(..)
   , HoroscopeAspect(..)
   , Latitude(..)
@@ -39,10 +40,14 @@ module Ephemeris.Types
   , PlanetPosition(..)
   , HoroscopeData(..)
   , Transit(..)
+  , TransitData(..)
   -- smart constructors
   , mkLatitude
   , mkLongitude
-  ,AngleAspect,PlanetaryAspect)
+  , AngleAspect
+  , PlanetaryAspect
+  , PlanetaryTransit
+  ,AngleTransit,TransitAspect)
 where
 
 import SwissEphemeris
@@ -115,6 +120,14 @@ data House = House
   , houseDeclination :: Double
   } deriving stock (Eq, Show)
 
+instance HasLabel House where
+  label h =
+    case (houseNumber h) of
+      I -> "Asc"
+      IV -> "IC"
+      VII -> "Desc"
+      X -> "MC"
+      n -> label n 
 
 -- TODO(luis) fix this to be `Longitude houseCusp`?
 instance HasLongitude House where
@@ -152,6 +165,15 @@ data AspectType
   | Minor
   deriving stock (Eq, Show, Ord, Enum)
 
+data AspectPhase
+  = Applying
+  | Separating
+  deriving stock (Eq, Show, Ord, Enum)
+
+instance HasLabel AspectPhase where
+  label Applying = "a"
+  label Separating  = "s"
+
 data Aspect = Aspect 
   { aspectName :: AspectName
   , maxOrb :: Double
@@ -170,6 +192,7 @@ data HoroscopeAspect a b = HoroscopeAspect
 
 type PlanetaryAspect = HoroscopeAspect PlanetPosition PlanetPosition
 type AngleAspect = HoroscopeAspect PlanetPosition House
+type TransitAspect a = HoroscopeAspect PlanetPosition a
 
 newtype Latitude = Latitude {unLatitude :: Double}
     deriving newtype (Eq, Show, Num, Ord)
@@ -203,12 +226,16 @@ data PlanetPosition = PlanetPosition
 instance HasLongitude PlanetPosition where
     getLongitude = planetLng
 
+instance HasLabel PlanetPosition where
+  label = label . planetName
+
 data HoroscopeData = HoroscopeData
   {
     horoscopePlanetPositions :: [PlanetPosition]
   , horoscopeAngles :: Angles
   , horoscopeHouses :: [House]
   , horoscopeSystem :: HouseSystem
+  -- TODO: all of the below could be derived ad-hoc.
   , horoscopePlanetaryAspects :: [PlanetaryAspect]
   , horoscopeAngleAspects :: [AngleAspect]
   , horoscopeUniversalTime :: UTCTime
@@ -216,11 +243,28 @@ data HoroscopeData = HoroscopeData
   -- TODO: delta time?
   } deriving (Eq, Show)
 
+data TransitData = TransitData
+  {
+    natalPlanetPositions :: ![PlanetPosition]
+  , natalAngles :: !Angles
+  , natalHouses :: ![House]
+  , natalHouseSystem :: !HouseSystem
+  , transitingPlanetPositions :: ![PlanetPosition]
+  , transitingHouses :: ![House]
+  , transitingAngles :: !Angles
+  , transitingHouseSystem :: !HouseSystem
+  , planetaryTransits :: ![(PlanetaryAspect, PlanetaryTransit)]
+  , angleTransits :: ![(AngleAspect, AngleTransit)]
+  } deriving (Eq, Show)
+
 data Transit a = Transit
   {
-    transiting :: PlanetPosition
-  , transited :: a
-  , transitStarts :: Maybe UTCTime
-  , transitEnds :: Maybe UTCTime
-  , approximateTriggers :: [UTCTime]
+    transiting :: !PlanetPosition
+  , transited :: !a
+  , transitStarts :: !(Maybe UTCTime)
+  , transitEnds :: !(Maybe UTCTime)
+  , immediateTriggers :: ![UTCTime]
   } deriving stock (Eq, Show)
+
+type PlanetaryTransit = Transit PlanetPosition
+type AngleTransit = Transit House

@@ -5,13 +5,15 @@ import Ephemeris.Types
 import RIO.Time (fromGregorian, picosecondsToDiffTime, diffTimeToPicoseconds, toGregorian, UTCTime(..))
 import SwissEphemeris(julianDay, defaultSplitDegreesOptions, gregorianDateTime)
 import qualified SwissEphemeris as SWE
+import Import
 
 mkEcliptic :: EclipticPosition
 mkEcliptic = EclipticPosition 0 0 0 0 0 0
 
 angularDifference :: Double -> Double -> Double
 angularDifference a b
-  | (b - a) < 1 = (b + 360 - a)
+  | (b - a) & abs & (< 1) = abs $ b - a
+  | (b - a) & signum & (< 1) = (b + 360 - a)
   | otherwise = b - a
 
 isRetrograde :: PlanetPosition -> Bool

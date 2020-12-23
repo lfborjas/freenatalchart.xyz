@@ -8,7 +8,7 @@
 module Chart.Graphics where
 
 import Ephemeris
-    ( Angles(..),
+    (transitAspects,  Angles(..),
       ZodiacSign(ZodiacSign),
       Element(Water, Earth, Air, Fire),
       HasLabel(label),
@@ -23,7 +23,9 @@ import Ephemeris
       angularDifference,
       isRetrograde,
       HoroscopeData(..),
-      PlanetPosition(..) )
+      TransitData(..),
+      PlanetPosition(..),
+      triggeredTransits)
 import Chart.Prerendered as P
     ( prerenderedPlanet, prerenderedSign )
 import Diagrams.Backend.SVG (svgClass,  Options(SVGOptions), SVG(SVG), B )
@@ -77,11 +79,12 @@ cuspsCircle env c =
     onZodiacs = env ^. zodiacCircleRadiusL
     onAspects = env ^. aspectCircleRadiusL
     pairedC = zip c $ rotateList 1 c
+    classPrefix = env & chartHouseClassPrefix
     cuspBand (House houseName (Longitude cuspBegin) _, House _ (Longitude cuspEnd) _) =
       t <> w # lw ultraThin
         # lc black
         # (href $ "#house-" <> (show houseName))
-        # svgClass "house-segment"
+        # svgClass (classPrefix <> "-segment")
       where
         d = rotateBy ((cuspBegin @@ deg) ^. turn) xDir
         a = (angularDifference cuspBegin cuspEnd) @@ deg
@@ -93,7 +96,7 @@ cuspsCircle env c =
             # moveTo textPosition
             # fontSize (local 0.05)
             # rectifyAround textPosition env
-            # svgClass "house-label"
+            # svgClass (classPrefix <> "-label")
 
 quadrants :: ChartContext -> Angles -> Diagram B
 quadrants env Angles {..} =
@@ -111,7 +114,7 @@ quadrants env Angles {..} =
             # fontSize (local 0.05)
             # fc black
             # rectifyAround textPosition env
-            # svgClass "house-label"
+            # svgClass ((env & chartHouseClassPrefix) <> "-label")
 
 aspects :: (HasLongitude a, HasLongitude b) => ChartContext -> [HoroscopeAspect a b] -> Diagram B
 aspects env pAspects = do
@@ -137,6 +140,7 @@ planets env planetPositions =
     onAspects = env ^. aspectCircleRadiusL
     onZodiacs = env ^. zodiacCircleRadiusL
     onPlanets = env ^. planetCircleRadiusL
+    classPrefix = env & chartPlanetClassPrefix
     drawPlanet (corrected, pos@PlanetPosition {..}) =
       (stroke $ P.prerenderedPlanet planetName)
         # scale 0.1
@@ -146,10 +150,10 @@ planets env planetPositions =
         # lw ultraThin
         # (keyVal $ ("title", label planetName))
         # (href $ "#" <> (label planetName))
-        # svgClass "planet"
-        <> (guideLines # svgClass "planet-lines")
-        <> (correctionLine # lw thin # lc black # svgClass "planet-lines")
-        <> (retrogradeMark # svgClass "planet") 
+        # svgClass classPrefix
+        <> (guideLines # svgClass (classPrefix <> "-lines"))
+        <> (correctionLine # lw thin # lc black # svgClass (classPrefix <> "-lines"))
+        <> (retrogradeMark # svgClass classPrefix) 
       where
         drawPlanetAt = maybe (getLongitude pos) id corrected
         atCorrectedPosition = flip longitudeToPoint $ drawPlanetAt
@@ -214,6 +218,25 @@ chart env HoroscopeData {..} =
     <> (degreeMarkers False $ env ^. zodiacCircleRadiusL)
     <> (degreeMarkers True $ env ^. aspectCircleRadiusL)
 
+transitChart :: ChartContext -> TransitData -> Diagram B
+transitChart env TransitData {..} = 
+  do
+    (zodiacCircle env)
+    <> (planets env natalPlanetPositions)
+    <> (cuspsCircle env{chartZodiacCircleRadius = 0.6} natalHouses)
+    -- <> (quadrants env natalAngles)
+    <> (planets env{chartPlanetCircleRadius = 0.7, chartPlanetClassPrefix = "transiting-planet"} transitingPlanetPositions)
+    <> (cuspsCircle env{chartAspectCircleRadius = 0.6, chartHouseClassPrefix = "transiting-house"} transitingHouses)
+    -- Only draw aspects that become active in the investigated period:
+    <> ((aspects env) . transitAspects . triggeredTransits $ planetaryTransits)
+    <> ((aspects env) . transitAspects . triggeredTransits $ angleTransits)
+    <> containerCircle 1
+    <> (containerCircle $ env ^. zodiacCircleRadiusL)
+    <> (containerCircle $ env ^. aspectCircleRadiusL)
+    <> (degreeMarkers False $ env ^. zodiacCircleRadiusL)
+    <> (degreeMarkers True $ env ^. aspectCircleRadiusL)
+
+
 --
 -- CHART UTILS
 --
@@ -273,7 +296,25 @@ renderChart attrs width' z@HoroscopeData {..} =
         { chartAscendantOffset = ascendantOffset,
           chartZodiacCircleRadius = 0.8,
           chartAspectCircleRadius = 0.5,
-          chartPlanetCircleRadius = 0.65
+          chartPlanetCircleRadius = 0.65,
+          chartPlanetClassPrefix = "planet",
+          chartHouseClassPrefix = "house"
         }
     birthChart = chart cfg z # rotateBy ((ascendantOffset @@ deg) ^. turn)
     ascendantOffset = 180 - (ascendant horoscopeAngles)
+
+renderTransitChart :: [Svg.Attribute] -> Double -> TransitData -> Svg.Element
+renderTransitChart attrs width' t@TransitData{..} =
+  renderDia SVG (SVGOptions (mkWidth width') Nothing "" attrs True) transitChart'
+  where
+    cfg =
+      ChartContext
+        { chartAscendantOffset = ascendantOffset
+        , chartZodiacCircleRadius = 0.8
+        , chartAspectCircleRadius = 0.3
+        , chartPlanetCircleRadius = 0.45
+        , chartPlanetClassPrefix = "planet"
+        , chartHouseClassPrefix = "house"
+        }
+    transitChart' = transitChart cfg t # rotateBy ((ascendantOffset @@ deg) ^. turn)
+    ascendantOffset = 180 - (ascendant natalAngles)

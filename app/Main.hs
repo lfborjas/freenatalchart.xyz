@@ -7,7 +7,6 @@ import Server.Run (start)
 import System.Envy (decodeWithDefaults)
 import Data.Time.LocalTime.TimeZone.Detect (withTimeZoneDatabase)
 
-
 main :: IO ()
 main = do
   lo <- logOptionsHandle stderr False
@@ -25,6 +24,7 @@ main = do
             , appTimeZoneDatabase = tzdb
             , appEnvironment = deployEnv env'
             , appStaticRoot = "/"
+            , appEphemerisDatabase = epheDbFile env'
             }
       in
         start ctx

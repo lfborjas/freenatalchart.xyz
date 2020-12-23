@@ -1,15 +1,17 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Ephemeris.Horoscope (horoscope) where
+module Ephemeris.Horoscope (horoscope, transitData) where
 
 import Import
 import Ephemeris.Types
 import Data.Time.LocalTime.TimeZone.Detect (timeAtPointToUTC, TimeZoneDatabase)
 import SwissEphemeris (eclipticToEquatorial, calculateEclipticPosition, calculateObliquity, calculateCusps, withEphemerides)
-import Ephemeris.Aspect (celestialAspects, planetaryAspects)
+import Ephemeris.Aspect (aspectableAngles, transitingAspects, celestialAspects, planetaryAspects)
 import Ephemeris.Utils (mkEcliptic, utcToJulian)
 import Ephemeris.Planet (defaultPlanets)
+import RIO.Time (UTCTime)
+import Ephemeris.Transit (transits)
 
 horoscope :: TimeZoneDatabase -> EphemeridesPath -> BirthData -> IO HoroscopeData
 horoscope timezoneDB ephePath BirthData {..} = do
@@ -18,7 +20,7 @@ horoscope timezoneDB ephePath BirthData {..} = do
   -- convert to what the underlying library expects: a UTC time, and a pair of raw coordinates.
   uTime <- timeAtPointToUTC timezoneDB latitude longitude birthLocalTime
   time <- pure $ utcToJulian uTime
-  place <- pure $ GeographicPosition {geoLat = latitude, geoLng = longitude}
+  place <- pure $ locationToGeo birthLocation
 
   withEphemerides ephePath $ do
     -- we `fail` if the obliquity couldn't be calculated, since it should be available for any moment in the supported
@@ -36,6 +38,63 @@ horoscope timezoneDB ephePath BirthData {..} = do
         (celestialAspects positions angles')
         uTime
         time
+
+transitData :: 
+  (HasTimeZoneDatabase ctx, HasEphePath ctx, HasEphemerisDatabase ctx)
+  => ctx
+  -> UTCTime
+  -> BirthData
+  -> IO TransitData
+transitData ctx momentOfTransit BirthData {..} = do
+  let timezoneDB = ctx ^. timeZoneDatabaseL
+      ephePath   = ctx ^. ephePathL
+      epheDB     = ctx ^. ephemerisDatabaseL
+
+  latitude <- pure $ birthLocation & locationLatitude & unLatitude
+  longitude <- pure $ birthLocation & locationLongitude & unLongitude
+  -- convert to what the underlying library expects: a UTC time, and a pair of raw coordinates.
+  uTime <- timeAtPointToUTC timezoneDB latitude longitude birthLocalTime
+  natalTime <- pure $ utcToJulian uTime
+  transitTime <- pure $ utcToJulian momentOfTransit
+  place <- pure $ locationToGeo birthLocation
+
+  withEphemerides ephePath $ do
+    -- we `fail` if the obliquity couldn't be calculated, since it should be available for any moment in the supported
+    -- time range!
+    natalObliquity <- obliquityOrBust natalTime
+    natalPositions <- planetPositions natalObliquity natalTime
+    (CuspsCalculation natalCusps natalAngles' natalSys) <- calculateCusps Placidus natalTime place
+
+    transitObliquity <- obliquityOrBust transitTime
+    transitPositions <- planetPositions transitObliquity transitTime
+    (CuspsCalculation transitCusps transitAngles transitSys) <- calculateCusps Placidus transitTime place
+
+    pAspects <- pure $ transitingAspects transitPositions natalPositions
+    pTransits <- transits epheDB transitTime pAspects
+    aAspects <- pure $ transitingAspects transitPositions (aspectableAngles natalAngles')
+    aTransits <- transits epheDB transitTime aAspects
+
+    return $
+      TransitData {
+        natalPlanetPositions = natalPositions
+      , natalAngles = natalAngles'
+      , natalHouses = houses natalObliquity natalCusps
+      , natalHouseSystem = natalSys
+      , transitingPlanetPositions = transitPositions
+      , transitingHouses = houses transitObliquity transitCusps
+      , transitingAngles = transitAngles
+      , transitingHouseSystem = transitSys
+      , planetaryTransits = pTransits
+      , angleTransits = aTransits
+      }
+
+locationToGeo :: Location -> GeographicPosition
+locationToGeo Location {..} =
+  GeographicPosition {
+      geoLat = (locationLatitude & unLatitude)
+    , geoLng = (locationLongitude & unLongitude)
+    }
+
 
 obliquityOrBust :: JulianTime -> IO ObliquityInformation
 obliquityOrBust time = do

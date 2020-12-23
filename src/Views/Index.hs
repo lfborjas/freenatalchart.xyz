@@ -153,13 +153,13 @@ numberInput name' label' (start, end) value e placeholder'=
                , id_ name'
                , name_ name'
                , required_ ""
-               , min_ (asText start)
-               , max_ (asText end)
+               , min_ (asText' start)
+               , max_ (asText' end)
                , value_ value
                , placeholder_ placeholder'
                ]
     where
-        asText = pack . show
+        asText' = pack . show
 
 errorHint :: Maybe Text -> Html ()
 errorHint = maybe mempty (\e -> p_ [class_ "form-input-hint input-hint-highlighted text-error multiline-p"] (toHtml e))

@@ -6,6 +6,7 @@ module Ephemeris
  , module Ephemeris.Planet
  , module Ephemeris.ZodiacSign
  , module Ephemeris.Utils
+ , module Ephemeris.Transit
  -- "bridge" modules
  , module Ephemeris.Horoscope
  )
@@ -18,3 +19,5 @@ import Ephemeris.Horoscope
 import Ephemeris.Planet
 import Ephemeris.Utils
 import Ephemeris.ZodiacSign
+
+import Ephemeris.Transit

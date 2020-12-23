@@ -6,6 +6,7 @@ import qualified Lucid.Base as L
 import RIO.ByteString (ByteString)
 import qualified RIO.Text as T
 import qualified RIO.ByteString.Lazy as LB
+import RIO (readFileUtf8, writeFileUtf8)
 
 goldenFixture :: String -> String -> Golden String
 goldenFixture name output_ =
@@ -15,6 +16,18 @@ goldenFixture name output_ =
   , testName = name
   , writeToFile = writeFile
   , readFromFile = readFile
+  , directory = "test/files"
+  , failFirstTime = False
+  }
+
+goldenFixtureText :: String -> T.Text -> Golden T.Text
+goldenFixtureText name output_ =
+  Golden {
+    output = output_
+  , encodePretty = show
+  , testName = name
+  , writeToFile = writeFileUtf8
+  , readFromFile = readFileUtf8
   , directory = "test/files"
   , failFirstTime = False
   }
