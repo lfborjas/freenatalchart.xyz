@@ -187,7 +187,25 @@ render renderCtx BirthData {..} transitMoment t@TransitData{..} = html_ $ do
           a_ [href_ "#introspect"] "Introspect"
 
       div_ [class_ "divider", id_ "analyze"] ""
-    
+
+      details_ [id_ "natal-planet-positions", class_ "accordion my-2", open_ ""] $ do
+        summary_ [class_ "accordion-header"] $ do
+          headerIcon
+          sectionHeading $ do
+            "Natal Planet Positions"      
+        div_ [class_ "accordion-body scrollable-container"] $ do
+          planetPositionsTable natalPlanetPositions natalHouses
+      div_ [class_ "divider"] ""
+
+      details_ [id_ "transiting-planet-positions", class_ "accordion my-2", open_ ""] $ do
+        summary_ [class_ "accordion-header"] $ do
+          headerIcon
+          sectionHeading $ do
+            "Transiting Planet Positions"      
+        div_ [class_ "accordion-body scrollable-container"] $ do
+          planetPositionsTable transitingPlanetPositions natalHouses
+      div_ [class_ "divider"] ""
+
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footerNav
 

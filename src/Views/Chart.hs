@@ -335,14 +335,11 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
     footerNav
 
   where
-    -- markup helpers
-    headerIcon = i_ [class_ "icon icon-arrow-right mr-1 c-hand icon-right icon-light"] ""
-    sectionHeading = h5_ [class_ "d-inline text-primary"]
     sunSign = (findSunSign horoscopePlanetPositions)
     moonSign = (findMoonSign horoscopePlanetPositions)
     asc = (findAscendant horoscopeHouses)
     aspectDetails' = aspectDetails horoscopePlanetaryAspects horoscopeAngleAspects
-    divider_ = div_ [class_ "divider"] ""
+
 
 --
 -- "COMPONENTS"
@@ -361,42 +358,6 @@ navbar_ =
         span_ [class_ "hide-sm"] "Back to Top "
         i_ [class_ "icon icon-upward", title_ "Back to Top"] ""
 
-planetPositionsTable :: [PlanetPosition] -> [House] ->  Html ()
-planetPositionsTable planetPositions houses =
-  table_ [class_ "table table-no-borders table-hover-dark"] $ do
-    thead_ [class_ "text-light"] $ do
-      tr_ [] $ do
-        th_ [] "Planet"
-        th_ [] "House"
-        th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "Where in the ecliptic\n(zodiac band as seen from Earth)\n the planet is."] $ do
-          "Longitude"
-        th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "How many degrees a planet is moving per day.\nNegative speed means retrograde motion."] $ do
-          "Speed"
-        th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "Position above or below the ecliptic plane;\nmost planets appear to be 'on' the ecliptic,\nbut not all are."] $ do
-           "Latitude"
-        th_ [class_ "tooltip tooltip-bottom", data_ "tooltip" "Angle between the planet's position in the sky\nand the Earth's equator."] $ do
-          "Declination"
-    tbody_ [] $ do
-      forM_ (planetPositions) $ \pp@PlanetPosition {..} -> do
-        tr_ [] $ do
-          td_ $ do
-            span_ [class_ "text-light"] $ do
-              asIcon planetName
-            planetLabel planetName
-            if isRetrograde pp then
-             span_ [class_ "text-light tooltip", data_ "tooltip" "Retrograde"] " (r)"
-            else
-              ""  
-          td_ $ do
-            housePositionHtml $ housePosition houses planetLng 
-          td_ $ do
-            htmlDegreesZodiac planetLng 
-          td_ $ do
-            htmlDegrees planetLngSpeed  
-          td_ $ do
-            htmlDegreesLatitude planetLat 
-          td_ $ do
-            htmlDegreesLatitude $ Latitude planetDeclination  
 
 houseSystemDetails :: HouseSystem -> Html ()
 houseSystemDetails sys =
