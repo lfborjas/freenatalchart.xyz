@@ -207,6 +207,13 @@ render renderCtx BirthData {..} transitMoment t@TransitData{..} = html_ $ do
           planetPositionsTable transitingPlanetPositions natalHouses
       div_ [class_ "divider"] ""
 
+      details_ [id_ "aspects-summary", class_ "accordion my-2", open_ ""] $ do
+        summary_ [class_ "accordion-header"] $ do
+          headerIcon
+          sectionHeading "Aspects Summary"
+        div_ [class_ "accordion-body scrollable-container"] $ do
+          transitAspectDetailsTable transitingPlanetPositions planetaryTransits angleTransits
+
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footerNav
   script_ [src_ . pack $ (renderCtx ^. staticRootL) <> "js/date.js"] (""::Text)
@@ -227,3 +234,33 @@ navbar_ =
       a_ [href_ "#main"] $ do
         span_ [class_ "hide-sm"] "Back to Top "
         i_ [class_ "icon icon-upward", title_ "Back to Top"] ""
+
+transitAspectDetailsTable :: [PlanetPosition] -> [(PlanetaryAspect, PlanetaryTransit)] -> [(AngleAspect, AngleTransit)] -> Html ()
+transitAspectDetailsTable  transitingPlanets planetTransits angleTransits =
+  table_ [class_ "table table-hover table-scroll"] $ do
+    tr_ $ do
+      td_ [] ""
+      forM_ defaultPlanets $ \transitPlanet -> do
+        td_ [] $ do
+          asIcon transitPlanet
+          " (tr)"
+    forM_ defaultPlanets $ \rowPlanet -> do
+      tr_ [] $ do
+        td_ [] $ do
+          asIcon rowPlanet
+          " (nat)"
+        forM_ transitingPlanets $ \PlanetPosition {..} -> do
+          td_ [style_ "border: 1px solid", class_ "text-small"] $ do
+            aspectCell $ findAspectBetweenPlanets (transitAspects planetTransits) rowPlanet planetName
+    tr_ [] $ do
+      td_ [] $ do
+        span_ [class_ "tooltip", data_ "tooltip" "Ascendant"] "AC"
+      forM_ transitingPlanets $ \PlanetPosition {..} -> do
+        td_ [style_ "border: 1px solid", class_ "text-small"] $ do
+          aspectCell $ findAspectWithAngle (transitAspects angleTransits) planetName I
+    tr_ [] $ do
+      td_ [] $ do
+        span_ [class_ "tooltip", data_ "tooltip" "Midheaven"] "MC"
+      forM_ transitingPlanets $ \PlanetPosition {..} -> do
+        td_ [style_ "border: 1px solid", class_ "text-small"] $ do
+          aspectCell $ findAspectWithAngle (transitAspects angleTransits) planetName X
