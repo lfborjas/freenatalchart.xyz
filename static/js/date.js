@@ -36,5 +36,6 @@ const momentLink = document.querySelector("#moment-link");
 window.onload = () => {
   localizeDateTimes(localDateTimes);
   localizeDates(localDates);
+  momentLink.classList.remove("d-invisible");
 };
 momentLink.addEventListener('click', navigateToMoment);
