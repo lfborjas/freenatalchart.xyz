@@ -12,7 +12,7 @@ import Lucid hiding (renderText)
 import RIO.Text (pack)
 import RIO.Time (rfc822DateFormat, formatTime, defaultTimeLocale)
 import Ephemeris
-    ( majorAspects,
+    (defaultAspects,  majorAspects,
       minorAspects,
       defaultPlanets,
       isRetrograde,
@@ -272,7 +272,7 @@ render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
             generalAspectsExplanation
             h4_ "Orbs we use"
             p_ "All aspects you see in this page are calculated using the following orbs:"
-            orbsTable
+            orbsTable defaultAspects
 
 
         divider_ 
@@ -413,28 +413,6 @@ aspectDetailsTable planetPositions planetAspects angleAspects =
       forM_ (planetPositions) $ \PlanetPosition {..} -> do
         td_ [style_ "border: 1px solid", class_ "text-small"] $ do
           aspectCell $ findAspectWithAngle angleAspects planetName X
-
-orbsTable :: Html ()
-orbsTable =
-  table_ [id_ "orbs-used", class_ "table table-no-borders"] $ do
-   thead_ [] $ do
-     tr_ [] $ do
-       th_ "Aspect"
-       th_ "Angle"
-       th_ "Orb"
-   tbody_ [] $ do
-     forM_ (majorAspects <> minorAspects) $ \a@Aspect {..} -> do
-       tr_ [] $ do
-         td_ $ do
-           span_ [aspectColorStyle a] $ do
-             asIcon aspectName
-           " "
-           toHtml $ toText aspectName
-         td_ $ do
-           toHtml $ toText angle
-         td_ $ do
-           toHtml $ toText maxOrb
-
 
 zodiacCards :: [PlanetPosition] -> [House] -> Html ()
 zodiacCards planetPositions houseCusps =
@@ -608,11 +586,6 @@ planetCards planetPositions houseCusps planetaryAspects angleAspects =
     housePosition'  = housePosition houseCusps
     aspectsForPlanet' p = map (findAspectBetweenPlanets planetaryAspects p) [Sun .. Chiron]
     axesAspectsForPlanet' p = map (findAspectWithAngle angleAspects p)  [I, X]
-
-cardDark_ :: Attribute
-cardDark_ = class_ "card card-dark mx-2 my-2 text-center"
-attributeTitle_ :: Html () -> Html ()
-attributeTitle_ = h5_ [class_ "text-light"] 
 
 aspectDetails :: [HoroscopeAspect PlanetPosition PlanetPosition] -> [HoroscopeAspect PlanetPosition House] -> Aspect -> Html ()
 aspectDetails allPlanetAspects allAxesAspects a@Aspect {..} = do

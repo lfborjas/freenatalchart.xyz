@@ -324,3 +324,29 @@ planetPositionsTable planetPositions houses =
             htmlDegreesLatitude planetLat 
           td_ $ do
             htmlDegreesLatitude $ Latitude planetDeclination  
+
+orbsTable :: [Aspect] -> Html ()
+orbsTable aspectList =
+  table_ [id_ "orbs-used", class_ "table table-no-borders"] $ do
+   thead_ [] $ do
+     tr_ [] $ do
+       th_ "Aspect"
+       th_ "Angle"
+       th_ "Orb"
+   tbody_ [] $ do
+     forM_ aspectList $ \a@Aspect {..} -> do
+       tr_ [] $ do
+         td_ $ do
+           span_ [aspectColorStyle a] $ do
+             asIcon aspectName
+           " "
+           toHtml $ toText aspectName
+         td_ $ do
+           toHtml $ toText angle
+         td_ $ do
+           toHtml $ toText maxOrb
+
+cardDark_ :: Attribute
+cardDark_ = class_ "card card-dark mx-2 my-2 text-center"
+attributeTitle_ :: Html () -> Html ()
+attributeTitle_ = h5_ [class_ "text-light"] 

@@ -1,9 +1,19 @@
-function localizeDates(_event){
-  localDates.forEach((dateEl) => {
+function localizeDateTimes(dts){
+  dts.forEach((dateEl) => {
     let utcTime = dateEl.getAttribute("datetime");
     if(utcTime){
       let parsedDate = new Date(utcTime);
       dateEl.textContent = parsedDate.toLocaleString();
+    }
+  });
+}
+
+function localizeDates(ds){
+  ds.forEach((dateEl) => {
+    let utcTime = dateEl.getAttribute("datetime");
+    if(utcTime){
+      let parsedDate = new Date(utcTime);
+      dateEl.textContent = parsedDate.toLocaleDateString();
     }
   });
 }
@@ -19,8 +29,12 @@ function navigateToMoment(event){
   window.location.assign(newLocation.toString());
 }
 
-const localDates = document.querySelectorAll(".local-datetime");
+const localDateTimes = document.querySelectorAll(".local-datetime");
+const localDates = document.querySelectorAll(".local-date");
 const momentLink = document.querySelector("#moment-link");
 
-window.onload = localizeDates;
+window.onload = () => {
+  localizeDateTimes(localDateTimes);
+  localizeDates(localDates);
+};
 momentLink.addEventListener('click', navigateToMoment);

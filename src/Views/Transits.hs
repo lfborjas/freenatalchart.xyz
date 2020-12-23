@@ -18,6 +18,7 @@ import Views.Common
 import qualified Graphics.Svg as Svg
 import Chart.Graphics (renderTransitChart)
 import Data.Time.Format.ISO8601 (iso8601Show)
+import Views.Chart.Explanations (Explicable(explain), generalTransitsExplanation)
 
 
 renderText :: a -> BirthData -> UTCTime -> TransitData -> Text
@@ -128,7 +129,7 @@ transitActivity extraHeading moment transits' = do
     [
       justifyTransiting "Transiting", justifyAspect "Aspect", justifyTransited "Transited",
       justifyTimestamp "Starts", justifyTimestamp "Ends",
-      justifyTimestamp "Exact On"
+      justifyTimestamp "Exact At"
     ]
   forM_ (transitActivityAround moment transits') $ \(a,t) -> do
     tell . justifyTransiting . labelText . planetName . transiting $ t
@@ -159,8 +160,7 @@ render renderCtx BirthData {..} transitMoment t@TransitData{..} = html_ $ do
     metaCeremony renderCtx
     style_ $ do
       "svg { height: auto; width: auto}\
-      \.light-links a{ color: white !important; }\
-      \.transiting-planet{ stroke: purple; fill: purple; }\
+      \.section{ border-top: .05rem solid #3c4feb; }\
       \"
 
   body_ $ do
@@ -174,8 +174,7 @@ render renderCtx BirthData {..} transitMoment t@TransitData{..} = html_ $ do
           toHtml $ birthLocation & locationInput
         p_ $ do
           "Transits as of: "
-          time_ [class_ "local-datetime", datetime_ $ transitMoment & iso8601Show & pack] $ do
-            toHtml $ transitMoment & formatTime defaultTimeLocale rfc822DateFormat 
+          localTime_ transitMoment
 
       figure_ [class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
         div_ [] $ do
@@ -189,32 +188,53 @@ render renderCtx BirthData {..} transitMoment t@TransitData{..} = html_ $ do
         li_ [class_ "tab-item"] $ do
           a_ [href_ "#introspect"] "Introspect"
 
-      div_ [class_ "divider", id_ "analyze"] ""
+      article_ [id_ "analyze"] $ do
+        section_ [class_ "section"] $ do
+          details_ [id_ "natal-planet-positions", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading $ do
+                "Natal Planet Positions"      
+            div_ [class_ "accordion-body scrollable-container"] $ do
+              planetPositionsTable natalPlanetPositions natalHouses
 
-      details_ [id_ "natal-planet-positions", class_ "accordion my-2", open_ ""] $ do
-        summary_ [class_ "accordion-header"] $ do
-          headerIcon
-          sectionHeading $ do
-            "Natal Planet Positions"      
-        div_ [class_ "accordion-body scrollable-container"] $ do
-          planetPositionsTable natalPlanetPositions natalHouses
-      div_ [class_ "divider"] ""
+        section_ [class_ "section"] $ do
+          details_ [id_ "transiting-planet-positions", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading $ do
+                "Transiting Planet Positions"      
+            div_ [class_ "accordion-body scrollable-container"] $ do
+              planetPositionsTable transitingPlanetPositions natalHouses
+        section_ [class_ "section"] $ do
+          details_ [id_ "aspects-summary", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "Aspects Summary"
+            div_ [class_ "accordion-body scrollable-container"] $ do
+              transitAspectDetailsTable transitingPlanetPositions planetaryTransits angleTransits
 
-      details_ [id_ "transiting-planet-positions", class_ "accordion my-2", open_ ""] $ do
-        summary_ [class_ "accordion-header"] $ do
-          headerIcon
-          sectionHeading $ do
-            "Transiting Planet Positions"      
-        div_ [class_ "accordion-body scrollable-container"] $ do
-          planetPositionsTable transitingPlanetPositions natalHouses
-      div_ [class_ "divider"] ""
+      article_ [id_ "understand"] $ do
+        section_ [class_ "section"] $ do
+          details_ [id_ "transits-explanation", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "Transits"
+            div_ [] $ do
+              generalTransitsExplanation 
+              h4_ "Orbs we use"
+              p_ "All aspects you see in the summary table are calculated using the following orbs: "
+              orbsTable aspectsForTransits
 
-      details_ [id_ "aspects-summary", class_ "accordion my-2", open_ ""] $ do
-        summary_ [class_ "accordion-header"] $ do
-          headerIcon
-          sectionHeading "Aspects Summary"
-        div_ [class_ "accordion-body scrollable-container"] $ do
-          transitAspectDetailsTable transitingPlanetPositions planetaryTransits angleTransits
+      article_ [id_ "introspect"] $ do
+        section_ [class_ "section"] $ do
+          details_ [id_ "my-active-transits", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "Your Active Transits"
+            div_ [] $ do
+              transitCards $ transitActivityAround transitMoment planetaryTransits
+              transitCards $ transitActivityAround transitMoment angleTransits
 
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footerNav
@@ -262,3 +282,102 @@ transitAspectDetailsTable  transitingPlanets planetTransits angleTransits =
   
         td_ [style_ "border: 1px solid", class_ "text-small"] $ do
           planetaryAspectCell $ findAspectWithAngle (transitAspects angleTransits) transitingPlanet X
+
+transitCards :: (HasLongitude a, HasLabel a) => [(TransitAspect a, Transit a)] -> Html ()
+transitCards activity =
+  forM_ activity $ \(activeTransit, activityData) ->
+    div_ [cardDark_] $ do
+      div_ [class_ "card-header"] $ do
+        div_ [class_ "card-title"] $ do
+          h4_ [activeTransit & aspect & aspectColorStyle] $ do
+            activityData & transiting & asIcon'
+            " "
+            activeTransit & aspect & aspectName & asIcon
+            " "
+            activityData & transited & asIcon'
+          div_ [class_ "card-subtitle"] $ do
+            activityData & transiting & labelText & toHtml
+            " "
+            strong_ $ do
+              activeTransit & aspect & aspectName & labelText & toHtml
+            " "
+            activityData & transited & labelText & toHtml
+      div_ [class_ "card-body"] $ do
+        p_ [class_ "text-tiny"] $ do
+          activeTransit & aspect & aspectName & explain
+
+        div_ [class_ "flex-container"] $ do
+          if (activityData & transitStarts & isJust) then
+            div_ [class_ "flex-item"] $ do
+              attributeTitle_ "Starts"
+              span_ [class_ "text-medium"] $ do
+                maybe mempty localDate_ (activityData & transitStarts)
+          else
+            mempty 
+
+          if (activityData & transitEnds & isJust) then
+            div_ [class_ "flex-item"] $ do
+              attributeTitle_  $ do
+                if (activityData & transitStarts & isNothing ) then
+                  "Active During"
+                else
+                  "Ends"
+              span_ [class_ "text-medium"] $ do
+                maybe mempty localDate_ (activityData & transitEnds)
+          else
+            mempty
+        
+        if (activityData & immediateTriggers & null & not) then
+          div_ [class_ "flex-container"] $ do
+            div_ [class_ "flex-item"] $ do
+              attributeTitle_ "Exact At"
+              span_ [class_ "text-large"] $ do
+                maybe mempty localTime_ (activityData & immediateTriggers & headMaybe)
+        else
+          mempty
+
+        div_ [class_ "divider divider-dark"] ""
+
+        attributeTitle_ "In this transit"
+        table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
+          tbody_ [] $ do
+            bodyDetails . transiting $ activityData
+            bodyDetails . transited $ activityData
+
+bodyDetails :: (HasLabel a, HasLongitude a) => a -> Html ()
+bodyDetails body =
+  tr_ [] $ do
+    td_ [] $ do
+      asIcon' body
+      " "
+      toHtml $ labelText body
+    td_ [] $ do
+      zodiacLink body 
+
+localTime_ :: UTCTime -> Html ()
+localTime_ moment = 
+  time_ [class_ "local-datetime", datetime_ $ moment & iso8601Show & pack] $ do
+    toHtml $ moment & formatTime defaultTimeLocale rfc822DateFormat 
+
+localDate_ :: UTCTime -> Html ()
+localDate_ moment = 
+  time_ [class_ "local-date", datetime_ $ moment & iso8601Show & pack] $ do
+    toHtml $ moment & formatTime defaultTimeLocale "%a, %_d %b %Y" 
+
+asIcon' :: HasLabel a => a -> Html ()
+asIcon' z =
+  i_ [class_ ("fnc-" <> shown <> " tooltip"), title_ shown, data_ "tooltip" label'] $ do
+    toHtml alt
+  where
+    label' = pack . label $ z
+    alt :: Text
+    alt =
+      case label' of
+        "MC" -> "MC"
+        "Asc" -> "Asc"
+        _ -> ""
+    shown  = 
+      case label' of
+        "Mean Node" -> "MeanNode"
+        "Lilith" -> "MeanApog"
+        _ -> label'

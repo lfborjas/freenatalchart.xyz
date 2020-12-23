@@ -646,3 +646,37 @@ case the two bodies involved are said to work in concert, while other aspects ar
 -- but modern astrology sees this as an opportunity for growth and development, learning how to reconcile these
 opposing forces, as opposed to "bad" or "fateful".
     |]
+
+generalTransitsExplanation :: Html ()
+generalTransitsExplanation =
+  markdownToHtml
+    [i|
+[Transits](https://www.astro.com/astrowiki/en/Transit)
+are aspects between the position of planets at a given time, and the position of planets
+or axes in a natal chart. When a transiting planet forms an _exact_ aspect, the aspect is considered
+**triggered**, or activated. 
+
+What transits are relevant is definitely an art, and up to an astrologer's criteria: in our aspects table,
+we show all aspects formed by transiting planets, using the same orbs as natal charts,
+but only consider a transit to be **active** when it is _very_ close (less than one degree) away
+from exactitude at the moment of querying. This is why the list of _active transit aspects_ appears much
+smaller than all transit aspects shown in the summary table. We only draw active aspects, too.
+
+The _period of activity_ is also a bit of an art: a lot of astrologers consider the **Applying** phase
+(when a transiting planet is _approaching_ the transited point) to be more important than the
+**Separating** phase (when a transiting planet is moving away,) and as such they consider the activity
+to begin when the transiting planet is more than one degree away, but to end as soon as it's more
+than few minutes past the transited point.
+We currently take a naïve approach:
+we simply consider a transit to begin its activity when it's at most one degree away from becoming, or
+having become, exact, in the 24 hour period around the moment of query. To aid your own interpretation,
+we show the letter `a` in the summary table when an aspect is in the applicative phase (about to become
+exact), and an `s` when it's separating (moving away.) 
+
+Given all of the above, the [tables of positions and aspect summary](#analyze) are the best starting point for your own
+interpretation: we take a rather cautious approach to what aspects we consider active, but you can
+draw your own conclusions based on the raw data and your personal situation!
+
+If you have any suggestions about how we calculate or present transiting aspects,
+please [leave us a note](https://github.com/lfborjas/freenatalchart.xyz/issues/new?assignees=&labels=transits&template=transit-or-aspect-suggestion.md&title=Transit+or+Aspect+Suggestion).
+    |]

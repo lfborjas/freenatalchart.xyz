@@ -151,7 +151,7 @@ Chiron   |Square      |Chiron   |88.5616 |1.4384  |Applying
 
 Active Transits to Natal Planets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Transiting|Aspect      |Transited|Starts                  |Ends                    |Exact On                
+Transiting|Aspect      |Transited|Starts                  |Ends                    |Exact At                
 Moon      |Square      |Moon     |2020-12-22 00:00:00 UTC |2020-12-23 00:00:00 UTC |2020-12-22 13:38:14 UTC 
 Moon      |Sextile     |Mercury  |N/A                     |2020-12-23 00:00:00 UTC |N/A                     
 Moon      |Square      |Venus    |2020-12-22 00:00:00 UTC |2020-12-24 00:00:00 UTC |2020-12-22 17:11:28 UTC 
@@ -203,7 +203,7 @@ Mean Node|Trine       |Asc      |126.0310|6.0310  |Separating
 
 Active Transits to Natal Axes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Transiting|Aspect      |Transited|Starts                  |Ends                    |Exact On                
+Transiting|Aspect      |Transited|Starts                  |Ends                    |Exact At                
 Mars      |Square      |MC       |2020-08-14 00:00:00 UTC |2020-12-26 00:00:00 UTC |N/A                     
 Pluto     |Opposition  |MC       |2019-03-08 00:00:00 UTC |2021-11-09 00:00:00 UTC |N/A                     
 

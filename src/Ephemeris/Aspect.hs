@@ -32,11 +32,11 @@ defaultAspects :: [Aspect]
 defaultAspects = majorAspects <> minorAspects
 
 -- | Calculate aspects to use for transit insights.
--- Note that we use an orb of at most 5 degrees, which seems to be common.
+-- Note that we use the default orbs.
 -- However, to consider the aspect "active", we use a smaller orb, of 1 degree.
--- practice: https://www.astro.com/astrowiki/en/Transit
+-- cf.: https://www.astro.com/astrowiki/en/Transit
 aspectsForTransits :: [Aspect]
-aspectsForTransits = map (\a -> a{maxOrb = 5.0}) majorAspects
+aspectsForTransits = defaultAspects-- map (\a -> a{maxOrb = 5.0}) majorAspects
 
 -- TODO(luis) this may also suffer from the 0/360 false negative!
 exactAspectAngle ::  (HasLongitude a) => HoroscopeAspect a b -> Longitude
@@ -86,7 +86,7 @@ aspectableAngles Angles {..} = [House I (Longitude ascendant) 0, House X (Longit
 -- at the DB,) but it does mean fewer aspects are shown when using this than in
 -- e.g. the chart of the moment. On the other hand, it's less sifting through "inactive" aspects.
 transitingAspects :: (HasLongitude a, HasLongitude b) => [a] -> [b] -> [HoroscopeAspect a b]
-transitingAspects = aspects --aspects' aspectsForTransits
+transitingAspects = aspects' aspectsForTransits
 
 -- | Given a list of aspects, keep only major aspects.
 -- useful as a helper when plotting/showing tables.
