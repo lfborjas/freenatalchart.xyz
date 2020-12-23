@@ -80,6 +80,11 @@ celestialAspects ps as = aspects ps (aspectableAngles as)
 aspectableAngles :: Angles -> [House]
 aspectableAngles Angles {..} = [House I (Longitude ascendant) 0, House X (Longitude mc) 0]
 
+-- TODO(luis) should this exist? Should we just use normal majorAspects, or even the default
+-- aspects? The only benefit here is that many aspects with bigger orbs are discarded
+-- outright and as such we don't need to go calculate their activity (which has an IO cost,
+-- at the DB,) but it does mean fewer aspects are shown when using this than in
+-- e.g. the chart of the moment. On the other hand, it's less sifting through "inactive" aspects.
 transitingAspects :: (HasLongitude a, HasLongitude b) => [a] -> [b] -> [HoroscopeAspect a b]
 transitingAspects = aspects' aspectsForTransits
 
