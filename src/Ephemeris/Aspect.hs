@@ -93,10 +93,15 @@ transitingAspects = aspects --aspects' aspectsForTransits
 selectMajorAspects :: [HoroscopeAspect a b] -> [HoroscopeAspect a b]
 selectMajorAspects = filter ((== Major) . aspectType . aspect)
 
-
 -- | Select aspects with an orb of at most 1 degree. Useful for plotting.
 selectExactAspects :: [HoroscopeAspect a b] -> [HoroscopeAspect a b]
 selectExactAspects = filter ((<= 1) . orb)
+
+-- TODO(luis): have even fancier select*aspects heuristics? Maybe
+-- something like "only select applying aspects with orb smaller than X,
+-- or separating aspects with orb smaller than Y?"
+selectSignificantAspects :: [HoroscopeAspect a b] -> [HoroscopeAspect a b]
+selectSignificantAspects = selectExactAspects
 
 -- TODO(luis): these find* functions are _so_ wasteful. We could clearly do it in one pass vs. traverse the whole
 -- list for each planet. However, I always find myself updating this file at midnight when my neurons are
@@ -147,7 +152,7 @@ aspectPhase HoroscopeAspect {..} =
 
 -- TODO(luis): maybe we can use this in the aspect calculation, and anywhere
 -- where we need to account for "0/360 jumps"?
--- still not 
+-- still not sure on how sound the math is.
 eclipticDifference :: (HasLongitude a, HasLongitude b) => a -> b -> Double
 eclipticDifference a b =
   if ((abs diff) >= biggerThanAnyAspect) then
