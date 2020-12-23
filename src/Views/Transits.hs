@@ -12,7 +12,7 @@ import Views.Chart.Common
 import RIO.Writer (Writer, MonadWriter(tell), execWriter)
 import RIO.Text (justifyLeft, pack)
 import Data.Foldable (Foldable(maximum))
-import RIO.List (repeat, headMaybe)
+import RIO.List (sort, repeat, headMaybe)
 import qualified RIO.Text as T
 import Views.Common
 import qualified Graphics.Svg as Svg
@@ -240,23 +240,23 @@ transitAspectDetailsTable  transitingPlanets planetTransits angleTransits =
   table_ [class_ "table table-hover-dark table-scroll table-borders-dark"] $ do
     tr_ [class_ "text-primary" ]$ do
       td_ [] ""
-      forM_ defaultPlanets $ \transitPlanet -> do
+      forM_ (defaultPlanets & sort) $ \natalPlanet -> do
         td_ [] $ do
-          asIcon transitPlanet
+          asIcon natalPlanet
           " (nat)"
       td_ [] "Asc (nat)"
       td_ [] "MC (nat)"
-    forM_ defaultPlanets $ \rowPlanet -> do
+    forM_ (transitingPlanets & map planetName & sort) $ \transitingPlanet -> do
       tr_ [] $ do
         td_ [class_ "text-earth"] $ do
-          asIcon rowPlanet
+          asIcon transitingPlanet
           " (tr)"
-        forM_ transitingPlanets $ \PlanetPosition {..} -> do
+        forM_ (defaultPlanets & sort) $ \transitedPlanet -> do
           td_ [style_ "border: 1px solid", class_ "text-small"] $ do
-            aspectCell $ findAspectWithPlanet (transitAspects planetTransits) rowPlanet planetName
+            aspectCell $ findAspectWithPlanet (transitAspects planetTransits) transitingPlanet transitedPlanet
 
         td_ [style_ "border: 1px solid", class_ "text-small"] $ do
-          aspectCell $ findAspectWithAngle (transitAspects angleTransits) rowPlanet I
+          aspectCell $ findAspectWithAngle (transitAspects angleTransits) transitingPlanet I
   
         td_ [style_ "border: 1px solid", class_ "text-small"] $ do
-          aspectCell $ findAspectWithAngle (transitAspects angleTransits) rowPlanet X
+          aspectCell $ findAspectWithAngle (transitAspects angleTransits) transitingPlanet X
