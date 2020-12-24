@@ -18,7 +18,7 @@ import Views.Common
 import qualified Graphics.Svg as Svg
 import Chart.Graphics (renderTransitChart)
 import Data.Time.Format.ISO8601 (iso8601Show)
-import Views.Chart.Explanations (Explicable(hasAttribute, explanationAttribute, explain), generalTransitsExplanation)
+import Views.Chart.Explanations (Explicable(explanationAttribute, explain), generalTransitsExplanation)
 
 
 renderText :: a -> BirthData -> UTCTime -> TransitData -> Text
@@ -317,17 +317,18 @@ transitCards activity =
             " "
             activityData & transited & asIcon'
           div_ [class_ "card-subtitle"] $ do
+            "Transiting "
             activityData & transiting & labelText & toHtml
             " "
             strong_ $ do
               activeTransit & aspect & aspectName & labelText & toHtml
-            " "
+            " Natal "
             activityData & transited & labelText & toHtml
       div_ [class_ "card-body"] $ do
         p_ [class_ "text-small"] $ do
           a_ [href_ "#active-transit-list"] "Back to list"
 
-        div_ [class_ "text-tiny"] $ do
+        div_ [class_ "text-small"] $ do
           attributeTitle_ (activeTransit & aspect & aspectName & labelText & toHtml)
           p_ $ do
             activeTransit & aspect & aspectName & explain
@@ -336,12 +337,13 @@ transitCards activity =
           p_ $ do
             explanationAttribute (activityData & transiting) "Keywords"
 
-          attributeTitle_ (activityData & transited & labelText & toHtml)
-          p_ $ do
-            if (hasAttribute (activityData & transited) "Keywords") then do
+          -- don't show keywords for transited if they're the same!
+          if ((activityData & transiting & labelText) == (activityData & transited & labelText)) then
+            mempty
+          else do
+            attributeTitle_ (activityData & transited & labelText & toHtml)
+            p_ $ do
               explanationAttribute (activityData & transited) "Keywords"
-            else
-              explain (activityData & transited)
 
 
         div_ [class_ "flex-container"] $ do
@@ -379,8 +381,8 @@ transitCards activity =
         attributeTitle_ "In this transit"
         table_ [class_ "table table-no-borders table-hover-dark text-center"] $ do
           tbody_ [] $ do
-            bodyDetails . transiting $ activityData
-            bodyDetails . transited $ activityData
+            (bodyDetails "Transiting") . transiting $ activityData
+            (bodyDetails "Natal") . transited $ activityData
 
 transitId :: HasLabel a => (TransitAspect a, Transit a) -> Text
 transitId (activeTransit, activityData) =
@@ -388,11 +390,13 @@ transitId (activeTransit, activityData) =
   (activeTransit & aspect & aspectName & labelText) <>
   (activityData & transited & labelText)
 
-bodyDetails :: (HasLabel a, HasLongitude a) => a -> Html ()
-bodyDetails body =
+bodyDetails :: (HasLabel a, HasLongitude a) => Text -> a -> Html ()
+bodyDetails extraLabel body =
   tr_ [] $ do
     td_ [] $ do
       asIcon' body
+      " "
+      (toHtml extraLabel)
       " "
       toHtml $ labelText body
     td_ [] $ do
