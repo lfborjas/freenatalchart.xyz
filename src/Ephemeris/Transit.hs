@@ -61,11 +61,7 @@ transit conn momentOfTransit a@(HoroscopeAspect _aspect' (transiting', transited
     -- only consider crossing candidates that are at most day before or after the reference date.
     let immediateCrossings = filter ((<= 1) . abs . (subtract momentOfTransit)) crossingCandidates
     -- this is the only moment where we actually touch swiss ephemeris:
-        exactImmediateCrossings =  
-          if (not . null $ immediateCrossings) then
-            [x | ExactAt x <- map (findExactTransitAround transitingPlanet transitAspectLongitude) [momentOfTransit]]
-          else
-            []
+        exactImmediateCrossings =  [x | ExactAt x <- map (findExactTransitAround transitingPlanet transitAspectLongitude) immediateCrossings]
     pure $
       Transit {
         transiting = transiting'

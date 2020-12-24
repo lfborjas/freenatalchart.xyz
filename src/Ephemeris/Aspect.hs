@@ -41,10 +41,10 @@ aspectsForTransits = defaultAspects-- map (\a -> a{maxOrb = 5.0}) majorAspects
 -- TODO(luis) this may also suffer from the 0/360 false negative!
 exactAspectAngle ::  (HasLongitude a) => HoroscopeAspect a b -> Longitude
 exactAspectAngle (HoroscopeAspect aspect' (aspecting, _aspected) angle' orb') =
-  if angle' > (angle aspect') then
-    Longitude $ aspectingLongitude + orb'
-  else
+  if angle' >= (angle aspect') then
     Longitude $ aspectingLongitude - orb'
+  else
+    Longitude $ aspectingLongitude + orb'
   where
     aspectingLongitude = aspecting & getLongitudeRaw
   
