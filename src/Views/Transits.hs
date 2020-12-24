@@ -18,7 +18,7 @@ import Views.Common
 import qualified Graphics.Svg as Svg
 import Chart.Graphics (renderTransitChart)
 import Data.Time.Format.ISO8601 (iso8601Show)
-import Views.Chart.Explanations (Explicable(explain), generalTransitsExplanation)
+import Views.Chart.Explanations (Explicable(hasAttribute, explanationAttribute, explain), generalTransitsExplanation)
 
 
 renderText :: a -> BirthData -> UTCTime -> TransitData -> Text
@@ -236,8 +236,11 @@ render renderCtx bd@BirthData {..} transitMoment t@TransitData{..} = html_ $ do
             div_ [] $ do
               transitCards planetaryActivity
               transitCards angleActivity
-              nav_ [id_ "active-transit-list"] $ do
-                ul_ $ do
+
+              div_ [class_ "divider"] ""
+              nav_ [id_ "active-transit-list", class_ "light-links"] $ do
+                h5_ "Transit Index"
+                ul_ [class_ "nav text-small"] $ do
                   transitSummaries planetaryActivity
                   transitSummaries angleActivity
 
@@ -277,7 +280,7 @@ transitAspectDetailsTable  transitingPlanets planetTransits angleTransits =
 transitSummaries ::  (HasLabel a) => [(TransitAspect a, Transit a)] -> Html ()
 transitSummaries activity =
   forM_ activity $ \a@(activeTransit, activityData) ->
-    li_ $ do
+    li_ [class_ "nav-item"] $ do
       a_ [href_ $ "#" <> (transitId a)] $ do
         span_ [activeTransit & aspect & aspectColorStyle] $ do
           activityData & transiting & asIcon'
@@ -301,7 +304,7 @@ transitSummaries activity =
           else
             mempty
 
-transitCards :: (HasLongitude a, HasLabel a) => [(TransitAspect a, Transit a)] -> Html ()
+transitCards :: (HasLongitude a, HasLabel a, Explicable a) => [(TransitAspect a, Transit a)] -> Html ()
 transitCards activity =
   forM_ activity $ \a@(activeTransit, activityData) ->
     div_ [id_ (transitId a), cardDark_] $ do
@@ -324,8 +327,22 @@ transitCards activity =
         p_ [class_ "text-small"] $ do
           a_ [href_ "#active-transit-list"] "Back to list"
 
-        p_ [class_ "text-tiny"] $ do
-          activeTransit & aspect & aspectName & explain
+        div_ [class_ "text-tiny"] $ do
+          attributeTitle_ (activeTransit & aspect & aspectName & labelText & toHtml)
+          p_ $ do
+            activeTransit & aspect & aspectName & explain
+
+          attributeTitle_ (activityData & transiting & labelText & toHtml)
+          p_ $ do
+            explanationAttribute (activityData & transiting) "Keywords"
+
+          attributeTitle_ (activityData & transited & labelText & toHtml)
+          p_ $ do
+            if (hasAttribute (activityData & transited) "Keywords") then do
+              explanationAttribute (activityData & transited) "Keywords"
+            else
+              explain (activityData & transited)
+
 
         div_ [class_ "flex-container"] $ do
           if (activityData & transitStarts & isJust) then
