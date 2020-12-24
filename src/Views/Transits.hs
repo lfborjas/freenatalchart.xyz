@@ -154,102 +154,104 @@ transitActivity extraHeading moment transits' = do
 
 
 render :: HasStaticRoot a => a -> BirthData -> UTCTime -> TransitData -> Html ()
-render renderCtx bd@BirthData {..} transitMoment t@TransitData{..} = html_ $ do
-  head_ $ do
-    title_ "Your Current Transits"
-    metaCeremony renderCtx
-    style_ $ do
-      "svg { height: auto; width: auto}\
-      \.section{ border-top: .05rem solid #3c4feb; }\
-      \"
+render renderCtx bd@BirthData {..} transitMoment t@TransitData{..} = do
+  doctype_
+  html_ [lang_ "en"] $ do
+    head_ $ do
+      title_ "Your Current Transits"
+      metaCeremony renderCtx
+      style_ $ do
+        "svg { height: auto; width: auto}\
+        \.section{ border-top: .05rem solid #3c4feb; }\
+        \"
 
-  body_ $ do
-    navbar_
+    body_ $ do
+      navbar_
 
-    main_ [id_ "main", class_ "container grid-xl mx-4 under-navbar"] $ do
-      div_ [class_ "blue-stars-bg text-center"] $ do
-        p_ [class_ "text-small text-light"] $ do
-          a_ [href_ $ natalChartLink bd] $ do
-            toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
-            br_ []
-            toHtml $ birthLocation & locationInput
-        p_ $ do
-          "Transits as of: "
-          localTime_ transitMoment
+      main_ [id_ "main", class_ "container grid-xl mx-4 under-navbar"] $ do
+        div_ [class_ "blue-stars-bg text-center"] $ do
+          p_ [class_ "text-small text-light"] $ do
+            a_ [href_ $ natalChartLink bd] $ do
+              toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
+              br_ []
+              toHtml $ birthLocation & locationInput
+          p_ $ do
+            "Transits as of: "
+            localTime_ transitMoment
 
-      figure_ [class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
-        div_ [] $ do
-          (toHtmlRaw $ Svg.renderBS $ renderTransitChart [Svg.makeAttribute "height" "not", Svg.makeAttribute "width" "not"] 600 t)
+        figure_ [class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
+          div_ [] $ do
+            (toHtmlRaw $ Svg.renderBS $ renderTransitChart [Svg.makeAttribute "height" "not", Svg.makeAttribute "width" "not"] 600 t)
 
-      ul_ [class_ "tab tab-block tab-block-dark"] $ do
-        li_ [class_ "tab-item active"] $ do
-          a_ [href_ "#analyze"] "Analyze"
-        li_ [class_ "tab-item"] $ do
-          a_ [href_ "#understand"] "Understand"
-        li_ [class_ "tab-item"] $ do
-          a_ [href_ "#introspect"] "Introspect"
+        ul_ [class_ "tab tab-block tab-block-dark"] $ do
+          li_ [class_ "tab-item active"] $ do
+            a_ [href_ "#analyze"] "Analyze"
+          li_ [class_ "tab-item"] $ do
+            a_ [href_ "#understand"] "Understand"
+          li_ [class_ "tab-item"] $ do
+            a_ [href_ "#introspect"] "Introspect"
 
-      article_ [id_ "analyze"] $ do
-        section_ [class_ "section"] $ do
-          details_ [id_ "natal-planet-positions", class_ "accordion my-2", open_ ""] $ do
-            summary_ [class_ "accordion-header"] $ do
-              headerIcon
-              sectionHeading $ do
-                "Natal Planet Positions"      
-            div_ [class_ "accordion-body scrollable-container"] $ do
-              planetPositionsTable natalPlanetPositions natalHouses
+        article_ [id_ "analyze"] $ do
+          section_ [class_ "section"] $ do
+            details_ [id_ "natal-planet-positions", class_ "accordion my-2", open_ ""] $ do
+              summary_ [class_ "accordion-header"] $ do
+                headerIcon
+                sectionHeading $ do
+                  "Natal Planet Positions"      
+              div_ [class_ "accordion-body scrollable-container"] $ do
+                planetPositionsTable natalPlanetPositions natalHouses
 
-        section_ [class_ "section"] $ do
-          details_ [id_ "transiting-planet-positions", class_ "accordion my-2", open_ ""] $ do
-            summary_ [class_ "accordion-header"] $ do
-              headerIcon
-              sectionHeading $ do
-                "Transiting Planet Positions"      
-            div_ [class_ "accordion-body scrollable-container"] $ do
-              planetPositionsTable transitingPlanetPositions natalHouses
-        section_ [class_ "section"] $ do
-          details_ [id_ "aspects-summary", class_ "accordion my-2", open_ ""] $ do
-            summary_ [class_ "accordion-header"] $ do
-              headerIcon
-              sectionHeading "Aspects Summary"
-            div_ [class_ "accordion-body scrollable-container"] $ do
-              transitAspectDetailsTable transitingPlanetPositions planetaryTransits angleTransits
+          section_ [class_ "section"] $ do
+            details_ [id_ "transiting-planet-positions", class_ "accordion my-2", open_ ""] $ do
+              summary_ [class_ "accordion-header"] $ do
+                headerIcon
+                sectionHeading $ do
+                  "Transiting Planet Positions"      
+              div_ [class_ "accordion-body scrollable-container"] $ do
+                planetPositionsTable transitingPlanetPositions natalHouses
+          section_ [class_ "section"] $ do
+            details_ [id_ "aspects-summary", class_ "accordion my-2", open_ ""] $ do
+              summary_ [class_ "accordion-header"] $ do
+                headerIcon
+                sectionHeading "Aspects Summary"
+              div_ [class_ "accordion-body scrollable-container"] $ do
+                transitAspectDetailsTable transitingPlanetPositions planetaryTransits angleTransits
 
-      article_ [id_ "understand"] $ do
-        section_ [class_ "section"] $ do
-          details_ [id_ "transits-explanation", class_ "accordion my-2", open_ ""] $ do
-            summary_ [class_ "accordion-header"] $ do
-              headerIcon
-              sectionHeading "Transits"
-            div_ [] $ do
-              generalTransitsExplanation 
-              h4_ "Orbs we use"
-              p_ "All aspects you see in the summary table are calculated using the following orbs: "
-              orbsTable aspectsForTransits
+        article_ [id_ "understand"] $ do
+          section_ [class_ "section"] $ do
+            details_ [id_ "transits-explanation", class_ "accordion my-2", open_ ""] $ do
+              summary_ [class_ "accordion-header"] $ do
+                headerIcon
+                sectionHeading "Transits"
+              div_ [] $ do
+                generalTransitsExplanation 
+                h4_ "Orbs we use"
+                p_ "All aspects you see in the summary table are calculated using the following orbs: "
+                orbsTable aspectsForTransits
 
-      article_ [id_ "introspect"] $ do
-        section_ [class_ "section"] $ do
-          details_ [id_ "my-active-transits", class_ "accordion my-2", open_ ""] $ do
-            summary_ [class_ "accordion-header"] $ do
-              headerIcon
-              sectionHeading "Your Active Transits"
-            div_ [] $ do
-              transitCards planetaryActivity
-              transitCards angleActivity
+        article_ [id_ "introspect"] $ do
+          section_ [class_ "section"] $ do
+            details_ [id_ "my-active-transits", class_ "accordion my-2", open_ ""] $ do
+              summary_ [class_ "accordion-header"] $ do
+                headerIcon
+                sectionHeading "Your Active Transits"
+              div_ [] $ do
+                transitCards planetaryActivity
+                transitCards angleActivity
 
-              div_ [class_ "divider"] ""
-              nav_ [id_ "active-transit-list", class_ "light-links"] $ do
-                h5_ "Transit Index"
-                ul_ [class_ "nav text-small"] $ do
-                  transitSummaries planetaryActivity
-                  transitSummaries angleActivity
+                div_ [class_ "divider"] ""
+                nav_ [id_ "active-transit-list", class_ "light-links"] $ do
+                  h5_ "Transit Index"
+                  ul_ [class_ "nav text-small"] $ do
+                    transitSummaries planetaryActivity
+                    transitSummaries angleActivity
 
-    link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
-    footerNav
-    script_ [src_ . pack $ (renderCtx ^. staticRootL) <> "js/date.js"] (""::Text)
-  where
-    planetaryActivity = transitActivityAround transitMoment planetaryTransits
-    angleActivity     = transitActivityAround transitMoment angleTransits
+      link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
+      footerNav
+      script_ [src_ . pack $ (renderCtx ^. staticRootL) <> "js/date.js"] (""::Text)
+    where
+      planetaryActivity = transitActivityAround transitMoment planetaryTransits
+      angleActivity     = transitActivityAround transitMoment angleTransits
 
 transitAspectDetailsTable :: [PlanetPosition] -> [(PlanetaryAspect, PlanetaryTransit)] -> [(AngleAspect, AngleTransit)] -> Html ()
 transitAspectDetailsTable  transitingPlanets planetTransits angleTransits =

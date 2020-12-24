@@ -145,200 +145,202 @@ renderText _ BirthData {..} HoroscopeData{..}=
 
 
 render :: HasStaticRoot a => a -> BirthData -> HoroscopeData -> Html ()
-render renderCtx BirthData {..} h@HoroscopeData {..} = html_ $ do
-  head_ $ do
-    title_ "Your Natal Chart"
-    metaCeremony renderCtx
-    style_ $ do
-      "svg { height: auto; width: auto}\
-      \.flex-container{margin-top: 10px; margin-bottom: 10px;}\
-      \"
-
-  body_ $ do
-    navbar_
-
-    div_ [id_ "main", class_ "container grid-xl mx-4"] $ do
-      div_ [id_ "chart", class_ "under-navbar"] $ do
-        div_ [class_ "blue-stars-bg text-center", style_ "padding-bottom: 9px"] $ do
-          p_ [class_ "text-small text-light"] $ do
-            toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z"
-            "  ·  "
-            latLngHtml birthLocation
-          p_ $ do
-            toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
-            br_ []
-            toHtml $ birthLocation & locationInput
-          div_ [class_ "flex-container text-large"] $ do
-            span_ $ do
-              span_ [class_ $ elementClassM sunSign] $ do
-                maybe mempty asIcon sunSign
-              " Sun"
-            span_ $ do
-              span_ [class_ $ elementClassM moonSign] $ do
-                maybe mempty asIcon moonSign
-              " Moon"
-            span_ $ do
-              span_ [class_ $ elementClassM asc] $ do
-                maybe mempty asIcon asc
-              " Asc"
-
-        figure_ [class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
-          div_ [] $ do
-            -- unfortunately, the underlying library assigns `height` and `width` attributes to the SVG:
-            -- https://github.com/circuithub/diagrams-svg/blob/master/src/Graphics/Rendering/SVG.hs#L92-L93
-            -- and any attempt to replace them simply prepends or appends instead:
-            -- https://hackage.haskell.org/package/svg-builder-0.1.1/docs/src/Graphics.Svg.Core.html#with
-            -- so instead we simply set them to invalid strings (sorry console sleuths,)
-            -- and then set the attributes via CSS, since that's allowed (they're Geometry Properties:)
-            -- https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/height#svg
-            (toHtmlRaw $ Svg.renderBS $ renderChart [Svg.makeAttribute "height" "not", Svg.makeAttribute "width" "not"] 600 h)
-
-        ul_ [class_ "tab tab-block tab-block-dark"] $ do
-          li_ [class_ "tab-item active"] $ do
-            a_ [href_ "#analyze"] "Analyze"
-          li_ [class_ "tab-item"] $ do
-            a_ [href_ "#understand"] "Understand"
-          li_ [class_ "tab-item"] $ do
-            a_ [href_ "#introspect"] "Introspect"
-
-        div_ [class_ "divider", id_ "analyze"] ""
-
-        details_ [id_ "planet-positions", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header"] $ do
-            headerIcon
-            sectionHeading $ do
-              "Planet Positions"
-
-          div_ [class_ "accordion-body scrollable-container"] $ do
-            planetPositionsTable horoscopePlanetPositions horoscopeHouses
-
-        div_ [class_ "divider"] ""
-
-        details_ [id_ "house-cusps", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header "] $ do
-            headerIcon
-            sectionHeading "House Cusps"
-          div_ [class_ "accordion-body scrollable-container"] $ do
-            houseSystemDetails horoscopeSystem
-            houseCuspsTable horoscopeHouses
-
-        div_ [class_ "divider"] ""
-
-        details_ [id_ "aspects-summary", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header"] $ do
-            headerIcon
-            sectionHeading "Aspects Summary"
-          div_ [class_ "accordion-body scrollable-container"] $ do
+render renderCtx BirthData {..} h@HoroscopeData {..} = do
+  doctype_
+  html_ [lang_ "en"] $ do
+    head_ $ do
+      title_ "Your Natal Chart"
+      metaCeremony renderCtx
+      style_ $ do
+        "svg { height: auto; width: auto}\
+        \.flex-container{margin-top: 10px; margin-bottom: 10px;}\
+        \"
+  
+    body_ $ do
+      navbar_
+  
+      div_ [id_ "main", class_ "container grid-xl mx-4"] $ do
+        div_ [id_ "chart", class_ "under-navbar"] $ do
+          div_ [class_ "blue-stars-bg text-center", style_ "padding-bottom: 9px"] $ do
+            p_ [class_ "text-small text-light"] $ do
+              toHtml $ horoscopeUniversalTime & formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z"
+              "  ·  "
+              latLngHtml birthLocation
             p_ $ do
-              "For more detailed descriptions of aspects, see the "
-              a_ [href_ "#aspects"] "Aspects"
-              " section."
-            aspectDetailsTable horoscopePlanetPositions horoscopePlanetaryAspects horoscopeAngleAspects
-
-        div_ [class_ "divider", id_ "understand"] ""
-
-        details_ [id_ "signs", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header"] $ do
-            headerIcon
-            sectionHeading "Zodiac Signs"
+              toHtml $ birthLocalTime & formatTime defaultTimeLocale rfc822DateFormat
+              br_ []
+              toHtml $ birthLocation & locationInput
+            div_ [class_ "flex-container text-large"] $ do
+              span_ $ do
+                span_ [class_ $ elementClassM sunSign] $ do
+                  maybe mempty asIcon sunSign
+                " Sun"
+              span_ $ do
+                span_ [class_ $ elementClassM moonSign] $ do
+                  maybe mempty asIcon moonSign
+                " Moon"
+              span_ $ do
+                span_ [class_ $ elementClassM asc] $ do
+                  maybe mempty asIcon asc
+                " Asc"
+  
+          figure_ [class_ "figure p-centered my-2", style_ "max-width: 600px;"] $ do
+            div_ [] $ do
+              -- unfortunately, the underlying library assigns `height` and `width` attributes to the SVG:
+              -- https://github.com/circuithub/diagrams-svg/blob/master/src/Graphics/Rendering/SVG.hs#L92-L93
+              -- and any attempt to replace them simply prepends or appends instead:
+              -- https://hackage.haskell.org/package/svg-builder-0.1.1/docs/src/Graphics.Svg.Core.html#with
+              -- so instead we simply set them to invalid strings (sorry console sleuths,)
+              -- and then set the attributes via CSS, since that's allowed (they're Geometry Properties:)
+              -- https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/height#svg
+              (toHtmlRaw $ Svg.renderBS $ renderChart [Svg.makeAttribute "height" "not", Svg.makeAttribute "width" "not"] 600 h)
+  
+          ul_ [class_ "tab tab-block tab-block-dark"] $ do
+            li_ [class_ "tab-item active"] $ do
+              a_ [href_ "#analyze"] "Analyze"
+            li_ [class_ "tab-item"] $ do
+              a_ [href_ "#understand"] "Understand"
+            li_ [class_ "tab-item"] $ do
+              a_ [href_ "#introspect"] "Introspect"
+  
+          div_ [class_ "divider", id_ "analyze"] ""
+  
+          details_ [id_ "planet-positions", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading $ do
+                "Planet Positions"
+  
+            div_ [class_ "accordion-body scrollable-container"] $ do
+              planetPositionsTable horoscopePlanetPositions horoscopeHouses
+  
+          div_ [class_ "divider"] ""
+  
+          details_ [id_ "house-cusps", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header "] $ do
+              headerIcon
+              sectionHeading "House Cusps"
+            div_ [class_ "accordion-body scrollable-container"] $ do
+              houseSystemDetails horoscopeSystem
+              houseCuspsTable horoscopeHouses
+  
+          div_ [class_ "divider"] ""
+  
+          details_ [id_ "aspects-summary", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "Aspects Summary"
+            div_ [class_ "accordion-body scrollable-container"] $ do
+              p_ $ do
+                "For more detailed descriptions of aspects, see the "
+                a_ [href_ "#aspects"] "Aspects"
+                " section."
+              aspectDetailsTable horoscopePlanetPositions horoscopePlanetaryAspects horoscopeAngleAspects
+  
+          div_ [class_ "divider", id_ "understand"] ""
+  
+          details_ [id_ "signs", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "Zodiac Signs"
+            
+            div_ [] $ do
+              generalSignsExplanation
+  
+          divider_ 
+          details_ [id_ "houses", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "Houses"
+            div_ [] $ do
+              generalHousesExplanation
+  
+          divider_ 
+          details_ [id_ "planets", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "Planets"
+  
+            div_ [] $ do
+              generalPlanetsExplanation
+  
+          divider_
+          details_ [id_ "aspects", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "Aspects"
+  
+            div_ [] $ do
+              generalAspectsExplanation
+              h4_ "Orbs we use"
+              p_ "All aspects you see in this page are calculated using the following orbs:"
+              orbsTable defaultAspects
+  
+  
+          divider_ 
+          details_ [id_ "references", class_ "accordion my-2"] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "References"
+            div_ [class_ "accordion-body"] $ do
+              attribution
+  
+          div_ [class_ "divider", id_ "introspect"] ""
           
-          div_ [] $ do
-            generalSignsExplanation
-
-        divider_ 
-        details_ [id_ "houses", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header"] $ do
-            headerIcon
-            sectionHeading "Houses"
-          div_ [] $ do
-            generalHousesExplanation
-
-        divider_ 
-        details_ [id_ "planets", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header"] $ do
-            headerIcon
-            sectionHeading "Planets"
-
-          div_ [] $ do
-            generalPlanetsExplanation
-
-        divider_
-        details_ [id_ "aspects", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header"] $ do
-            headerIcon
-            sectionHeading "Aspects"
-
-          div_ [] $ do
-            generalAspectsExplanation
-            h4_ "Orbs we use"
-            p_ "All aspects you see in this page are calculated using the following orbs:"
-            orbsTable defaultAspects
-
-
-        divider_ 
-        details_ [id_ "references", class_ "accordion my-2"] $ do
-          summary_ [class_ "accordion-header"] $ do
-            headerIcon
-            sectionHeading "References"
-          div_ [class_ "accordion-body"] $ do
-            attribution
-
-        div_ [class_ "divider", id_ "introspect"] ""
-        
-        details_ [id_ "my-zodiac", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header"] $ do
-            headerIcon
-            sectionHeading "My Zodiac Signs"
-
-          div_ [] $ do  
-            zodiacCards horoscopePlanetPositions horoscopeHouses
-
-        divider_
-        details_ [id_ "my-houses", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header"] $ do
-            headerIcon
-            sectionHeading "My Houses"
-
-          div_ [] $ do
-            houseCards horoscopePlanetPositions horoscopeHouses
-
-        divider_
-        details_ [id_ "my-planets", class_ "accordion my-2", open_ ""] $ do
-          summary_ [class_ "accordion-header"] $ do
-            headerIcon
-            sectionHeading "My Planets"
-
-          div_ [] $ do
-            planetCards horoscopePlanetPositions horoscopeHouses horoscopePlanetaryAspects horoscopeAngleAspects
-
-        divider_
-        details_ [id_ "my-major-aspects", class_ "accordion my-2", open_ "" ] $ do
-          summary_ [class_ "accordion-header"] $ do
-            headerIcon
-            sectionHeading "My Major Aspects"
-
-          div_ [] $ do
-            forM_ majorAspects $ \a -> do
-              aspectDetails' a
-
-        divider_
-        details_ [id_ "my-minor-aspects", class_ "accordion my-2", open_ "" ] $ do
-          summary_ [class_ "accordion-header"] $ do
-            headerIcon
-            sectionHeading "My Minor Aspects"
-
-          div_ [] $ do
-            forM_ minorAspects  $ \a -> do
-              aspectDetails' a
-
-    link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
-    footerNav
-    script_ [src_ . pack $ (renderCtx ^. staticRootL) <> "js/date.js"] (""::Text)
-  where
-    sunSign = (findSunSign horoscopePlanetPositions)
-    moonSign = (findMoonSign horoscopePlanetPositions)
-    asc = (findAscendant horoscopeHouses)
-    aspectDetails' = aspectDetails horoscopePlanetaryAspects horoscopeAngleAspects
+          details_ [id_ "my-zodiac", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "My Zodiac Signs"
+  
+            div_ [] $ do  
+              zodiacCards horoscopePlanetPositions horoscopeHouses
+  
+          divider_
+          details_ [id_ "my-houses", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "My Houses"
+  
+            div_ [] $ do
+              houseCards horoscopePlanetPositions horoscopeHouses
+  
+          divider_
+          details_ [id_ "my-planets", class_ "accordion my-2", open_ ""] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "My Planets"
+  
+            div_ [] $ do
+              planetCards horoscopePlanetPositions horoscopeHouses horoscopePlanetaryAspects horoscopeAngleAspects
+  
+          divider_
+          details_ [id_ "my-major-aspects", class_ "accordion my-2", open_ "" ] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "My Major Aspects"
+  
+            div_ [] $ do
+              forM_ majorAspects $ \a -> do
+                aspectDetails' a
+  
+          divider_
+          details_ [id_ "my-minor-aspects", class_ "accordion my-2", open_ "" ] $ do
+            summary_ [class_ "accordion-header"] $ do
+              headerIcon
+              sectionHeading "My Minor Aspects"
+  
+            div_ [] $ do
+              forM_ minorAspects  $ \a -> do
+                aspectDetails' a
+  
+      link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
+      footerNav
+      script_ [src_ . pack $ (renderCtx ^. staticRootL) <> "js/date.js"] (""::Text)
+    where
+      sunSign = (findSunSign horoscopePlanetPositions)
+      moonSign = (findMoonSign horoscopePlanetPositions)
+      asc = (findAscendant horoscopeHouses)
+      aspectDetails' = aspectDetails horoscopePlanetaryAspects horoscopeAngleAspects
 
 
 --
