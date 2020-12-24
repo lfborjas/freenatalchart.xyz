@@ -48,7 +48,9 @@ exactAspectAngle (HoroscopeAspect aspect' (aspecting, _aspected) angle' orb') =
   where
     aspectingLongitude = aspecting & getLongitudeRaw
   
-
+-- TODO: this is very wrong:
+-- (note that the orb is considered to be the same as the angle??)
+-- Sun      |Conjunction |Moon     |4.5267  |4.5267  |Applying
 aspects' :: (HasLongitude a, HasLongitude b) => [Aspect] -> [a] -> [b] -> [HoroscopeAspect a b]
 aspects' possibleAspects bodiesA bodiesB =
   (concatMap aspectsBetween pairs) & catMaybes
