@@ -12,102 +12,104 @@ import RIO.List (nub)
 import Servant (toQueryParam, ToHttpApiData)
 
 render :: (HasStaticRoot ctx, HasAlgoliaAppId ctx, HasAlgoliaAppKey ctx) => ctx -> (Maybe FailedChartForm) -> Html ()
-render ctx maybeForm = html_ $ do
-    head_ $ do
-        title_ "Free Natal Chart"
-        metaCeremony ctx
-        -- NOTE: fixes style for algolia:
-        -- https://community.algolia.com/places/documentation.html#styling
-        style_ $ do
-            ".ap-dropdown-menu{ color: #333; }\
-            \.multiline-p{ white-space: pre-line; hyphens: auto; word-break: break-word; overflow-wrap: anywhere;}\
-            \"
-        
-    body_ $ do
-        div_ [id_ "main", class_ "container grid-sm"] $ do
-            header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
-                section_ [class_ "navbar-section navbar-brand hide-sm"] $ do
-                    a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
-                section_ [class_ "navbar-section navbar-center"] ""
-                section_ [class_ "navbar-section"] $ do
-                    a_ [id_ "chart-of-the-moment", class_ "text-white", href_ "/full-chart?location=Queens&month=10&day=16&year=2020&hour=6&minute=36&day-part=pm&lat=40.6815&lng=-73.8365"] "Chart of the Moment"
-
-
-            h1_ [class_ "under-navbar text-primary text-center hero-title gold-stars-bg"] $ do
-                "Get your natal chart"
+render ctx maybeForm = do
+    doctype_
+    html_ [lang_ "en"] $ do
+        head_ $ do
+            title_ "Free Natal Chart"
+            metaCeremony ctx
+            -- NOTE: fixes style for algolia:
+            -- https://community.algolia.com/places/documentation.html#styling
+            style_ $ do
+                ".ap-dropdown-menu{ color: #333; }\
+                \.multiline-p{ white-space: pre-line; hyphens: auto; word-break: break-word; overflow-wrap: anywhere;}\
+                \"
             
-            div_ [id_ "err", class_ "my-2 toast toast-error d-none"] $ do
-                p_ [id_ "errMsg"] ""
-                a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues/new/choose"] $ do
-                    "Report an issue"
-
-            form_ [action_ "/full-chart", method_ "get", style_ "min-height: 50vh;"] $ do
-                div_ [class_ (formGroupClass (val formLocation) (err InvalidLocation))] $ do
-                    label_ [class_ "form-label", for_ "location"] "Born in"
-                    input_ [ class_ "form-input input-transparent"
-                           , type_ "search"
-                           , id_ "location"
-                           , name_ "location"
-                           , placeholder_ "City or town"
-                           , required_ ""
-                           , value_ (val formLocation)
-                           ]
-                    errorHint (err InvalidLocation)
-                    noscript_ [class_ "bg-warning"] 
-                              "You seem to have disabled JavaScript. We use a little bit of scripting to determine your birth location based on what you type in this box, without scripting, we're unable to!"
-
-                -- we could use the native `date` and `time` inputs,
-                -- or even a single `datetime-local`, but browser support
-                -- is wonky nowadays, and IMO it's annoying to look up one's birth date
-                -- in such controls: they're optimized for selecting today and days around
-                -- today, not ~30 years in the past! (showing ma age, heh)
-                -- if we want them tho, e.g.:
-                -- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date
-                fieldset_ [class_ isDateInvalidClass ] $ do
-                    div_ [class_ "form-group form-group-flex"] $ do
-                        numberInput "month" "Month" (1, 12) (val formMonth) (err InvalidMonth) "MM"
-                        numberInput "day" "Day" (1, 31) (val formDay) (err InvalidDay) "DD"
-                        numberInput "year" "Year" (1800, 2399) (val formYear) (err InvalidYear) "YYYY"
-                    errorHint (groupErr [InvalidMonth, InvalidDay, InvalidYear])
-                    
-                    div_ [class_ "form-group form-group-flex"] $ do
-                        numberInput "hour" "Hour" (1, 12) (val formHour) (err InvalidHour) "HH"
-                        numberInput "minute" "Minute" (0, 60) (val formMinute) (err InvalidMinute) "MM"
+        body_ $ do
+            div_ [id_ "main", class_ "container grid-sm"] $ do
+                header_ [class_ "navbar bg-dark navbar-fixed navbar-fixed-top"] $ do
+                    section_ [class_ "navbar-section navbar-brand hide-sm"] $ do
+                        a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
+                    section_ [class_ "navbar-section navbar-center"] ""
+                    section_ [class_ "navbar-section"] $ do
+                        a_ [id_ "chart-of-the-moment", class_ "text-white", href_ "/full-chart?location=Queens&month=10&day=16&year=2020&hour=6&minute=36&day-part=pm&lat=40.6815&lng=-73.8365"] "Chart of the Moment"
+    
+    
+                h1_ [class_ "under-navbar text-primary text-center hero-title gold-stars-bg"] $ do
+                    "Get your natal chart"
                 
-                        div_ [class_ "form-group", style_ "margin-top: 1.75rem; margin-left: .5rem"] $ do
-                            label_ [class_ "form-radio form-inline"] $ do
-                                input_ $ [type_ "radio", name_ "day-part", value_ "am"] <> (isChecked "am")
-                                i_ [class_ "form-icon"] ""
-                                "AM"
-                            label_ [class_ "form-radio form-inline"] $ do
-                                input_ $ [type_ "radio", name_ "day-part", value_ "pm"] <> (isChecked "pm")
-                                i_ [class_ "form-icon"] ""
-                                "PM"
-
-                    errorHint (groupErr [InvalidDateTime, InvalidHour, InvalidMinute, InvalidDayPart])
-
-                -- meant to be filled by the JS for geolocation,
-                -- the server should fall back to "best effort" location if these aren't available.
-                input_ [id_ "lat", name_ "lat", type_ "hidden", value_ (val formLatitude)]
-                input_ [id_ "lng", name_ "lng", type_ "hidden", value_ (val formLongitude)]
-
-
-                div_ [class_ "form-group text-center"] $ do
-                    button_ [class_ "btn btn-primary btn-round btn-lg"] "Show me my chart"
-                div_ [class_ "form-group text-center"] $ do
-                    a_ [class_ "btn btn-link", href_ "/"] "Start Over"
-
-                -- TODO: add checkboxes for preferences?
-                -- e.g. monochrome -- though ideally the tables would also help:
-                -- https://webaim.org/articles/visual/colorblind
-                -- audit accessibility: https://webaim.org/techniques/forms/controls
-                -- aria described by and invalid: https://webaim.org/techniques/formvalidation/
-
-            footerNav
-        -- TODO: host this ourselves.
-        script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
-        script_ [src_ . pack $ assetPath <> "js/location.js"] (""::Text)
-        (geolocationInit ctx)
+                div_ [id_ "err", class_ "my-2 toast toast-error d-none"] $ do
+                    p_ [id_ "errMsg"] ""
+                    a_ [href_ "https://github.com/lfborjas/freenatalchart.xyz/issues/new/choose"] $ do
+                        "Report an issue"
+    
+                form_ [action_ "/full-chart", method_ "get", style_ "min-height: 50vh;"] $ do
+                    div_ [class_ (formGroupClass (val formLocation) (err InvalidLocation))] $ do
+                        label_ [class_ "form-label", for_ "location"] "Born in"
+                        input_ [ class_ "form-input input-transparent"
+                               , type_ "search"
+                               , id_ "location"
+                               , name_ "location"
+                               , placeholder_ "City or town"
+                               , required_ ""
+                               , value_ (val formLocation)
+                               ]
+                        errorHint (err InvalidLocation)
+                        noscript_ [class_ "bg-warning"] 
+                                  "You seem to have disabled JavaScript. We use a little bit of scripting to determine your birth location based on what you type in this box, without scripting, we're unable to!"
+    
+                    -- we could use the native `date` and `time` inputs,
+                    -- or even a single `datetime-local`, but browser support
+                    -- is wonky nowadays, and IMO it's annoying to look up one's birth date
+                    -- in such controls: they're optimized for selecting today and days around
+                    -- today, not ~30 years in the past! (showing ma age, heh)
+                    -- if we want them tho, e.g.:
+                    -- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date
+                    fieldset_ [class_ isDateInvalidClass ] $ do
+                        div_ [class_ "form-group form-group-flex"] $ do
+                            numberInput "month" "Month" (1, 12) (val formMonth) (err InvalidMonth) "MM"
+                            numberInput "day" "Day" (1, 31) (val formDay) (err InvalidDay) "DD"
+                            numberInput "year" "Year" (1800, 2399) (val formYear) (err InvalidYear) "YYYY"
+                        errorHint (groupErr [InvalidMonth, InvalidDay, InvalidYear])
+                        
+                        div_ [class_ "form-group form-group-flex"] $ do
+                            numberInput "hour" "Hour" (1, 12) (val formHour) (err InvalidHour) "HH"
+                            numberInput "minute" "Minute" (0, 60) (val formMinute) (err InvalidMinute) "MM"
+                    
+                            div_ [class_ "form-group", style_ "margin-top: 1.75rem; margin-left: .5rem"] $ do
+                                label_ [class_ "form-radio form-inline"] $ do
+                                    input_ $ [type_ "radio", name_ "day-part", value_ "am"] <> (isChecked "am")
+                                    i_ [class_ "form-icon"] ""
+                                    "AM"
+                                label_ [class_ "form-radio form-inline"] $ do
+                                    input_ $ [type_ "radio", name_ "day-part", value_ "pm"] <> (isChecked "pm")
+                                    i_ [class_ "form-icon"] ""
+                                    "PM"
+    
+                        errorHint (groupErr [InvalidDateTime, InvalidHour, InvalidMinute, InvalidDayPart])
+    
+                    -- meant to be filled by the JS for geolocation,
+                    -- the server should fall back to "best effort" location if these aren't available.
+                    input_ [id_ "lat", name_ "lat", type_ "hidden", value_ (val formLatitude)]
+                    input_ [id_ "lng", name_ "lng", type_ "hidden", value_ (val formLongitude)]
+    
+    
+                    div_ [class_ "form-group text-center"] $ do
+                        button_ [class_ "btn btn-primary btn-round btn-lg"] "Show me my chart"
+                    div_ [class_ "form-group text-center"] $ do
+                        a_ [class_ "btn btn-link", href_ "/"] "Start Over"
+    
+                    -- TODO: add checkboxes for preferences?
+                    -- e.g. monochrome -- though ideally the tables would also help:
+                    -- https://webaim.org/articles/visual/colorblind
+                    -- audit accessibility: https://webaim.org/techniques/forms/controls
+                    -- aria described by and invalid: https://webaim.org/techniques/formvalidation/
+    
+                footerNav
+            -- TODO: host this ourselves.
+            script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
+            script_ [src_ . pack $ assetPath <> "js/location.js"] (""::Text)
+            (geolocationInit ctx)
     where
         assetPath = ctx ^. staticRootL
         isDateInvalidClass =
