@@ -103,7 +103,7 @@ aspectsHeading =
     , justifyDouble "Orb", "Phase"
     ]
 
-transitActivity :: (HasLabel a, HasLongitude a) => Text -> UTCTime -> [(TransitAspect a, Transit a)] -> (Writer Text ())
+transitActivity :: HasLabel a => Text -> UTCTime -> [(TransitAspect a, Transit a)] -> (Writer Text ())
 transitActivity extraHeading moment transits' = do
   ln_ ""
   ln_ $ "All Aspects " <> extraHeading
@@ -324,9 +324,14 @@ transitCards activity =
               activeTransit & aspect & aspectName & labelText & toHtml
             " Natal "
             activityData & transited & labelText & toHtml
+            p_ [class_ "text-light text-small"] $ do
+              "("
+              toHtml . pack . show $ aspectPhase activeTransit
+              ")"
+            p_ [class_ "text-small"] $ do
+              a_ [href_ "#active-transit-list"] "Back to list"              
       div_ [class_ "card-body"] $ do
-        p_ [class_ "text-small"] $ do
-          a_ [href_ "#active-transit-list"] "Back to list"
+
 
         div_ [class_ "text-small"] $ do
           attributeTitle_ (activeTransit & aspect & aspectName & labelText & toHtml)
