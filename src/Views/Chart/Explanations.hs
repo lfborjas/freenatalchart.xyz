@@ -13,7 +13,9 @@ import Ephemeris
              Uranus, Neptune, Pluto, MeanNode, MeanApog),
       ZodiacSignName(..),
       HouseNumber(..),
-      AspectName(..) )
+      AspectName(..),
+      House(..),
+      PlanetPosition(..))
 import Data.HashMap.Strict (member, empty, fromList, lookupDefault)
 
 markdownToHtml :: Text -> Html ()
@@ -36,6 +38,18 @@ class Explicable factor where
   hasAttribute :: factor -> Text -> Bool
   hasAttribute f attr =
     attr `member` (explanationAttributes f)
+
+instance Explicable House where
+  explain = explain . houseNumber
+  explanationAttributes = explanationAttributes . houseNumber
+  explanationAttribute  = explanationAttribute . houseNumber
+  hasAttribute = hasAttribute . houseNumber
+
+instance Explicable PlanetPosition where
+  explain = explain . planetName
+  explanationAttributes = explanationAttributes . planetName
+  explanationAttribute  = explanationAttribute . planetName
+  hasAttribute = hasAttribute . planetName
 
 instance Explicable HouseNumber  where
   explain I =

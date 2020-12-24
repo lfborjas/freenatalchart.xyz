@@ -18,7 +18,7 @@ import Views.Common
 import qualified Graphics.Svg as Svg
 import Chart.Graphics (renderTransitChart)
 import Data.Time.Format.ISO8601 (iso8601Show)
-import Views.Chart.Explanations (Explicable(explain), generalTransitsExplanation)
+import Views.Chart.Explanations (Explicable(hasAttribute, explanationAttribute, explain), generalTransitsExplanation)
 
 
 renderText :: a -> BirthData -> UTCTime -> TransitData -> Text
@@ -234,12 +234,22 @@ render renderCtx bd@BirthData {..} transitMoment t@TransitData{..} = html_ $ do
               headerIcon
               sectionHeading "Your Active Transits"
             div_ [] $ do
-              transitCards $ transitActivityAround transitMoment planetaryTransits
-              transitCards $ transitActivityAround transitMoment angleTransits
+              transitCards planetaryActivity
+              transitCards angleActivity
+
+              div_ [class_ "divider"] ""
+              nav_ [id_ "active-transit-list", class_ "light-links"] $ do
+                h5_ "Transit Index"
+                ul_ [class_ "nav text-small"] $ do
+                  transitSummaries planetaryActivity
+                  transitSummaries angleActivity
 
     link_ [rel_ "stylesheet", href_ "https://unpkg.com/spectre.css/dist/spectre-icons.min.css"]
     footerNav
     script_ [src_ . pack $ (renderCtx ^. staticRootL) <> "js/date.js"] (""::Text)
+  where
+    planetaryActivity = transitActivityAround transitMoment planetaryTransits
+    angleActivity     = transitActivityAround transitMoment angleTransits
 
 transitAspectDetailsTable :: [PlanetPosition] -> [(PlanetaryAspect, PlanetaryTransit)] -> [(AngleAspect, AngleTransit)] -> Html ()
 transitAspectDetailsTable  transitingPlanets planetTransits angleTransits =
@@ -267,10 +277,37 @@ transitAspectDetailsTable  transitingPlanets planetTransits angleTransits =
         td_ [style_ "border: 1px solid", class_ "text-small"] $ do
           planetaryAspectCell $ findAspectWithAngle (transitAspects angleTransits) transitingPlanet X
 
-transitCards :: (HasLongitude a, HasLabel a) => [(TransitAspect a, Transit a)] -> Html ()
+transitSummaries ::  (HasLabel a) => [(TransitAspect a, Transit a)] -> Html ()
+transitSummaries activity =
+  forM_ activity $ \a@(activeTransit, activityData) ->
+    li_ [class_ "nav-item"] $ do
+      a_ [href_ $ "#" <> (transitId a)] $ do
+        span_ [activeTransit & aspect & aspectColorStyle] $ do
+          activityData & transiting & asIcon'
+          " "
+          activeTransit & aspect & aspectName & asIcon
+          " "
+          activityData & transited & asIcon'   
+          " "
+        span_ [] $ do
+          activityData & transiting & labelText & toHtml
+          " "
+          strong_ $ do
+            activeTransit & aspect & aspectName & labelText & toHtml
+          " "
+          activityData & transited & labelText & toHtml
+        span_ [class_ "text-italic"] $ do
+          if (activityData & immediateTriggers & null & not) then do
+            " (exact: "
+            maybe mempty localTime_ (activityData & immediateTriggers & headMaybe)
+            ") "
+          else
+            mempty
+
+transitCards :: (HasLongitude a, HasLabel a, Explicable a) => [(TransitAspect a, Transit a)] -> Html ()
 transitCards activity =
-  forM_ activity $ \(activeTransit, activityData) ->
-    div_ [cardDark_] $ do
+  forM_ activity $ \a@(activeTransit, activityData) ->
+    div_ [id_ (transitId a), cardDark_] $ do
       div_ [class_ "card-header"] $ do
         div_ [class_ "card-title"] $ do
           h4_ [activeTransit & aspect & aspectColorStyle] $ do
@@ -287,8 +324,25 @@ transitCards activity =
             " "
             activityData & transited & labelText & toHtml
       div_ [class_ "card-body"] $ do
-        p_ [class_ "text-tiny"] $ do
-          activeTransit & aspect & aspectName & explain
+        p_ [class_ "text-small"] $ do
+          a_ [href_ "#active-transit-list"] "Back to list"
+
+        div_ [class_ "text-tiny"] $ do
+          attributeTitle_ (activeTransit & aspect & aspectName & labelText & toHtml)
+          p_ $ do
+            activeTransit & aspect & aspectName & explain
+
+          attributeTitle_ (activityData & transiting & labelText & toHtml)
+          p_ $ do
+            explanationAttribute (activityData & transiting) "Keywords"
+
+          attributeTitle_ (activityData & transited & labelText & toHtml)
+          p_ $ do
+            if (hasAttribute (activityData & transited) "Keywords") then do
+              explanationAttribute (activityData & transited) "Keywords"
+            else
+              explain (activityData & transited)
+
 
         div_ [class_ "flex-container"] $ do
           if (activityData & transitStarts & isJust) then
@@ -327,6 +381,12 @@ transitCards activity =
           tbody_ [] $ do
             bodyDetails . transiting $ activityData
             bodyDetails . transited $ activityData
+
+transitId :: HasLabel a => (TransitAspect a, Transit a) -> Text
+transitId (activeTransit, activityData) =
+  (activityData & transiting & labelText) <>
+  (activeTransit & aspect & aspectName & labelText) <>
+  (activityData & transited & labelText)
 
 bodyDetails :: (HasLabel a, HasLongitude a) => a -> Html ()
 bodyDetails body =

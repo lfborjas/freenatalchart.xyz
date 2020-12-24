@@ -15,7 +15,7 @@ render renderCtx = do
         metaCeremony renderCtx
 
     body_ $ do
-        div_ [id_ "main", class_ "container"] $ do
+        div_ [id_ "main", class_ "container grid-sm"] $ do
             header_ [class_ "navbar bg-dark"] $ do
                 section_ [class_ "navbar-section navbar-brand"] $ do
                     a_ [href_ "/", class_ "brand-text"] "FreeNatalChart.xyz"
