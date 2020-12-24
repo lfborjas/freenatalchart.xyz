@@ -137,8 +137,8 @@ findAspectsByName aspectList name =
 -- More on these:
 -- https://www.astro.com/astrowiki/en/Applying_Aspect
 -- https://www.astro.com/astrowiki/en/Separating_Aspect
-aspectPhase :: HasLongitude a => HoroscopeAspect PlanetPosition a -> AspectPhase
-aspectPhase HoroscopeAspect {..} =
+aspectPhase :: HoroscopeAspect PlanetPosition a -> AspectPhase
+aspectPhase asp@HoroscopeAspect {..} =
   if isMovingTowards then
     Applying 
   else
@@ -148,7 +148,7 @@ aspectPhase HoroscopeAspect {..} =
     isDirect = (== 1) . signum . planetLngSpeed $ aspectingPlanet
     isApproaching = (< 1) . signum $ eclipticDifference aspectingPlanet aspectedPoint
     aspectingPlanet = bodies & fst
-    aspectedPoint   = bodies & snd
+    aspectedPoint   = exactAspectAngle asp
 
 -- TODO(luis): maybe we can use this in the aspect calculation, and anywhere
 -- where we need to account for "0/360 jumps"?
