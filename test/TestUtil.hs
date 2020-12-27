@@ -12,13 +12,16 @@ goldenFixture :: String -> String -> Golden String
 goldenFixture name output_ =
   Golden {
     output = output_
-  , encodePretty = show
+  , encodePretty = const $ "HMTL diffs not supported. Please compare updated test/files" <> name <> "/actual in a browser, or format + diff manually."
   , testName = name
   , writeToFile = writeFile
   , readFromFile = readFile
   , directory = "test/files"
   , failFirstTime = False
   }
+
+goldenFixtureHTML :: String -> String -> Golden String
+goldenFixtureHTML = goldenFixture
 
 goldenFixtureText :: String -> T.Text -> Golden T.Text
 goldenFixtureText name output_ =
