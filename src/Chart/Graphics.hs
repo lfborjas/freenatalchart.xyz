@@ -20,7 +20,6 @@ import Ephemeris
       HoroscopeAspect(..),
       Longitude(Longitude),
       westernZodiacSigns,
-      angularDifference,
       isRetrograde,
       HoroscopeData(..),
       TransitData(..),
@@ -318,3 +317,13 @@ renderTransitChart attrs width' t@TransitData{..} =
         }
     transitChart' = transitChart cfg t # rotateBy ((ascendantOffset @@ deg) ^. turn)
     ascendantOffset = 180 - (ascendant natalAngles)
+
+-- | NOTE(luis) this only really works for spans
+-- between house cusps. See the much more precise functions
+-- Ephemeris.Aspect for calculating angles between longitudes,
+-- with apparent phase and orb.
+angularDifference :: Double -> Double -> Double
+angularDifference a b
+  | (b - a) & abs & (< 1) = abs $ b - a
+  | (b - a) & signum & (< 1) = (b + 360 - a)
+  | otherwise = b - a

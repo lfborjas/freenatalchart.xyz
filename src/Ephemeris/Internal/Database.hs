@@ -174,6 +174,11 @@ orbAfter planet (Longitude lng) orb =
   where
     preferredOrb = max (maxSpeed planet) orb
 
+-- | TODO(luis) this is a stopgap for incomplete queries,
+-- see `toLongitude` in `Ephemeris.Aspect` for a better
+-- "keep in ecliptic" function, which can yield nonsensical
+-- ranges as far as query is concerned -- hence the necessity
+-- to also fix the queries.
 eclipticVal :: Double -> Longitude
 eclipticVal v | v >= 360 = Longitude 360
               | v < 0    = Longitude 0
