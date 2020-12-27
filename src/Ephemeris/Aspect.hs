@@ -6,6 +6,7 @@ import Import
 import Utils
 import Ephemeris.Types
 import RIO.List (headMaybe)
+import Ephemeris.Utils (isRetrograde)
 
 majorAspects :: [Aspect]
 majorAspects =
@@ -167,7 +168,7 @@ toLongitude (EclipticAngle e)
 
 exactAngle :: HoroscopeAspect a b -> Longitude
 exactAngle aspect' =
-  case (aspectAnglePhase angle') of
+  case (aspectAngleApparentPhase angle') of
     Applying   -> (EclipticAngle $ aspecting' + orb') & toLongitude
     Separating -> (EclipticAngle $ aspecting' - orb') & toLongitude
     Exact      -> a & toLongitude
@@ -184,5 +185,15 @@ currentAngle HoroscopeAspect{..} =
 orb :: HoroscopeAspect a b -> Double
 orb  = aspectAngleOrb . aspectAngle
 
-aspectPhase :: HoroscopeAspect a b -> AspectPhase
-aspectPhase = aspectAnglePhase . aspectAngle
+aspectPhase :: TransitAspect a -> AspectPhase
+aspectPhase asp = 
+  if aspectingIsRetrograde then
+    flipPhase $ aspectAngleApparentPhase angle'
+  else
+    aspectAngleApparentPhase angle'
+  where
+    flipPhase Applying = Separating
+    flipPhase Separating = Applying
+    flipPhase Exact = Exact
+    angle' = aspectAngle asp
+    aspectingIsRetrograde = asp & bodies & fst & isRetrograde

@@ -46,41 +46,41 @@ All Aspects to Natal Planets
 Aspecting|Aspect      |Aspected |Angle   |Orb     |Phase
 Sun      |Conjunction |Moon     |4.5267  |4.5267  |Separating
 Sun      |Conjunction |Venus    |6.3003  |6.3003  |Separating
-Sun      |Trine       |Mars     |112.2389|7.7611  |Applying
-Sun      |BiQuintile  |Jupiter  |145.7405|1.7405  |Separating
-Sun      |Conjunction |Saturn   |5.5259  |5.5259  |Separating
-Sun      |Conjunction |Uranus   |1.3798  |1.3798  |Separating
-Sun      |Conjunction |Neptune  |9.4334  |9.4334  |Separating
+Sun      |Trine       |Mars     |112.2389|7.7611  |Separating
+Sun      |BiQuintile  |Jupiter  |145.7405|1.7405  |Applying
+Sun      |Conjunction |Saturn   |5.5259  |5.5259  |Applying
+Sun      |Conjunction |Uranus   |1.3798  |1.3798  |Applying
+Sun      |Conjunction |Neptune  |9.4334  |9.4334  |Applying
 Sun      |SemiSquare  |Pluto    |45.9997 |0.9997  |Separating
 Sun      |Square      |Lilith   |94.3799 |4.3799  |Separating
 Sun      |Opposition  |Chiron   |177.1679|2.8321  |Applying
 Moon     |Square      |Moon     |95.7085 |5.7085  |Separating
 Moon     |Sextile     |Mercury  |57.2126 |2.7874  |Applying
 Moon     |Square      |Venus    |97.4821 |7.4821  |Separating
-Moon     |Sextile     |Jupiter  |54.5587 |5.4413  |Applying
+Moon     |Sextile     |Jupiter  |54.5587 |5.4413  |Separating
 Moon     |Square      |Saturn   |85.6559 |4.3441  |Applying
 Moon     |Square      |Uranus   |89.8020 |0.1980  |Applying
 Moon     |Square      |Neptune  |81.7484 |8.2516  |Applying
 Moon     |Sesquisquare|Pluto    |137.1815|2.1815  |Separating
-Moon     |Opposition  |Lilith   |185.5617|5.5617  |Separating
-Moon     |Square      |Chiron   |91.6503 |1.6503  |Separating
+Moon     |Opposition  |Lilith   |174.4383|5.5617  |Separating
+Moon     |Square      |Chiron   |91.6503 |1.6503  |Applying
 Mercury  |Conjunction |Moon     |5.6315  |5.6315  |Separating
-Mercury  |SemiSextile |Mercury  |32.8645 |2.8645  |Separating
+Mercury  |SemiSextile |Mercury  |32.8645 |2.8645  |Applying
 Mercury  |Conjunction |Venus    |7.4051  |7.4051  |Separating
-Mercury  |Trine       |Mars     |111.1341|8.8659  |Applying
-Mercury  |BiQuintile  |Jupiter  |144.6358|0.6358  |Separating
-Mercury  |Conjunction |Saturn   |4.4211  |4.4211  |Separating
-Mercury  |Conjunction |Uranus   |0.2751  |0.2751  |Separating
-Mercury  |Conjunction |Neptune  |8.3286  |8.3286  |Separating
+Mercury  |Trine       |Mars     |111.1341|8.8659  |Separating
+Mercury  |BiQuintile  |Jupiter  |144.6358|0.6358  |Applying
+Mercury  |Conjunction |Saturn   |4.4211  |4.4211  |Applying
+Mercury  |Conjunction |Uranus   |0.2751  |0.2751  |Applying
+Mercury  |Conjunction |Neptune  |8.3286  |8.3286  |Applying
 Mercury  |SemiSquare  |Pluto    |47.1045 |2.1045  |Separating
-Mercury  |Sextile     |Mean Node|65.7165 |5.7165  |Separating
+Mercury  |Sextile     |Mean Node|65.7165 |5.7165  |Applying
 Mercury  |Square      |Lilith   |95.4847 |5.4847  |Separating
 Mercury  |Opposition  |Chiron   |178.2727|1.7273  |Applying
-Venus    |Sextile     |Mercury  |56.6428 |3.3572  |Applying
-Venus    |Sesquisquare|Mars     |134.9125|0.0875  |Applying
-Venus    |SemiSextile |Saturn   |28.1994 |1.8006  |Applying
-Venus    |SemiSextile |Neptune  |32.1069 |2.1069  |Separating
-Venus    |Square      |Mean Node|89.4948 |0.5052  |Applying
+Venus    |Sextile     |Mercury  |56.6428 |3.3572  |Separating
+Venus    |Sesquisquare|Mars     |134.9125|0.0875  |Separating
+Venus    |SemiSextile |Saturn   |28.1994 |1.8006  |Separating
+Venus    |SemiSextile |Neptune  |32.1069 |2.1069  |Applying
+Venus    |Square      |Mean Node|89.4948 |0.5052  |Separating
 Venus    |Quintile    |Lilith   |71.7063 |0.2937  |Applying
 Mars     |Square      |Sun      |97.4128 |7.4128  |Separating
 Mars     |Trine       |Moon     |117.1750|2.8250  |Applying
@@ -88,29 +88,29 @@ Mars     |Trine       |Venus    |118.9486|1.0514  |Applying
 Mars     |Conjunction |Mars     |0.4094  |0.4094  |Separating
 Mars     |Trine       |Uranus   |111.2685|8.7315  |Applying
 Mars     |SemiSquare  |Mean Node|45.8270 |0.8270  |Separating
-Mars     |Quincunx    |Lilith   |152.9718|2.9718  |Separating
-Mars     |Quintile    |Chiron   |70.1838 |1.8162  |Applying
-Jupiter  |Conjunction |Mercury  |4.0985  |4.0985  |Separating
-Jupiter  |Square      |Mars     |82.3681 |7.6319  |Applying
-Jupiter  |Trine       |Jupiter  |115.8697|4.1303  |Applying
+Mars     |Quincunx    |Lilith   |152.9718|2.9718  |Applying
+Mars     |Quintile    |Chiron   |70.1838 |1.8162  |Separating
+Jupiter  |Conjunction |Mercury  |4.0985  |4.0985  |Applying
+Jupiter  |Square      |Mars     |82.3681 |7.6319  |Separating
+Jupiter  |Trine       |Jupiter  |115.8697|4.1303  |Separating
 Jupiter  |SemiSextile |Uranus   |28.4910 |1.5090  |Applying
 Jupiter  |Trine       |Lilith   |124.2507|4.2507  |Separating
-Jupiter  |Quincunx    |Chiron   |152.9613|2.9613  |Separating
-Saturn   |Conjunction |Mercury  |4.1353  |4.1353  |Separating
-Saturn   |Square      |Mars     |82.4050 |7.5950  |Applying
-Saturn   |Trine       |Jupiter  |115.9066|4.0934  |Applying
+Jupiter  |Quincunx    |Chiron   |152.9613|2.9613  |Applying
+Saturn   |Conjunction |Mercury  |4.1353  |4.1353  |Applying
+Saturn   |Square      |Mars     |82.4050 |7.5950  |Separating
+Saturn   |Trine       |Jupiter  |115.9066|4.0934  |Separating
 Saturn   |SemiSextile |Uranus   |28.4541 |1.5459  |Applying
 Saturn   |Trine       |Lilith   |124.2138|4.2138  |Separating
-Saturn   |Quincunx    |Chiron   |152.9982|2.9982  |Separating
+Saturn   |Quincunx    |Chiron   |152.9982|2.9982  |Applying
 Uranus   |Trine       |Sun      |111.0294|8.9706  |Separating
-Uranus   |Square      |Mercury  |92.2956 |2.2956  |Separating
+Uranus   |Square      |Mercury  |92.2956 |2.2956  |Applying
 Uranus   |Sesquisquare|Venus    |132.5652|2.4348  |Separating
-Uranus   |Trine       |Saturn   |120.7390|0.7390  |Separating
-Uranus   |Trine       |Uranus   |124.8850|4.8850  |Separating
+Uranus   |Trine       |Saturn   |120.7390|0.7390  |Applying
+Uranus   |Trine       |Uranus   |124.8850|4.8850  |Applying
 Uranus   |Trine       |Neptune  |116.8315|3.1685  |Separating
-Uranus   |Opposition  |Pluto    |172.2646|7.7354  |Separating
+Uranus   |Opposition  |Pluto    |187.7354|7.7354  |Separating
 Uranus   |Sextile     |Mean Node|59.4436 |0.5564  |Separating
-Uranus   |Sextile     |Chiron   |56.5672 |3.4328  |Separating
+Uranus   |Sextile     |Chiron   |56.5672 |3.4328  |Applying
 Neptune  |Sextile     |Sun      |62.3926 |2.3926  |Separating
 Neptune  |Square      |Moon     |82.1548 |7.8452  |Applying
 Neptune  |SemiSquare  |Mercury  |43.6588 |1.3412  |Applying
@@ -121,74 +121,66 @@ Neptune  |Opposition  |Lilith   |172.0080|7.9920  |Applying
 Pluto    |Conjunction |Sun      |7.9486  |7.9486  |Separating
 Pluto    |SemiSextile |Moon     |27.7108 |2.2892  |Applying
 Pluto    |SemiSextile |Venus    |29.4844 |0.5156  |Applying
-Pluto    |Square      |Mars     |89.0548 |0.9452  |Applying
-Pluto    |Trine       |Jupiter  |122.5565|2.5565  |Separating
-Pluto    |SemiSquare  |Mean Node|43.6372 |1.3628  |Applying
+Pluto    |Square      |Mars     |89.0548 |0.9452  |Separating
+Pluto    |Trine       |Jupiter  |122.5565|2.5565  |Applying
+Pluto    |SemiSquare  |Mean Node|43.6372 |1.3628  |Separating
 Pluto    |Trine       |Lilith   |117.5640|2.4360  |Applying
-Mean Node|Opposition  |Moon     |173.2215|6.7785  |Separating
-Mean Node|Sesquisquare|Mercury  |134.7255|0.2745  |Separating
-Mean Node|Opposition  |Venus    |174.9951|5.0049  |Separating
-Mean Node|Sextile     |Mars     |56.4559 |3.5441  |Separating
-Mean Node|BiQuintile  |Pluto    |145.3055|1.3055  |Separating
-Mean Node|Square      |Lilith   |96.9253 |6.9253  |Separating
+Mean Node|Opposition  |Moon     |186.7785|6.7785  |Applying
+Mean Node|Sesquisquare|Mercury  |134.7255|0.2745  |Applying
+Mean Node|Opposition  |Venus    |185.0049|5.0049  |Applying
+Mean Node|Sextile     |Mars     |56.4559 |3.5441  |Applying
+Mean Node|BiQuintile  |Pluto    |145.3055|1.3055  |Applying
+Mean Node|Square      |Lilith   |96.9253 |6.9253  |Applying
 Lilith   |Trine       |Sun      |110.9572|9.0428  |Applying
 Lilith   |Square      |Mercury  |92.2234 |2.2234  |Separating
 Lilith   |Sesquisquare|Venus    |132.4930|2.5070  |Applying
 Lilith   |Trine       |Saturn   |120.6668|0.6668  |Separating
 Lilith   |Trine       |Uranus   |124.8129|4.8129  |Separating
 Lilith   |Trine       |Neptune  |116.7593|3.2407  |Applying
-Lilith   |Opposition  |Pluto    |172.1924|7.8076  |Applying
+Lilith   |Opposition  |Pluto    |187.8076|7.8076  |Applying
 Lilith   |Sextile     |Mean Node|59.3714 |0.6286  |Applying
-Lilith   |Sextile     |Chiron   |56.6394 |3.3606  |Applying
+Lilith   |Sextile     |Chiron   |56.6394 |3.3606  |Separating
 Chiron   |Square      |Moon     |98.7972 |8.7972  |Separating
 Chiron   |Sextile     |Mercury  |60.3012 |0.3012  |Separating
 Chiron   |Square      |Saturn   |88.7445 |1.2555  |Applying
 Chiron   |Square      |Uranus   |92.8906 |2.8906  |Separating
 Chiron   |Square      |Neptune  |84.8371 |5.1629  |Applying
 Chiron   |SemiSextile |Mean Node|27.4492 |2.5508  |Applying
-Chiron   |Opposition  |Lilith   |188.6503|8.6503  |Separating
-Chiron   |Square      |Chiron   |88.5616 |1.4384  |Applying
+Chiron   |Opposition  |Lilith   |171.3497|8.6503  |Separating
+Chiron   |Square      |Chiron   |88.5616 |1.4384  |Separating
 
 Active Transits to Natal Planets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Transiting|Aspect      |Transited|Starts                  |Ends                    |Exact At                
 Moon      |Sextile     |Mercury  |2020-12-22 00:00:00 UTC |2020-12-23 00:00:00 UTC |2020-12-22 07:47:59 UTC 
-Moon      |Sextile     |Jupiter  |2020-12-22 00:00:00 UTC |2020-12-23 00:00:00 UTC |2020-12-22 13:06:08 UTC 
 Moon      |Square      |Saturn   |2020-12-22 00:00:00 UTC |2020-12-23 00:00:00 UTC |2020-12-22 10:54:29 UTC 
 Moon      |Square      |Uranus   |2020-12-22 00:00:00 UTC |2020-12-23 00:00:00 UTC |2020-12-22 02:38:35 UTC 
 Moon      |Square      |Neptune  |2020-12-22 00:00:00 UTC |2020-12-24 00:00:00 UTC |2020-12-22 18:44:06 UTC 
-Moon      |Sesquisquare|Pluto    |N/A                     |2020-12-23 00:00:00 UTC |N/A                     
-Moon      |Square      |Chiron   |N/A                     |2020-12-23 00:00:00 UTC |N/A                     
-Mercury   |BiQuintile  |Jupiter  |2020-12-21 00:00:00 UTC |2020-12-23 00:00:00 UTC |N/A                     
-Mercury   |Conjunction |Uranus   |2020-12-21 00:00:00 UTC |2020-12-23 00:00:00 UTC |N/A                     
+Moon      |Square      |Chiron   |2020-12-22 00:00:00 UTC |2020-12-23 00:00:00 UTC |2020-12-22 05:31:59 UTC 
+Mercury   |BiQuintile  |Jupiter  |2020-12-22 00:00:00 UTC |2020-12-23 00:00:00 UTC |2020-12-22 11:51:17 UTC 
+Mercury   |Conjunction |Uranus   |2020-12-21 00:00:00 UTC |2020-12-23 00:00:00 UTC |2020-12-22 06:24:23 UTC 
 Mercury   |Opposition  |Chiron   |2020-12-22 00:00:00 UTC |2020-12-24 00:00:00 UTC |2020-12-23 04:19:34 UTC 
-Venus     |Sesquisquare|Mars     |2020-12-22 00:00:00 UTC |2020-12-23 00:00:00 UTC |2020-12-22 03:55:45 UTC 
-Venus     |Square      |Mean Node|2020-12-22 00:00:00 UTC |2020-12-23 00:00:00 UTC |2020-12-22 11:56:41 UTC 
+Venus     |Sesquisquare|Mars     |2020-12-22 00:00:00 UTC |2020-12-23 00:00:00 UTC |2020-12-22 00:34:10 UTC 
 Venus     |Quintile    |Lilith   |2020-12-22 00:00:00 UTC |2020-12-23 00:00:00 UTC |2020-12-22 07:53:08 UTC 
 Mars      |Trine       |Moon     |2020-08-21 00:00:00 UTC |2020-12-31 00:00:00 UTC |N/A                     
 Mars      |Trine       |Venus    |2020-08-15 00:00:00 UTC |2020-12-27 00:00:00 UTC |N/A                     
 Mars      |Conjunction |Mars     |2020-08-11 00:00:00 UTC |2020-12-23 00:00:00 UTC |N/A                     
-Mars      |Quintile    |Chiron   |2020-08-17 00:00:00 UTC |2020-12-29 00:00:00 UTC |N/A                     
+Mars      |Quincunx    |Lilith   |2020-08-21 00:00:00 UTC |2020-12-31 00:00:00 UTC |N/A                     
 Saturn    |SemiSextile |Uranus   |2020-04-08 00:00:00 UTC |2021-01-13 00:00:00 UTC |N/A                     
 Uranus    |Sesquisquare|Venus    |2020-05-29 00:00:00 UTC |2021-04-25 00:00:00 UTC |N/A                     
 Uranus    |Trine       |Saturn   |2019-06-13 00:00:00 UTC |2021-02-17 00:00:00 UTC |N/A                     
 Uranus    |Trine       |Neptune  |2020-06-13 00:00:00 UTC |2022-02-14 00:00:00 UTC |N/A                     
 Uranus    |Sextile     |Mean Node|2019-07-28 00:00:00 UTC |2021-03-22 00:00:00 UTC |N/A                     
-Uranus    |Sextile     |Chiron   |2020-06-19 00:00:00 UTC |2022-02-24 00:00:00 UTC |N/A                     
 Neptune   |SemiSquare  |Mercury  |2019-06-06 00:00:00 UTC |2021-12-31 00:00:00 UTC |N/A                     
 Neptune   |Quintile    |Saturn   |2019-04-05 00:00:00 UTC |2021-01-30 00:00:00 UTC |N/A                     
 Pluto     |SemiSextile |Venus    |2020-02-01 00:00:00 UTC |2021-12-14 00:00:00 UTC |N/A                     
-Pluto     |Square      |Mars     |2020-02-14 00:00:00 UTC |2021-12-28 00:00:00 UTC |N/A                     
-Pluto     |SemiSquare  |Mean Node|2020-03-01 00:00:00 UTC |2022-10-30 00:00:00 UTC |N/A                     
+Pluto     |Square      |Mars     |2019-02-11 00:00:00 UTC |2020-12-23 00:00:00 UTC |N/A                     
 Lilith    |Trine       |Saturn   |2020-12-08 00:00:00 UTC |2020-12-25 00:00:00 UTC |N/A                     
 Lilith    |Sextile     |Mean Node|2020-12-19 00:00:00 UTC |2021-01-05 00:00:00 UTC |N/A                     
-Chiron    |Square      |Moon     |N/A                     |N/A                     |N/A                     
 Chiron    |Sextile     |Mercury  |2019-04-24 00:00:00 UTC |2021-01-25 00:00:00 UTC |N/A                     
 Chiron    |Square      |Saturn   |2019-05-29 00:00:00 UTC |2021-02-28 00:00:00 UTC |N/A                     
 Chiron    |Square      |Neptune  |2020-06-15 00:00:00 UTC |2022-03-11 00:00:00 UTC |N/A                     
 Chiron    |SemiSextile |Mean Node|2020-04-15 00:00:00 UTC |2022-01-01 00:00:00 UTC |N/A                     
-Chiron    |Opposition  |Lilith   |N/A                     |N/A                     |N/A                     
-Chiron    |Square      |Chiron   |2019-06-04 00:00:00 UTC |2021-03-03 00:00:00 UTC |N/A                     
 
 Axes Transits
 -------------
@@ -197,27 +189,27 @@ All Aspects to Natal Axes
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 Aspecting|Aspect      |Aspected |Angle   |Orb     |Phase
 Sun      |Sextile     |Asc      |65.2743 |5.2743  |Separating
-Moon     |Trine       |MC       |112.2795|7.7205  |Applying
+Moon     |Trine       |MC       |112.2795|7.7205  |Separating
 Venus    |SemiSquare  |Asc      |42.6007 |2.3993  |Applying
 Venus    |Sesquisquare|MC       |133.8651|1.1349  |Applying
-Mars     |Opposition  |Asc      |177.9226|2.0774  |Applying
-Mars     |Square      |MC       |90.8130 |0.8130  |Separating
+Mars     |Opposition  |Asc      |182.0774|2.0774  |Applying
+Mars     |Square      |MC       |90.8130 |0.8130  |Applying
 Jupiter  |Square      |Asc      |95.1451 |5.1451  |Separating
 Jupiter  |Opposition  |MC       |186.4095|6.4095  |Separating
 Saturn   |Square      |Asc      |95.1082 |5.1082  |Separating
 Saturn   |Opposition  |MC       |186.3726|6.3726  |Separating
 Neptune  |BiQuintile  |Asc      |142.9023|1.0977  |Applying
-Neptune  |Trine       |MC       |125.8332|5.8332  |Separating
+Neptune  |Trine       |MC       |125.8332|5.8332  |Applying
 Pluto    |Square      |Asc      |88.4584 |1.5416  |Applying
 Pluto    |Opposition  |MC       |179.7228|0.2772  |Applying
-Mean Node|Trine       |Asc      |126.0310|6.0310  |Separating
+Mean Node|Trine       |Asc      |126.0310|6.0310  |Applying
 
 Active Transits to Natal Axes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Transiting|Aspect      |Transited|Starts                  |Ends                    |Exact At                
-Moon      |Trine       |MC       |2020-12-22 00:00:00 UTC |2020-12-24 00:00:00 UTC |2020-12-22 17:40:10 UTC 
 Venus     |Sesquisquare|MC       |2020-12-22 00:00:00 UTC |2020-12-24 00:00:00 UTC |2020-12-23 00:01:42 UTC 
 Mars      |Opposition  |Asc      |2020-08-18 00:00:00 UTC |2020-12-29 00:00:00 UTC |N/A                     
+Mars      |Square      |MC       |2020-08-14 00:00:00 UTC |2020-12-26 00:00:00 UTC |N/A                     
 Neptune   |BiQuintile  |Asc      |2019-05-19 00:00:00 UTC |2021-12-07 00:00:00 UTC |N/A                     
 Pluto     |Square      |Asc      |2020-03-08 00:00:00 UTC |2022-11-12 00:00:00 UTC |N/A                     
 Pluto     |Opposition  |MC       |2019-04-22 00:00:00 UTC |2021-12-05 00:00:00 UTC |N/A                     

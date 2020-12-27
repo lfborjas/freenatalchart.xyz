@@ -126,13 +126,13 @@ Lilith   |Trine       |Jupiter  |119.8796|0.1204
 Lilith   |Square      |Saturn   |99.9058 |9.9058  
 Lilith   |Square      |Uranus   |95.7597 |5.7597  
 Lilith   |Square      |Chiron   |82.7880 |7.2120  
-Chiron   |Opposition  |Moon     |187.3588|7.3588  
+Chiron   |Opposition  |Moon     |172.6412|7.3588  
 Chiron   |Quincunx    |Mercury  |148.8628|1.1372  
-Chiron   |Opposition  |Venus    |189.1324|9.1324  
+Chiron   |Opposition  |Venus    |170.8676|9.1324  
 Chiron   |Quintile    |Mars     |70.5932 |1.4068  
-Chiron   |Opposition  |Saturn   |177.3062|2.6938  
-Chiron   |Opposition  |Uranus   |181.4522|1.4522  
-Chiron   |Opposition  |Neptune  |173.3987|6.6013  
+Chiron   |Opposition  |Saturn   |182.6938|2.6938  
+Chiron   |Opposition  |Uranus   |178.5478|1.4522  
+Chiron   |Opposition  |Neptune  |186.6013|6.6013  
 Chiron   |Trine       |Mean Node|116.0108|3.9892  
 Chiron   |Square      |Lilith   |82.7880 |7.2120  
 
@@ -146,7 +146,7 @@ Moon     |Quincunx    |MC       |152.0120|2.0120
 Mercury  |Square      |Asc      |99.2435 |9.2435  
 Venus    |Sextile     |Asc      |58.9740 |1.0260  
 Venus    |Quincunx    |MC       |150.2384|0.2384  
-Mars     |Opposition  |Asc      |177.5132|2.4868  
+Mars     |Opposition  |Asc      |182.4868|2.4868  
 Mars     |Square      |MC       |91.2224 |1.2224  
 Jupiter  |Quincunx    |Asc      |148.9852|1.0148  
 Jupiter  |Sextile     |MC       |57.7208 |2.2792  

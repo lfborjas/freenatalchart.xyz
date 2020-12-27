@@ -195,10 +195,10 @@ newtype EclipticAngle
 
 data AspectAngle
   = AspectAngle {
-    aspectingPosition :: EclipticAngle
-  , aspectedPosition  :: EclipticAngle
-  , aspectAnglePhase  :: AspectPhase
-  , aspectAngleOrb    :: Double
+    aspectingPosition         :: EclipticAngle
+  , aspectedPosition          :: EclipticAngle
+  , aspectAngleApparentPhase  :: AspectPhase
+  , aspectAngleOrb            :: Double
   }
   deriving stock (Eq, Show)
 
