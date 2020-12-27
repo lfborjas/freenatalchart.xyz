@@ -114,7 +114,7 @@ renderText _ BirthData {..} HoroscopeData{..}=
       tell "|"
       tell . justifyAspected . labelText . planetName $ aspected
       tell "|"
-      tell . justifyDouble . pack . formatLongitude . currentAngle $ a'
+      tell . justifyDouble . pack . formatDouble . unEclipticAngle . currentAngle $ a'
       tell "|"
       tell . justifyDouble . pack . formatDouble . orb $ a'
       ln_ ""
@@ -129,7 +129,7 @@ renderText _ BirthData {..} HoroscopeData{..}=
       tell "|"
       tell . justifyAspected . houseAspectLabel . houseNumber $ aspected
       tell "|"
-      tell . justifyDouble . pack . formatLongitude . currentAngle $ a'
+      tell . justifyDouble . pack . formatDouble . unEclipticAngle . currentAngle $ a'
       tell "|"
       tell . justifyDouble . pack . formatDouble . orb $ a'
       ln_ ""

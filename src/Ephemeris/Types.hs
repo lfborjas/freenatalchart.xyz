@@ -181,21 +181,25 @@ data AspectType
 data AspectPhase
   = Applying
   | Separating
-  | Active
+  | Exact
   deriving stock (Eq, Show, Ord, Enum)
 
 instance HasLabel AspectPhase where
   label Applying = "a"
   label Separating  = "s"
-  label Active = ""
+  label Exact = ""
 
 newtype EclipticAngle 
-  = EclipticAngle Double
+  = EclipticAngle {unEclipticAngle :: Double}
   deriving newtype (Eq, Show, Num)
 
 data AspectAngle
-  = Exact EclipticAngle
-  | InOrb EclipticAngle AspectPhase Double
+  = AspectAngle {
+    aspectingPosition :: EclipticAngle
+  , aspectedPosition  :: EclipticAngle
+  , aspectAnglePhase  :: AspectPhase
+  , aspectAngleOrb    :: Double
+  }
   deriving stock (Eq, Show)
 
 data Aspect = Aspect 

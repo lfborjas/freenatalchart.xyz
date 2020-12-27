@@ -103,7 +103,7 @@ aspectsHeading =
     , justifyDouble "Orb", "Phase"
     ]
 
-transitActivity :: (HasLabel a, HasLongitude a) => Text -> UTCTime -> [(TransitAspect a, Transit a)] -> (Writer Text ())
+transitActivity :: HasLabel a => Text -> UTCTime -> [(TransitAspect a, Transit a)] -> (Writer Text ())
 transitActivity extraHeading moment transits' = do
   ln_ ""
   ln_ $ "All Aspects " <> extraHeading
@@ -116,7 +116,7 @@ transitActivity extraHeading moment transits' = do
     tell "|"
     tell . justifyAspected . labelText  $ aspected
     tell "|"
-    tell . justifyDouble . pack . formatDouble . getLongitudeRaw . currentAngle $ a
+    tell . justifyDouble . pack . formatDouble . unEclipticAngle . currentAngle $ a
     tell "|"
     tell . justifyDouble . pack . formatDouble . orb $ a
     tell "|"

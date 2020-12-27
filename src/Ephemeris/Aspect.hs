@@ -142,16 +142,18 @@ aspectAngle' :: (HasLongitude a, HasLongitude b) => Aspect -> a -> b -> Maybe As
 aspectAngle' Aspect{..} aspecting aspected =
   if inOrb then
     case ((compare (getLongitude aspecting) (getLongitude aspected)), (compare angleDiff angle)) of
-      (LT, GT) -> Just $ InOrb aspecting' Applying orb'  
-      (LT, LT) -> Just $ InOrb aspecting' Separating orb'
-      (_, EQ)  -> Just $ Exact aspecting'
-      (EQ, _)  -> Just $ Exact aspecting'
-      (GT, GT) -> Just $ InOrb aspecting' Separating orb'
-      (GT, LT) -> Just $ InOrb aspecting' Applying orb'
+      (LT, GT) -> mkAngle Applying
+      (LT, LT) -> mkAngle Separating
+      (_, EQ)  -> mkAngle Exact
+      (EQ, _)  -> mkAngle Exact
+      (GT, GT) -> mkAngle Separating
+      (GT, LT) -> mkAngle Applying
   else
     Nothing
   where
+    mkAngle    = Just . (\phase -> AspectAngle aspecting' aspected' phase orb') 
     aspecting' = EclipticAngle $ getLongitudeRaw aspecting
+    aspected'  = EclipticAngle $ getLongitudeRaw aspected
     angleDiff = abs $ (getLongitudeRaw aspecting) - (getLongitudeRaw aspected)
     orb' = abs $ angle - angleDiff
     inOrb = orb' <= maxOrb
@@ -165,25 +167,22 @@ toLongitude (EclipticAngle e)
 
 exactAngle :: HoroscopeAspect a b -> Longitude
 exactAngle aspect' =
-  case (aspectAngle aspect') of
-    (InOrb (EclipticAngle a) Applying orb')   -> (EclipticAngle $ a + orb') & toLongitude
-    (InOrb (EclipticAngle a) Separating orb') -> (EclipticAngle $ a - orb') & toLongitude
-    (InOrb ea                Active _orb')     -> ea                         & toLongitude
-    (Exact a) -> toLongitude a
+  case (aspectAnglePhase angle') of
+    Applying   -> (EclipticAngle $ aspecting' + orb') & toLongitude
+    Separating -> (EclipticAngle $ aspecting' - orb') & toLongitude
+    Exact      -> a & toLongitude
+  where
+    angle' = aspectAngle aspect'
+    orb'   = aspectAngleOrb angle'
+    a@(EclipticAngle aspecting') = aspectingPosition angle'
 
-currentAngle :: (HasLongitude a, HasLongitude b) => HoroscopeAspect a b -> Longitude
+currentAngle :: HoroscopeAspect a b -> EclipticAngle
 currentAngle HoroscopeAspect{..} =
-  abs $ (bodies & fst & getLongitude) - (bodies & snd & getLongitude)
+  abs $ (aspectAngle & aspectingPosition) - (aspectAngle & aspectedPosition)
 
 
 orb :: HoroscopeAspect a b -> Double
-orb a =
-  case (aspectAngle a) of
-    InOrb _ _ o -> o
-    Exact _ -> 0
+orb  = aspectAngleOrb . aspectAngle
 
 aspectPhase :: HoroscopeAspect a b -> AspectPhase
-aspectPhase aspect' =
-  case (aspectAngle aspect') of
-    (InOrb _ p _) -> p
-    Exact _ -> Active
+aspectPhase = aspectAnglePhase . aspectAngle
