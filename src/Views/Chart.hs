@@ -42,6 +42,7 @@ import Views.Chart.Explanations
 import Views.Chart.Common
 import Ephemeris.Types
 import RIO.Writer (MonadWriter(tell), execWriter)
+import Ephemeris.Aspect (currentAngle, orb)
 
 renderText :: a -> BirthData -> HoroscopeData -> Text
 renderText _ BirthData {..} HoroscopeData{..}= 
@@ -106,31 +107,31 @@ renderText _ BirthData {..} HoroscopeData{..}=
     ln_ "Planetary Aspects"
     ln_ "-----------------"
     ln_ aspectsHeading
-    forM_ horoscopePlanetaryAspects $ \(HoroscopeAspect aspect (aspecting, aspected) angle orb) -> do
+    forM_ horoscopePlanetaryAspects $ \a'@(HoroscopeAspect aspect (aspecting, aspected) _angle) -> do
       tell . justifyAspecting . labelText . planetName $ aspecting
       tell "|"
       tell . justifyAspect . labelText . aspectName $ aspect
       tell "|"
       tell . justifyAspected . labelText . planetName $ aspected
       tell "|"
-      tell . justifyDouble . pack $ formatDouble angle
+      tell . justifyDouble . pack . formatLongitude . currentAngle $ a'
       tell "|"
-      tell . justifyDouble . pack $ formatDouble orb
+      tell . justifyDouble . pack . formatDouble . orb $ a'
       ln_ ""
     ln_ ""
     ln_ "Axes Aspects"
     ln_ "-----------------"
     ln_ aspectsHeading
-    forM_ horoscopeAngleAspects $ \(HoroscopeAspect aspect (aspecting, aspected) angle orb) -> do
+    forM_ horoscopeAngleAspects $ \a'@(HoroscopeAspect aspect (aspecting, aspected) _angle) -> do
       tell . justifyAspecting . labelText . planetName $ aspecting
       tell "|"
       tell . justifyAspect . labelText . aspectName $ aspect
       tell "|"
       tell . justifyAspected . houseAspectLabel . houseNumber $ aspected
       tell "|"
-      tell . justifyDouble . pack $ formatDouble angle
+      tell . justifyDouble . pack . formatLongitude . currentAngle $ a'
       tell "|"
-      tell . justifyDouble . pack $ formatDouble orb
+      tell . justifyDouble . pack . formatDouble . orb $ a'
       ln_ ""
   where
     sunSign = (findSunSign horoscopePlanetPositions)
@@ -631,7 +632,7 @@ aspectsTable :: [PlanetaryAspect] -> [AngleAspect] -> Html ()
 aspectsTable = aspectsTable' Nothing 
 
 planetAspectDetails :: (Maybe PlanetPosition) -> PlanetaryAspect  -> Html ()
-planetAspectDetails aspectedPosition HoroscopeAspect{..} = do
+planetAspectDetails aspectedPosition a@HoroscopeAspect{..} = do
   tr_ [class_ "light-links"] $ do
     td_ [] $ do
       span_ [class_ "text-light"] $ do
@@ -650,7 +651,7 @@ planetAspectDetails aspectedPosition HoroscopeAspect{..} = do
       second' & planetName & planetLink
     td_ [] $ do
       "with orb "
-      htmlDegrees' (True, True) orb
+      htmlDegrees' (True, True) (orb a)
   where
     (first', second') = 
       case aspectedPosition of
@@ -662,7 +663,7 @@ planetAspectDetails aspectedPosition HoroscopeAspect{..} = do
             (bodies & snd, bodies & fst)
 
 axisAspectDetails :: (HoroscopeAspect PlanetPosition House) -> Html ()
-axisAspectDetails HoroscopeAspect{..} = do
+axisAspectDetails a@HoroscopeAspect{..} = do
   tr_ [class_ "light-links"] $ do
     td_ [] $ do
       span_ [class_ "text-light"] $ do
@@ -679,7 +680,7 @@ axisAspectDetails HoroscopeAspect{..} = do
       bodies & snd & houseNumber & houseLinkFull
     td_ [] $ do
       "orb: "
-      htmlDegrees' (True, True) orb
+      htmlDegrees' (True, True) (orb a)
 
 planetDetails :: PlanetPosition -> Html ()
 planetDetails PlanetPosition{..} = tr_ [] $ do

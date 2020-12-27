@@ -5,7 +5,6 @@ module Ephemeris.Aspect where
 import Import
 import Utils
 import Ephemeris.Types
-import Ephemeris.Utils
 import RIO.List (headMaybe)
 
 majorAspects :: [Aspect]
@@ -38,19 +37,6 @@ defaultAspects = majorAspects <> minorAspects
 aspectsForTransits :: [Aspect]
 aspectsForTransits = defaultAspects-- map (\a -> a{maxOrb = 5.0}) majorAspects
 
--- TODO(luis) this may also suffer from the 0/360 false negative!
-exactAspectAngle ::  (HasLongitude a) => HoroscopeAspect a b -> Longitude
-exactAspectAngle (HoroscopeAspect aspect' (aspecting, _aspected) angle' orb') =
-  if angle' >= (angle aspect') then
-    Longitude $ aspectingLongitude - orb'
-  else
-    Longitude $ aspectingLongitude + orb'
-  where
-    aspectingLongitude = aspecting & getLongitudeRaw
-  
--- TODO: this is very wrong:
--- (note that the orb is considered to be the same as the angle??)
--- Sun      |Conjunction |Moon     |4.5267  |4.5267  |Applying
 aspects' :: (HasLongitude a, HasLongitude b) => [Aspect] -> [a] -> [b] -> [HoroscopeAspect a b]
 aspects' possibleAspects bodiesA bodiesB =
   (concatMap aspectsBetween pairs) & catMaybes
@@ -58,15 +44,10 @@ aspects' possibleAspects bodiesA bodiesB =
     pairs = [(x, y) | x <- bodiesA, y <- bodiesB]
     aspectsBetween bodyPair = map (haveAspect bodyPair) possibleAspects
     haveAspect (a, b) asp@Aspect {..} =
-      let angleBefore = angularDifference (getLongitudeRaw a) (getLongitudeRaw b)
-          orbBefore = (angle - (abs angleBefore)) & abs
-          angleAfter = angularDifference (getLongitudeRaw b) (getLongitudeRaw a)
-          orbAfter =  (angle - (abs angleAfter)) & abs
-        in if orbAfter <= maxOrb
-            then Just $ HoroscopeAspect {aspect = asp, bodies = (a, b), aspectAngle = angleAfter, orb = orbAfter}
-            else if orbBefore <= maxOrb then
-              Just $ HoroscopeAspect {aspect = asp, bodies = (a, b), aspectAngle = angleBefore, orb = orbBefore}
-              else Nothing
+      case (findAspectAngle asp a b) of
+        Nothing -> Nothing
+        Just angle' -> Just $ HoroscopeAspect {aspect=asp, bodies = (a,b), aspectAngle = angle'}
+
 
 aspects :: (HasLongitude a, HasLongitude b) => [a] -> [b] -> [HoroscopeAspect a b]
 aspects = aspects' defaultAspects
@@ -131,26 +112,8 @@ findAspectsByName aspectList name =
   aspectList
     & filter (\HoroscopeAspect {..} -> (aspect & aspectName) == name)
 
--- | Is the aspecting body approaching, or leaving, exactitude?
--- NOTE: we assume that the aspected body is static, which is a correct
--- assumption for transits, in which the aspected natal bodies are fixed,
--- but it's not necessarily correct for natal charts, in which both
--- bodies were in motion.
--- More on these:
--- https://www.astro.com/astrowiki/en/Applying_Aspect
--- https://www.astro.com/astrowiki/en/Separating_Aspect
-aspectPhase :: HoroscopeAspect PlanetPosition a -> AspectPhase
-aspectPhase asp@HoroscopeAspect {..} =
-  if isMovingTowards then
-    Applying 
-  else
-    Separating
-  where
-    isMovingTowards = isDirect && isApproaching
-    isDirect = (== 1) . signum . planetLngSpeed $ aspectingPlanet
-    isApproaching = (< 1) . signum $ eclipticDifference aspectingPlanet aspectedPoint
-    aspectingPlanet = bodies & fst
-    aspectedPoint   = exactAspectAngle asp
+
+
 
 -- TODO(luis): maybe we can use this in the aspect calculation, and anywhere
 -- where we need to account for "0/360 jumps"?
@@ -169,29 +132,29 @@ eclipticDifference a b =
 
 ---
 
-findAspectAngle :: (Num a, Num b, HasLongitude a, HasLongitude b) => Aspect -> a -> b -> Maybe AspectAngle 
+findAspectAngle :: (HasLongitude a, HasLongitude b) => Aspect -> a -> b -> Maybe AspectAngle 
 findAspectAngle aspect aspecting aspected =
-  (aspectAngle' aspect aspecting           aspected )<|> 
-  (aspectAngle' aspect (aspecting + 360)   aspected) <|>
-  (aspectAngle' aspect aspecting           (aspected + 360))
+  (aspectAngle' aspect aspecting                        aspected) <|> 
+  (aspectAngle' aspect (aspecting `addLongitude` 360)   aspected) <|>
+  (aspectAngle' aspect aspecting                        (aspected `addLongitude` 360))
 
 aspectAngle' :: (HasLongitude a, HasLongitude b) => Aspect -> a -> b -> Maybe AspectAngle 
 aspectAngle' Aspect{..} aspecting aspected =
   if inOrb then
     case ((compare (getLongitude aspecting) (getLongitude aspected)), (compare angleDiff angle)) of
-      (LT, GT) -> Just $ InOrb aspecting' Applying orb  
-      (LT, LT) -> Just $ InOrb aspecting' Separating orb
+      (LT, GT) -> Just $ InOrb aspecting' Applying orb'  
+      (LT, LT) -> Just $ InOrb aspecting' Separating orb'
       (_, EQ)  -> Just $ Exact aspecting'
       (EQ, _)  -> Just $ Exact aspecting'
-      (GT, GT) -> Just $ InOrb aspecting' Separating orb
-      (GT, LT) -> Just $ InOrb aspecting' Applying orb
+      (GT, GT) -> Just $ InOrb aspecting' Separating orb'
+      (GT, LT) -> Just $ InOrb aspecting' Applying orb'
   else
     Nothing
   where
     aspecting' = EclipticAngle $ getLongitudeRaw aspecting
     angleDiff = abs $ (getLongitudeRaw aspecting) - (getLongitudeRaw aspected)
-    orb = abs $ angle - angleDiff
-    inOrb = orb <= maxOrb
+    orb' = abs $ angle - angleDiff
+    inOrb = orb' <= maxOrb
 
 toLongitude :: EclipticAngle -> Longitude
 toLongitude (EclipticAngle e)
@@ -200,7 +163,27 @@ toLongitude (EclipticAngle e)
   | e < 0     = Longitude . abs $ 360 + e
   | otherwise = Longitude e
 
-exactAngle :: AspectAngle -> Longitude
-exactAngle (InOrb (EclipticAngle a) Applying orb) = (EclipticAngle $ a + orb ) & toLongitude
-exactAngle (InOrb (EclipticAngle a) Separating orb) = (EclipticAngle $ a - orb ) & toLongitude
-exactAngle (Exact a) = toLongitude a
+exactAngle :: HoroscopeAspect a b -> Longitude
+exactAngle aspect' =
+  case (aspectAngle aspect') of
+    (InOrb (EclipticAngle a) Applying orb')   -> (EclipticAngle $ a + orb') & toLongitude
+    (InOrb (EclipticAngle a) Separating orb') -> (EclipticAngle $ a - orb') & toLongitude
+    (InOrb ea                Active _orb')     -> ea                         & toLongitude
+    (Exact a) -> toLongitude a
+
+currentAngle :: (HasLongitude a, HasLongitude b) => HoroscopeAspect a b -> Longitude
+currentAngle HoroscopeAspect{..} =
+  abs $ (bodies & fst & getLongitude) - (bodies & snd & getLongitude)
+
+
+orb :: HoroscopeAspect a b -> Double
+orb a =
+  case (aspectAngle a) of
+    InOrb _ _ o -> o
+    Exact _ -> 0
+
+aspectPhase :: HoroscopeAspect a b -> AspectPhase
+aspectPhase aspect' =
+  case (aspectAngle aspect') of
+    (InOrb _ p _) -> p
+    Exact _ -> Active
