@@ -274,25 +274,25 @@ data HoroscopeData = HoroscopeData
 
 data TransitData = TransitData
   {
-    natalPlanetPositions :: ![PlanetPosition]
-  , natalAngles :: !Angles
-  , natalHouses :: ![House]
-  , natalHouseSystem :: !HouseSystem
-  , transitingPlanetPositions :: ![PlanetPosition]
-  , transitingHouses :: ![House]
-  , transitingAngles :: !Angles
-  , transitingHouseSystem :: !HouseSystem
-  , planetaryTransits :: ![(PlanetaryAspect, PlanetaryTransit)]
-  , angleTransits :: ![(AngleAspect, AngleTransit)]
+    natalPlanetPositions :: [PlanetPosition]
+  , natalAngles :: Angles
+  , natalHouses :: [House]
+  , natalHouseSystem :: HouseSystem
+  , transitingPlanetPositions :: [PlanetPosition]
+  , transitingHouses :: [House]
+  , transitingAngles :: Angles
+  , transitingHouseSystem :: HouseSystem
+  , planetaryTransits :: [(PlanetaryAspect, PlanetaryTransit)]
+  , angleTransits :: [(AngleAspect, AngleTransit)]
   } deriving (Eq, Show)
 
 data Transit a = Transit
   {
-    transiting :: !PlanetPosition
-  , transited :: !a
-  , transitStarts :: !(Maybe UTCTime)
-  , transitEnds :: !(Maybe UTCTime)
-  , immediateTriggers :: ![UTCTime]
+    transiting :: PlanetPosition
+  , transited :: a
+  , transitStarts :: (Maybe UTCTime)
+  , transitEnds :: (Maybe UTCTime)
+  , immediateTriggers :: [UTCTime]
   } deriving stock (Eq, Show)
 
 type PlanetaryTransit = Transit PlanetPosition
