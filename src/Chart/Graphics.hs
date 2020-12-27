@@ -319,8 +319,8 @@ renderTransitChart attrs width' t@TransitData{..} =
     ascendantOffset = 180 - (ascendant natalAngles)
 
 -- | NOTE(luis) this only really works for spans
--- between house cusps. See the much more precise functions
--- Ephemeris.Aspect for calculating angles between longitudes,
+-- between house cusps. See the much more precise functions in
+-- `Ephemeris.Aspect` for calculating angles between longitudes,
 -- with apparent phase and orb.
 angularDifference :: Double -> Double -> Double
 angularDifference a b

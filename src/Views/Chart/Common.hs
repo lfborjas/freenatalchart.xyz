@@ -64,9 +64,6 @@ asIcon z =
 formatDouble :: Double -> String
 formatDouble = printf "%.4f"
 
-formatLongitude :: HasLongitude a => a -> String
-formatLongitude = formatDouble . getLongitudeRaw
-
 htmlDegreesZodiac :: HasLongitude a => a -> Html ()
 htmlDegreesZodiac p =
   span_ [title_ . pack . formatDouble $ pl] $ do

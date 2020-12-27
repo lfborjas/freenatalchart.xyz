@@ -45,9 +45,7 @@ aspects' possibleAspects bodiesA bodiesB =
     pairs = [(x, y) | x <- bodiesA, y <- bodiesB]
     aspectsBetween bodyPair = map (haveAspect bodyPair) possibleAspects
     haveAspect (a, b) asp@Aspect {..} =
-      case (findAspectAngle asp a b) of
-        Nothing -> Nothing
-        Just angle' -> Just $ HoroscopeAspect {aspect=asp, bodies = (a,b), aspectAngle = angle'}
+      (findAspectAngle asp a b) <&> HoroscopeAspect asp (a,b)
 
 
 aspects :: (HasLongitude a, HasLongitude b) => [a] -> [b] -> [HoroscopeAspect a b]
@@ -112,26 +110,6 @@ findAspectsByName :: [HoroscopeAspect a b] -> AspectName -> [HoroscopeAspect a b
 findAspectsByName aspectList name =
   aspectList
     & filter (\HoroscopeAspect {..} -> (aspect & aspectName) == name)
-
-
-
-
--- TODO(luis): maybe we can use this in the aspect calculation, and anywhere
--- where we need to account for "0/360 jumps"?
--- still not sure on how sound the math is.
-eclipticDifference :: (HasLongitude a, HasLongitude b) => a -> b -> Double
-eclipticDifference a b =
-  if ((abs diff) >= biggerThanAnyAspect) then
-    lB - lA
-  else
-    diff
-  where
-    biggerThanAnyAspect = 200
-    diff = lA - lB
-    lA = getLongitudeRaw a
-    lB = getLongitudeRaw b
-
----
 
 findAspectAngle :: (HasLongitude a, HasLongitude b) => Aspect -> a -> b -> Maybe AspectAngle 
 findAspectAngle aspect aspecting aspected =
