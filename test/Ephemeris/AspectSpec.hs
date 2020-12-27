@@ -24,7 +24,7 @@ spec = do
           , (sq, (Longitude 95,  Longitude 10),  Just (Applying, 5))
           , (sq, (Longitude 100, Longitude 10),  Just (Exact, 0))
           , (sq, (Longitude 130, Longitude 10),  Nothing)
-          , (cnj, (Longitude 270, Longitude 270), Just (Exact, 0) )
+          , (cnj, (Longitude 270, Longitude 270), Just (Exact, 0))
           ]
         sq = Aspect{ aspectType = Major, aspectName = Square, angle = 90.0, maxOrb = 10.0, temperament = Analytical }
         cnj = Aspect{ aspectType = Major, aspectName = Conjunction, angle = 0.0, maxOrb = 10.0, temperament = Analytical }
