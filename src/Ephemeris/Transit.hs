@@ -18,7 +18,7 @@ import Control.Monad (ap)
 import Ephemeris.Internal.Approximations (maxSpeed)
 import Database.SQLite.Simple (withConnection)
 import Database.SQLite.Simple.Internal (Connection)
-import Ephemeris.Aspect (exactAspectAngle)
+import Ephemeris.Aspect (exactAngle)
 import Ephemeris.Internal.Database (crossingCandidatesQuery, activityPeriodQuery)
 import Ephemeris.Utils (julianToUTC)
 import RIO.List (sortBy)
@@ -51,9 +51,9 @@ isActiveTransit moment Transit {..} =
   (maybe True (>= moment) transitEnds)
 
 transit :: Connection -> JulianTime -> TransitAspect a -> IO (Transit a)
-transit conn momentOfTransit a@(HoroscopeAspect _aspect' (transiting', transited') _angle' _orb') = 
+transit conn momentOfTransit a@(HoroscopeAspect _aspect' (transiting', transited') _angle') = 
   do
-    let transitAspectLongitude = exactAspectAngle a
+    let transitAspectLongitude = a & exactAngle
         transitingPlanet = transiting' & planetName
     (activityStarts, activityEnds) <- activityPeriodQuery conn transitingPlanet transitAspectLongitude momentOfTransit
     crossingCandidates <- crossingCandidatesQuery conn transitingPlanet transitAspectLongitude momentOfTransit

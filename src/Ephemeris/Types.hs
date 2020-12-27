@@ -41,6 +41,8 @@ module Ephemeris.Types
   , HoroscopeData(..)
   , Transit(..)
   , TransitData(..)
+  , EclipticAngle(..)
+  , AspectAngle(..)
   -- smart constructors
   , mkLatitude
   , mkLongitude
@@ -71,6 +73,7 @@ class Eq a => HasLongitude a where
   getLongitude :: a -> Longitude
   getLongitudeRaw :: a -> Double
   getLongitudeRaw = unLongitude . getLongitude
+  addLongitude :: a -> Longitude -> a
 
 class Show a => HasLabel a where
   label :: a -> String
@@ -131,7 +134,8 @@ instance HasLabel House where
 
 -- TODO(luis) fix this to be `Longitude houseCusp`?
 instance HasLongitude House where
-  getLongitude =  houseCusp
+  getLongitude = houseCusp
+  addLongitude h l = h{houseCusp = (houseCusp h) + l}
 
 -- see: https://en.wikipedia.org/wiki/Astrological_aspect
 
@@ -165,14 +169,38 @@ data AspectType
   | Minor
   deriving stock (Eq, Show, Ord, Enum)
 
+
+-- | Is the aspecting body approaching, or leaving, exactitude?
+-- NOTE: we assume that the aspected body is static, which is a correct
+-- assumption for transits, in which the aspected natal bodies are fixed,
+-- but it's not necessarily correct for natal charts, in which both
+-- bodies were in motion.
+-- More on these:
+-- https://www.astro.com/astrowiki/en/Applying_Aspect
+-- https://www.astro.com/astrowiki/en/Separating_Aspect
 data AspectPhase
   = Applying
   | Separating
+  | Exact
   deriving stock (Eq, Show, Ord, Enum)
 
 instance HasLabel AspectPhase where
   label Applying = "a"
   label Separating  = "s"
+  label Exact = ""
+
+newtype EclipticAngle 
+  = EclipticAngle {unEclipticAngle :: Double}
+  deriving newtype (Eq, Show, Num)
+
+data AspectAngle
+  = AspectAngle {
+    aspectingPosition         :: EclipticAngle
+  , aspectedPosition          :: EclipticAngle
+  , aspectAngleApparentPhase  :: AspectPhase
+  , aspectAngleOrb            :: Double
+  }
+  deriving stock (Eq, Show)
 
 data Aspect = Aspect 
   { aspectName :: AspectName
@@ -186,8 +214,7 @@ data Aspect = Aspect
 data HoroscopeAspect a b = HoroscopeAspect
     { aspect :: Aspect
     , bodies :: ( a, b )
-    , aspectAngle :: Double
-    , orb :: Double
+    , aspectAngle :: AspectAngle
     } deriving stock (Eq, Show)
 
 type PlanetaryAspect = HoroscopeAspect PlanetPosition PlanetPosition
@@ -213,6 +240,7 @@ mkLongitude l =
 instance HasLongitude Longitude where
   getLongitude = id
   getLongitudeRaw = unLongitude
+  addLongitude = (+)
 
 data PlanetPosition = PlanetPosition 
   { 
@@ -225,6 +253,7 @@ data PlanetPosition = PlanetPosition
 
 instance HasLongitude PlanetPosition where
     getLongitude = planetLng
+    addLongitude p l =  p{planetLng = (planetLng p) + l}
 
 instance HasLabel PlanetPosition where
   label = label . planetName

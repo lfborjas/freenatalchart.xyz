@@ -235,20 +235,20 @@ houseLabel _ = mempty
 
 aspectCell :: Maybe (HoroscopeAspect a b) -> Html ()
 aspectCell Nothing = mempty
-aspectCell (Just HoroscopeAspect {..}) =
+aspectCell (Just a@HoroscopeAspect {..}) =
   span_ [aspectColorStyle aspect] $ do
     asIcon . aspectName $ aspect
     " "
-    htmlDegrees' (True, False) orb
+    htmlDegrees' (True, False) (orb a)
 
 -- | aspect cell, but specialized to the aspecting body being a planet.
-planetaryAspectCell :: Maybe (HoroscopeAspect PlanetPosition a) -> Html ()
+planetaryAspectCell :: Maybe (TransitAspect a) -> Html ()
 planetaryAspectCell Nothing = mempty
 planetaryAspectCell (Just (a@HoroscopeAspect {..})) =
   span_ [aspectColorStyle aspect] $ do
     asIcon . aspectName $ aspect
     " "
-    htmlDegrees' (True, False) orb
+    htmlDegrees' (True, False) (orb a)
     span_ [class_ "text-tiny tooltip", data_ "tooltip" (pack . show $ phase)] $ do
       toHtml . pack . label $ phase
   where
