@@ -166,3 +166,41 @@ eclipticDifference a b =
     diff = lA - lB
     lA = getLongitudeRaw a
     lB = getLongitudeRaw b
+
+---
+
+findAspectAngle :: (Num a, Num b, HasLongitude a, HasLongitude b) => Aspect -> a -> b -> Maybe AspectAngle 
+findAspectAngle aspect aspecting aspected =
+  (aspectAngle' aspect aspecting           aspected )<|> 
+  (aspectAngle' aspect (aspecting + 360)   aspected) <|>
+  (aspectAngle' aspect aspecting           (aspected + 360))
+
+aspectAngle' :: (HasLongitude a, HasLongitude b) => Aspect -> a -> b -> Maybe AspectAngle 
+aspectAngle' Aspect{..} aspecting aspected =
+  if inOrb then
+    case ((compare (getLongitude aspecting) (getLongitude aspected)), (compare angleDiff angle)) of
+      (LT, GT) -> Just $ InOrb aspecting' Applying orb  
+      (LT, LT) -> Just $ InOrb aspecting' Separating orb
+      (_, EQ)  -> Just $ Exact aspecting'
+      (EQ, _)  -> Just $ Exact aspecting'
+      (GT, GT) -> Just $ InOrb aspecting' Separating orb
+      (GT, LT) -> Just $ InOrb aspecting' Applying orb
+  else
+    Nothing
+  where
+    aspecting' = EclipticAngle $ getLongitudeRaw aspecting
+    angleDiff = abs $ (getLongitudeRaw aspecting) - (getLongitudeRaw aspected)
+    orb = abs $ angle - angleDiff
+    inOrb = orb <= maxOrb
+
+toLongitude :: EclipticAngle -> Longitude
+toLongitude (EclipticAngle e)
+  | e > 360   = Longitude . abs $ 360 - e
+  | e == 360  = Longitude 0
+  | e < 0     = Longitude . abs $ 360 + e
+  | otherwise = Longitude e
+
+exactAngle :: AspectAngle -> Longitude
+exactAngle (InOrb (EclipticAngle a) Applying orb) = (EclipticAngle $ a + orb ) & toLongitude
+exactAngle (InOrb (EclipticAngle a) Separating orb) = (EclipticAngle $ a - orb ) & toLongitude
+exactAngle (Exact a) = toLongitude a

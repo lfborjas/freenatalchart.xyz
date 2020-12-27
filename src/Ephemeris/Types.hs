@@ -41,6 +41,8 @@ module Ephemeris.Types
   , HoroscopeData(..)
   , Transit(..)
   , TransitData(..)
+  , EclipticAngle(..)
+  , AspectAngle(..)
   -- smart constructors
   , mkLatitude
   , mkLongitude
@@ -173,6 +175,15 @@ data AspectPhase
 instance HasLabel AspectPhase where
   label Applying = "a"
   label Separating  = "s"
+
+newtype EclipticAngle 
+  = EclipticAngle Double
+  deriving newtype (Eq, Show, Num)
+
+data AspectAngle
+  = Exact EclipticAngle
+  | InOrb EclipticAngle AspectPhase Double
+  deriving stock (Eq, Show)
 
 data Aspect = Aspect 
   { aspectName :: AspectName
