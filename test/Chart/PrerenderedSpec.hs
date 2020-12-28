@@ -23,6 +23,6 @@ spec :: Spec
 spec =
   describe "Prerendered Glyphs" $ do
     context "Signs, planets and aspects" $ do
-      it "renders icons based on the Symbola font" $ do
+      it "renders icons based on the Firmament font" $ do
         let rendered = renderSVGString
         goldenFixture "prerenderedIcons" rendered

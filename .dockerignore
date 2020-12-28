@@ -2,7 +2,7 @@
 dist-newstyle/
 .env
 .github
-static/Symbola.svg
+static/firmament.svg
 Dockerfile
 .dockerignore
 .git/
