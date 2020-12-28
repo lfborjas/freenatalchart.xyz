@@ -16,6 +16,12 @@ import qualified Views.Chart as Chart
 import System.IO.Unsafe (unsafePerformIO)
 import Data.Time.Format.ISO8601 (iso8601ParseM)
 import qualified Views.Transits as Transits
+import Diagrams.Backend.SVG (renderSVG)
+import Diagrams (mkWidth)
+import Chart.Prerendered (allPrerendered)
+
+basePath :: FilePath 
+basePath = "dev/files/"
 
 tzDB :: TimeZoneDatabase
 tzDB = unsafePerformIO $ openTimeZoneDatabase "./config/timezone21.bin"
@@ -98,3 +104,6 @@ renderTestTransitsPage = do
   let birthdata = BirthData birthplace birthtime
   transits' <- transitData devContext momentOfTransit birthdata 
   renderToFile "dev/files/transits.html" $ Transits.render fixtureRenderContext birthdata momentOfTransit transits'
+
+renderPrerenderedIcons :: IO ()
+renderPrerenderedIcons = renderSVG (basePath <> "prerendered.svg") (mkWidth 400) allPrerendered

@@ -58,11 +58,11 @@ zodiacCircle env =
         glyphPosition = longitudeToPoint (onZodiacs + 0.1) (Longitude $ z + 15)
         g =
           (stroke $ P.prerenderedSign signName)
-            # scale 0.15
+            # scale 0.08
             # moveTo glyphPosition
             # rectifyAround glyphPosition env
             # fc black
-            # lw ultraThin
+            # lw none
             # svgClass zodiacClass
         zodiacClass =
           case zElement of
@@ -142,11 +142,11 @@ planets env planetPositions =
     classPrefix = env & chartPlanetClassPrefix
     drawPlanet (corrected, pos@PlanetPosition {..}) =
       (stroke $ P.prerenderedPlanet planetName)
-        # scale 0.1
+        # scale 0.06
         # moveTo correctedPosition
         # rectifyAround correctedPosition env
         # fc black
-        # lw ultraThin
+        # lw none
         # (keyVal $ ("title", label planetName))
         # (href $ "#" <> (label planetName))
         # svgClass classPrefix
