@@ -9,7 +9,6 @@ Create a `.env` file with the following entries
 
     ALGOLIA_APP_ID=<ALGOLIA>
     ALGOLIA_APP_KEY=<ALGOLIA-PUBLIC-SEARCH-KEY>
-    GEONAMES_USERNAME=<GET-FROM-GEONAMES>
     PORT=3030
     DEPLOY_ENV=Development
 
@@ -24,7 +23,7 @@ Working locally should be rather painless, it's a simple `stack` project; you ca
 
     stack run
 
-(You'll need to set `ALGOLIA_APP_ID` and `ALGOLIA_APP_KEY` as env vars for geolocation to work locally -- **TODO**: read `.env` files in Haskell, too.)
+(You'll need to set `ALGOLIA_APP_ID` and `ALGOLIA_APP_KEY` as env vars for geolocation to work locally. See the Docker instructions for running with a `.env` file.)
 
 ### With Docker:
 
@@ -55,9 +54,9 @@ depending on your hardware.
 
 ### Testing
 
-For rendering HTML and SVG, we use [golden tests](https://ro-che.info/articles/2017-12-04-golden-tests) with the [hspec-golden](https://github.com/stackbuilders/hspec-golden) library. The files are written to `test/files` and we only track the "golden" (expected) file. You'll notice that we `.gitignore` the `actual` file -- but it is produced by the test runner. The files are saved without extension, but they should be viewable in a browser if one sets the extension, or with `python3 -m http.server 8000`. I personally just use the `renderTest*` functions in the respective view files, and e.g. `cp test/files/natalChart/actual test/files/actual-chart.html` to open it in a browser.
+For rendering HTML and SVG, we use [golden tests](https://ro-che.info/articles/2017-12-04-golden-tests) with the [hspec-golden](https://github.com/stackbuilders/hspec-golden) library. The files are written to `test/files` and we only track the "golden" (expected) file. You'll notice that we `.gitignore` the `actual` file -- but it is produced by the test runner on each run, locally. The files are saved without extension, but they should be viewable in a browser if one sets the extension (once the extension is there, you can also navigate the directory with `python3 -m http.server 8000`.) I personally just use the `renderTest*` functions in `Dev.hs` while developing.
 
-If you've updated the `Views` and the tests now fail because of the changes, but you've verified that they're working as expected (perhaps by manually producing the files for static inspection, see for example `renderTestIndex` in `Views.Index`,) you can have hspec-golden replace
+If you've updated the `Views` and the tests now fail because of the changes, but you've verified that they're working as expected (perhaps by manually producing the files for static inspection, see for example `renderTestIndex` in `Dev.hs`,) you can have hspec-golden replace
 the `golden` files with the current copy of the `actual` file (produced by running the now-failing test,) by running
 
     stack exec hgold -- -u test/files    
