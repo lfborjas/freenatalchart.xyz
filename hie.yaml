@@ -1,13 +1,13 @@
 cradle:
-  stack:
-    - path: "./src"
-      component: "freenatalchart:lib"
+  cabal:
+    - path: "src"
+      component: "lib:freenatalchart"
 
-    - path: "./app/Main.hs"
+    - path: "app/Main.hs"
       component: "freenatalchart:exe:freenatalchart-exe"
 
-    - path: "./app/Paths_freenatalchart.hs"
+    - path: "app/Paths_freenatalchart.hs"
       component: "freenatalchart:exe:freenatalchart-exe"
 
-    - path: "./test"
+    - path: "test"
       component: "freenatalchart:test:freenatalchart-test"
