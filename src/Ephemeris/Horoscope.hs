@@ -6,9 +6,9 @@ module Ephemeris.Horoscope (horoscope, transitData) where
 import Import
 import Ephemeris.Types
 import Data.Time.LocalTime.TimeZone.Detect (timeAtPointToUTC, TimeZoneDatabase)
-import SwissEphemeris (eclipticToEquatorial, calculateEclipticPosition, calculateObliquity, calculateCusps, withEphemerides)
+import SwissEphemeris (eclipticToEquatorial, calculateEclipticPosition, calculateObliquity, calculateCusps, withEphemerides, ToJulianDay (toJulianDay))
 import Ephemeris.Aspect (aspectableAngles, transitingAspects, celestialAspects, planetaryAspects)
-import Ephemeris.Utils (mkEcliptic, utcToJulian)
+import Ephemeris.Utils (mkEcliptic)
 import Ephemeris.Planet (defaultPlanets)
 import RIO.Time (UTCTime)
 import Ephemeris.Transit (transits)
@@ -19,7 +19,7 @@ horoscope timezoneDB ephePath BirthData {..} = do
   longitude <- pure $ birthLocation & locationLongitude & unLongitude
   -- convert to what the underlying library expects: a UTC time, and a pair of raw coordinates.
   uTime <- timeAtPointToUTC timezoneDB latitude longitude birthLocalTime
-  time <- pure $ utcToJulian uTime
+  Just time <- toJulianDay uTime
   place <- pure $ locationToGeo birthLocation
 
   withEphemerides ephePath $ do
@@ -39,7 +39,7 @@ horoscope timezoneDB ephePath BirthData {..} = do
         uTime
         time
 
-transitData :: 
+transitData ::
   (HasTimeZoneDatabase ctx, HasEphePath ctx, HasEphemerisDatabase ctx)
   => ctx
   -> UTCTime
@@ -54,9 +54,9 @@ transitData ctx momentOfTransit BirthData {..} = do
   longitude <- pure $ birthLocation & locationLongitude & unLongitude
   -- convert to what the underlying library expects: a UTC time, and a pair of raw coordinates.
   uTime <- timeAtPointToUTC timezoneDB latitude longitude birthLocalTime
-  natalTime <- pure $ utcToJulian uTime
-  transitTime <- pure $ utcToJulian momentOfTransit
-  place <- pure $ locationToGeo birthLocation
+  Just natalTime <- toJulianDay uTime
+  Just transitTime <- toJulianDay momentOfTransit
+  let place = locationToGeo birthLocation
 
   withEphemerides ephePath $ do
     -- we `fail` if the obliquity couldn't be calculated, since it should be available for any moment in the supported
@@ -96,15 +96,15 @@ locationToGeo Location {..} =
     }
 
 
-obliquityOrBust :: JulianTime -> IO ObliquityInformation
+obliquityOrBust :: JulianDayUT1 -> IO ObliquityInformation
 obliquityOrBust time = do
   obliquity <- calculateObliquity time
   case obliquity of
     Left e -> fail $ "Unable to calculate obliquity: " <> e <> " (for time: " <> (show time) <> ")"
     Right o -> pure o
 
-planetPositions :: ObliquityInformation -> JulianTime -> IO [PlanetPosition]
-planetPositions o@ObliquityInformation {..} time = do
+planetPositions :: ObliquityInformation -> JulianDayUT1 -> IO [PlanetPosition]
+planetPositions o@ObliquityInformation {} time = do
   maybePositions <- forM defaultPlanets $ \p -> do
     coords <- calculateEclipticPosition time p
     case coords of
@@ -115,8 +115,7 @@ planetPositions o@ObliquityInformation {..} time = do
   pure $ catMaybes maybePositions
 
 houses :: ObliquityInformation -> [HouseCusp] -> [House]
-houses obliquity cusps =
-  map buildHouse $ (zip [I .. XII] cusps)
+houses obliquity = zipWith (curry buildHouse) [I .. XII]
   where
     buildHouse (n, c) =
       House n (Longitude c) (declination equatorial)

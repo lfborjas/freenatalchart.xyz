@@ -16,7 +16,7 @@ module Ephemeris.Types
   , HouseCusp
   , ZodiacSignName(..)
   , SplitDegreesOption(..)
-  , JulianTime(..)
+  , JulianDayUT1
   , GeographicPosition(..)
   , EquatorialPosition(..)
   , ObliquityInformation(..)
@@ -59,7 +59,7 @@ import SwissEphemeris
       EquatorialPosition(..),
       GeographicPosition(..),
       HouseSystem(..),
-      JulianTime(..),
+      JulianDayUT1,
       LongitudeComponents(..),
       ObliquityInformation(..),
       Planet(..),
@@ -268,7 +268,7 @@ data HoroscopeData = HoroscopeData
   , horoscopePlanetaryAspects :: [PlanetaryAspect]
   , horoscopeAngleAspects :: [AngleAspect]
   , horoscopeUniversalTime :: UTCTime
-  , horoscopeJulianTime :: JulianTime
+  , horoscopeJulianTime :: JulianDayUT1
   -- TODO: delta time?
   } deriving (Eq, Show)
 

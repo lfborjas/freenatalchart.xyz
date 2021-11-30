@@ -82,7 +82,7 @@ library
     , servant-server
     , sqlite-simple >=0.4.18.0
     , svg-builder
-    , swiss-ephemeris >=1.2.1.0
+    , swiss-ephemeris >=1.4.1.0
     , time
     , timezone-detect >=0.3.0.0
     , unordered-containers
