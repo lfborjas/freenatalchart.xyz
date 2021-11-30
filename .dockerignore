@@ -1,8 +1,0 @@
-.stack-work/
-dist-newstyle/
-.env
-.github
-static/firmament.svg
-Dockerfile
-.dockerignore
-.git/
