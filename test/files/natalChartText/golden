@@ -29,18 +29,18 @@ Chiron (r)   |9    |93.5200  |-0.0638 |-6.8491 |16.5492    |♋️ 3° 31' 12"
 House Cusps( Placidus )
 -----------
 House|Cusp    |Declination|Zodiac Longitude
-1    |205.4136|-9.8303    |♎️ 25° 24' 49"
-2    |235.0820|-19.0391   |♏️ 25° 4' 55"
-3    |264.4682|-23.3272   |♐️ 24° 28' 5"
-4    |294.1492|-21.2856   |♑️ 24° 8' 57"
-5    |324.8848|-13.2290   |♒️ 24° 53' 5"
-6    |355.9808|-1.5979    |♓️ 25° 58' 51"
-7    |25.4136 |9.8303     |♈️ 25° 24' 49"
-8    |55.0820 |19.0391    |♉️ 25° 4' 55"
-9    |84.4682 |23.3272    |♊️ 24° 28' 5"
-10   |114.1492|21.2856    |♋️ 24° 8' 57"
-11   |144.8848|13.2290    |♌️ 24° 53' 5"
-12   |175.9808|1.5979     |♍️ 25° 58' 51"
+1    |205.4131|-9.8301    |♎️ 25° 24' 47"
+2    |235.0815|-19.0390   |♏️ 25° 4' 53"
+3    |264.4677|-23.3272   |♐️ 24° 28' 4"
+4    |294.1487|-21.2857   |♑️ 24° 8' 55"
+5    |324.8843|-13.2292   |♒️ 24° 53' 3"
+6    |355.9803|-1.5981    |♓️ 25° 58' 49"
+7    |25.4131 |9.8301     |♈️ 25° 24' 47"
+8    |55.0815 |19.0390    |♉️ 25° 4' 53"
+9    |84.4677 |23.3272    |♊️ 24° 28' 4"
+10   |114.1487|21.2857    |♋️ 24° 8' 55"
+11   |144.8843|13.2292    |♌️ 24° 53' 3"
+12   |175.9803|1.5981     |♍️ 25° 58' 49"
 
 Planetary Aspects
 -----------------
@@ -64,7 +64,7 @@ Mercury  |Trine       |Lilith   |128.3491|8.3491
 Mercury  |Quincunx    |Chiron   |148.8628|1.1372  
 Venus    |Conjunction |Moon     |1.7736  |1.7736  
 Venus    |Trine       |Mars     |118.5392|1.4608  
-Venus    |Quincunx    |Jupiter  |152.0408|2.0408  
+Venus    |Quincunx    |Jupiter  |152.0409|2.0409  
 Venus    |Conjunction |Uranus   |7.6802  |7.6802  
 Venus    |Quintile    |Mean Node|73.1216 |1.1216  
 Venus    |Square      |Lilith   |88.0796 |1.9204  
@@ -77,7 +77,7 @@ Mars     |Quintile    |Chiron   |70.5932 |1.4068
 Mars     |Square      |Sun      |97.0034 |7.0034  
 Jupiter  |Quincunx    |Moon     |150.2673|0.2673  
 Jupiter  |Trine       |Mercury  |111.7713|8.2287  
-Jupiter  |Quincunx    |Venus    |152.0408|2.0408  
+Jupiter  |Quincunx    |Venus    |152.0409|2.0409  
 Jupiter  |BiQuintile  |Uranus   |144.3607|0.3607  
 Jupiter  |Sesquisquare|Neptune  |136.3072|1.3072  
 Jupiter  |Trine       |Lilith   |119.8796|0.1204  
@@ -139,21 +139,21 @@ Chiron   |Square      |Lilith   |82.7880 |7.2120
 Axes Aspects
 -----------------
 Aspecting|Aspect      |Aspected |Angle   |Orb     
-Sun      |Square      |Asc      |80.5098 |9.4902  
-Sun      |Opposition  |MC       |171.7742|8.2258  
-Moon     |Sextile     |Asc      |60.7476 |0.7476  
-Moon     |Quincunx    |MC       |152.0120|2.0120  
-Mercury  |Square      |Asc      |99.2435 |9.2435  
-Venus    |Sextile     |Asc      |58.9740 |1.0260  
-Venus    |Quincunx    |MC       |150.2384|0.2384  
-Mars     |Opposition  |Asc      |182.4868|2.4868  
-Mars     |Square      |MC       |91.2224 |1.2224  
-Jupiter  |Quincunx    |Asc      |148.9852|1.0148  
-Jupiter  |Sextile     |MC       |57.7208 |2.2792  
-Saturn   |Quintile    |Asc      |70.8002 |1.1998  
-Pluto    |Trine       |MC       |110.5390|9.4610  
-Mean Node|Sesquisquare|Asc      |132.0955|2.9045  
-Mean Node|Sesquisquare|MC       |136.6400|1.6400  
-Lilith   |SemiSextile |Asc      |29.1056 |0.8944  
-Lilith   |Sextile     |MC       |62.1588 |2.1588  
-Chiron   |Trine       |Asc      |111.8936|8.1064  
+Sun      |Square      |Asc      |80.5103 |9.4897  
+Sun      |Opposition  |MC       |171.7747|8.2253  
+Moon     |Sextile     |Asc      |60.7480 |0.7480  
+Moon     |Quincunx    |MC       |152.0125|2.0125  
+Mercury  |Square      |Asc      |99.2440 |9.2440  
+Venus    |Sextile     |Asc      |58.9745 |1.0255  
+Venus    |Quincunx    |MC       |150.2389|0.2389  
+Mars     |Opposition  |Asc      |182.4863|2.4863  
+Mars     |Square      |MC       |91.2219 |1.2219  
+Jupiter  |Quincunx    |Asc      |148.9847|1.0153  
+Jupiter  |Sextile     |MC       |57.7203 |2.2797  
+Saturn   |Quintile    |Asc      |70.8007 |1.1993  
+Pluto    |Trine       |MC       |110.5395|9.4605  
+Mean Node|Sesquisquare|Asc      |132.0960|2.9040  
+Mean Node|Sesquisquare|MC       |136.6395|1.6395  
+Lilith   |SemiSextile |Asc      |29.1051 |0.8949  
+Lilith   |Sextile     |MC       |62.1593 |2.1593  
+Chiron   |Trine       |Asc      |111.8931|8.1069  
