@@ -15,12 +15,12 @@ import Ephemeris.Transit (transits)
 
 horoscope :: TimeZoneDatabase -> EphemeridesPath -> BirthData -> IO HoroscopeData
 horoscope timezoneDB ephePath BirthData {..} = do
-  latitude <- pure $ birthLocation & locationLatitude & unLatitude
-  longitude <- pure $ birthLocation & locationLongitude & unLongitude
+  let latitude = birthLocation & locationLatitude & unLatitude
+      longitude = birthLocation & locationLongitude & unLongitude
   -- convert to what the underlying library expects: a UTC time, and a pair of raw coordinates.
   uTime <- timeAtPointToUTC timezoneDB latitude longitude birthLocalTime
   Just time <- toJulianDay uTime
-  place <- pure $ locationToGeo birthLocation
+  let place = locationToGeo birthLocation
 
   withEphemerides ephePath $ do
     -- we `fail` if the obliquity couldn't be calculated, since it should be available for any moment in the supported
@@ -49,9 +49,8 @@ transitData ctx momentOfTransit BirthData {..} = do
   let timezoneDB = ctx ^. timeZoneDatabaseL
       ephePath   = ctx ^. ephePathL
       epheDB     = ctx ^. ephemerisDatabaseL
-
-  latitude <- pure $ birthLocation & locationLatitude & unLatitude
-  longitude <- pure $ birthLocation & locationLongitude & unLongitude
+      latitude   = birthLocation & locationLatitude & unLatitude
+      longitude  = birthLocation & locationLongitude & unLongitude
   -- convert to what the underlying library expects: a UTC time, and a pair of raw coordinates.
   uTime <- timeAtPointToUTC timezoneDB latitude longitude birthLocalTime
   Just natalTime <- toJulianDay uTime
@@ -69,9 +68,9 @@ transitData ctx momentOfTransit BirthData {..} = do
     transitPositions <- planetPositions transitObliquity transitTime
     (CuspsCalculation transitCusps transitAngles transitSys) <- calculateCusps Placidus transitTime place
 
-    pAspects <- pure $ transitingAspects transitPositions natalPositions
+    let pAspects = transitingAspects transitPositions natalPositions
     pTransits <- transits epheDB transitTime pAspects
-    aAspects <- pure $ transitingAspects transitPositions (aspectableAngles natalAngles')
+    let aAspects = transitingAspects transitPositions (aspectableAngles natalAngles')
     aTransits <- transits epheDB transitTime aAspects
 
     return $
@@ -91,8 +90,8 @@ transitData ctx momentOfTransit BirthData {..} = do
 locationToGeo :: Location -> GeographicPosition
 locationToGeo Location {..} =
   GeographicPosition {
-      geoLat = (locationLatitude & unLatitude)
-    , geoLng = (locationLongitude & unLongitude)
+      geoLat = locationLatitude & unLatitude
+    , geoLng = locationLongitude & unLongitude
     }
 
 
@@ -100,7 +99,7 @@ obliquityOrBust :: JulianDayUT1 -> IO ObliquityInformation
 obliquityOrBust time = do
   obliquity <- calculateObliquity time
   case obliquity of
-    Left e -> fail $ "Unable to calculate obliquity: " <> e <> " (for time: " <> (show time) <> ")"
+    Left e -> fail $ "Unable to calculate obliquity: " <> e <> " (for time: " <> show time <> ")"
     Right o -> pure o
 
 planetPositions :: ObliquityInformation -> JulianDayUT1 -> IO [PlanetPosition]

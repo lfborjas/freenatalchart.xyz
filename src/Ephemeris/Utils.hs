@@ -2,7 +2,6 @@
 module Ephemeris.Utils where
 
 import Ephemeris.Types
-import RIO.Time (fromGregorian, picosecondsToDiffTime, diffTimeToPicoseconds, toGregorian, UTCTime(..))
 import SwissEphemeris(defaultSplitDegreesOptions)
 import qualified SwissEphemeris as SWE
 

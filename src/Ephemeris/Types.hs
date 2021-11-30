@@ -64,7 +64,7 @@ import SwissEphemeris
       ObliquityInformation(..),
       Planet(..),
       SplitDegreesOption(..),
-      ZodiacSignName(..) ) 
+      ZodiacSignName(..) )
 import Utils ( maybeBetween )
 import RIO.Time (UTCTime(..))
 
@@ -100,7 +100,7 @@ data ZodiacSign = ZodiacSign {
 , zodiacElement :: Element
 } deriving stock (Eq, Show)
 
-data HouseNumber 
+data HouseNumber
   = I
   | II
   | III
@@ -125,17 +125,17 @@ data House = House
 
 instance HasLabel House where
   label h =
-    case (houseNumber h) of
+    case houseNumber h of
       I -> "Asc"
       IV -> "IC"
       VII -> "Desc"
       X -> "MC"
-      n -> label n 
+      n -> label n
 
 -- TODO(luis) fix this to be `Longitude houseCusp`?
 instance HasLongitude House where
   getLongitude = houseCusp
-  addLongitude h l = h{houseCusp = (houseCusp h) + l}
+  addLongitude h l = h{houseCusp = houseCusp h + l}
 
 -- see: https://en.wikipedia.org/wiki/Astrological_aspect
 
@@ -189,7 +189,7 @@ instance HasLabel AspectPhase where
   label Separating  = "s"
   label Exact = ""
 
-newtype EclipticAngle 
+newtype EclipticAngle
   = EclipticAngle {unEclipticAngle :: Double}
   deriving newtype (Eq, Show, Num)
 
@@ -202,11 +202,11 @@ data AspectAngle
   }
   deriving stock (Eq, Show)
 
-data Aspect = Aspect 
+data Aspect = Aspect
   { aspectName :: AspectName
   , maxOrb :: Double
   , angle :: Double
-  , temperament :: AspectTemperament 
+  , temperament :: AspectTemperament
   , aspectType :: AspectType
   }
     deriving stock (Eq, Show)
@@ -230,20 +230,20 @@ newtype Longitude = Longitude {unLongitude :: Double}
 -- ranges from this wrong answer that turned out to be right for me:
 -- https://stackoverflow.com/a/23914607
 mkLatitude :: Double -> Maybe Latitude
-mkLatitude l = 
-   maybeBetween ((-90.0), 90.0) l >>= (Just . Latitude)
+mkLatitude l =
+   maybeBetween (-90.0, 90.0) l >>= Just . Latitude
 
 mkLongitude :: Double -> Maybe Longitude
 mkLongitude l =
-  maybeBetween ((-180.0), 180.0) l >>= (Just . Longitude)
+  maybeBetween (-180.0, 180.0) l >>= Just . Longitude
 
 instance HasLongitude Longitude where
   getLongitude = id
   getLongitudeRaw = unLongitude
   addLongitude = (+)
 
-data PlanetPosition = PlanetPosition 
-  { 
+data PlanetPosition = PlanetPosition
+  {
     planetName :: Planet
   , planetLat :: Latitude
   , planetLng :: Longitude
@@ -253,7 +253,7 @@ data PlanetPosition = PlanetPosition
 
 instance HasLongitude PlanetPosition where
     getLongitude = planetLng
-    addLongitude p l =  p{planetLng = (planetLng p) + l}
+    addLongitude p l =  p{planetLng = planetLng p + l}
 
 instance HasLabel PlanetPosition where
   label = label . planetName
@@ -290,8 +290,8 @@ data Transit a = Transit
   {
     transiting :: PlanetPosition
   , transited :: a
-  , transitStarts :: (Maybe UTCTime)
-  , transitEnds :: (Maybe UTCTime)
+  , transitStarts :: Maybe UTCTime
+  , transitEnds :: Maybe UTCTime
   , immediateTriggers :: [UTCTime]
   } deriving stock (Eq, Show)
 

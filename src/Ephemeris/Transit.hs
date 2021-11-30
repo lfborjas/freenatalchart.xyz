@@ -20,7 +20,7 @@ import Database.SQLite.Simple (withConnection)
 import Database.SQLite.Simple.Internal (Connection)
 import Ephemeris.Aspect (exactAngle)
 import Ephemeris.Internal.Database (crossingCandidatesQuery, activityPeriodQuery)
-import RIO.List (sortBy, sortOn)
+import RIO.List (sortOn)
 import RIO.Time (UTCTime)
 
 -- | Given aspects (in which it's always "transiting aspects transited",)
@@ -30,10 +30,10 @@ transits :: EphemerisDatabase -> JulianDayUT1 -> [TransitAspect a] -> IO [(Trans
 transits epheDB momentOfTransit aspects' =
   withConnection epheDB $ \conn -> do
     allTransits <- mapM (transit conn momentOfTransit) aspects'
-    pure $ zipWith (,) aspects' allTransits
+    pure $ zip aspects' allTransits
 
 transitActivityAround :: UTCTime -> [(TransitAspect a, Transit a)] -> [(TransitAspect a, Transit a)]
-transitActivityAround moment = (filter ((isActiveTransit moment) . snd))
+transitActivityAround moment = filter (isActiveTransit moment . snd)
 
 transitAspects :: [(TransitAspect a, Transit a)] -> [TransitAspect a]
 transitAspects = map fst
@@ -46,8 +46,8 @@ triggeredTransits =
 
 isActiveTransit :: UTCTime -> Transit a -> Bool
 isActiveTransit moment Transit {..} =
-  (maybe True (<= moment) transitStarts) &&
-  (maybe True (>= moment) transitEnds)
+  maybe True (<= moment) transitStarts &&
+  maybe True (>= moment) transitEnds
 
 toUTC :: Maybe JulianDayUT1 -> IO (Maybe UTCTime)
 toUTC (Just ut1) = do
@@ -64,10 +64,10 @@ transit conn momentOfTransit a@(HoroscopeAspect _aspect' (transiting', transited
     crossingCandidates <- crossingCandidatesQuery conn transitingPlanet transitAspectLongitude momentOfTransit
     -- only consider crossing candidates that are at most day before or after the reference date.
     -- NOTE(luis) this is ugly, but it's going away very soon.
-    let immediateCrossings = 
+    let immediateCrossings =
           crossingCandidates
           & map getJulianDay
-          & filter ((<= 1) . abs . (subtract . getJulianDay $ momentOfTransit)) 
+          & filter ((<= 1) . abs . (subtract . getJulianDay $ momentOfTransit))
           & map (mkJulianDay SUT1)
     -- this is the only moment where we actually touch swiss ephemeris:
         exactImmediateCrossings =  [x | ExactAt x <- map (findExactTransitAround transitingPlanet transitAspectLongitude) immediateCrossings]
@@ -139,7 +139,7 @@ unsafeCalculateEclipticLongitude
 -- "on the other side" of the sought longitude.
 longitudeIntersects :: Planet -> Double -> Double -> Double
 longitudeIntersects p soughtLongitude t =
-  if ((abs difference) >= maxDayStep * (maxSpeed p)) then
+  if abs difference >= maxDayStep * maxSpeed p then
     position - soughtLongitude
   else
     difference

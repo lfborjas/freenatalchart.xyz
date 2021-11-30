@@ -48,12 +48,12 @@ deriving stock instance Read Planet
 
 instance FromField Planet where
   fromField f@(Field (SQLText txt) _) =
-    case (readMaybe s) of
+    case readMaybe s of
       Just p -> Ok p
       Nothing -> returnError ConversionFailed f ("Invalid planet value: " <> s)
     where
       s = T.unpack txt
-  fromField f = returnError ConversionFailed f ("Expected text value.")
+  fromField f = returnError ConversionFailed f "Expected text value."
 
 instance ToField Planet where
   toField = SQLText . T.pack . show
@@ -103,8 +103,8 @@ crossingCandidatesQuery conn crossingPlanet soughtLongitude@(Longitude lng) soug
     lowerLongitudeBound = eclipticVal $ lng - maxSpeed crossingPlanet
     upperLongitudeBound = soughtLongitude
     soughtTime = getJulianDay soughtTime'
-    lowerTimeBound      = soughtTime - (maxDayDelta crossingPlanet)
-    upperTimeBound      = soughtTime + (maxDayDelta crossingPlanet)
+    lowerTimeBound      = soughtTime - maxDayDelta crossingPlanet
+    upperTimeBound      = soughtTime + maxDayDelta crossingPlanet
 
 -- | Given a transiting planet, a longitude it transits and a reference time,
 -- find when the planet started approaching the longitude, and when it will stop
@@ -220,7 +220,7 @@ populateEphemeris range = do
   conn <- open "./config/precalculated_ephemeris.db"
   forM_ defaultPlanets $ \p -> do
     ephe <- ephemeridesFor p range 1.0
-    forM_ (ephe) $ \e -> do
+    forM_ ephe $ \e -> do
       insertEphemeris conn e
 
   close conn
