@@ -8,6 +8,8 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
 module Ephemeris.Internal.Database where
 
 import Database.SQLite.Simple
@@ -22,7 +24,7 @@ import qualified RIO.Text as T
 import SwissEphemeris
     ( calculateEclipticPosition,
       withEphemerides,
-      Planet(..))
+      Planet(..), JulianDay (getJulianDay), TimeStandard (UT1), mkJulianDay, SingTimeStandard (SUT1))
 import Ephemeris.Types
 import Ephemeris.Planet
 import Ephemeris.Internal.Approximations
@@ -30,12 +32,12 @@ import Ephemeris.Internal.Approximations
 
 data EclipticLongitudeEphemeris = EclipticLongitudeEphemeris
   { planet :: Planet,
-    julianTime :: JulianTime,
+    julianTime :: JulianDayUT1,
     longitude :: Double,
     longitudinalSpeed :: Double
   }
 
-toEphemeris :: Planet -> JulianTime -> EclipticPosition -> EclipticLongitudeEphemeris
+toEphemeris :: Planet -> JulianDayUT1 -> EclipticPosition -> EclipticLongitudeEphemeris
 toEphemeris p t (EclipticPosition lo _ _ ls _ _) =
   EclipticLongitudeEphemeris p t lo ls
 
@@ -43,26 +45,25 @@ toEphemeris p t (EclipticPosition lo _ _ ls _ _) =
 -- Some missing instances for the SwissEphemeris types
 -- TODO: consider moving up to Ephemeris.Types
 deriving stock instance Read Planet
-deriving newtype instance Num JulianTime
 
 instance FromField Planet where
   fromField f@(Field (SQLText txt) _) =
-    case (readMaybe s) of
+    case readMaybe s of
       Just p -> Ok p
       Nothing -> returnError ConversionFailed f ("Invalid planet value: " <> s)
     where
       s = T.unpack txt
-  fromField f = returnError ConversionFailed f ("Expected text value.")
+  fromField f = returnError ConversionFailed f "Expected text value."
 
 instance ToField Planet where
   toField = SQLText . T.pack . show
 
-instance FromField JulianTime where
-  fromField (Field (SQLFloat flt) _) = Ok . JulianTime $ flt
+instance FromField (JulianDay 'UT1) where
+  fromField (Field (SQLFloat flt) _) = Ok . mkJulianDay SUT1 $ flt
   fromField f = returnError ConversionFailed f "Expected a float."
 
-instance ToField JulianTime where
-  toField (JulianTime d) = SQLFloat d
+instance ToField JulianDayUT1 where
+  toField d = SQLFloat . getJulianDay $ d
 
 instance FromField Longitude where
   fromField (Field (SQLFloat flt) _) = Ok . Longitude $ flt
@@ -82,8 +83,8 @@ instance FromRow EclipticLongitudeEphemeris where
 -- in an appropriate time range when said planet is likely to cross over
 -- the given Longitude.
 -- TODO: ensure that the lowerLongitudeBound can account for 0/360 jumps
-crossingCandidatesQuery :: Connection -> Planet -> Longitude -> JulianTime -> IO [JulianTime]
-crossingCandidatesQuery conn crossingPlanet soughtLongitude@(Longitude lng) (JulianTime soughtTime) = do
+crossingCandidatesQuery :: Connection -> Planet -> Longitude -> JulianDayUT1 -> IO [JulianDayUT1]
+crossingCandidatesQuery conn crossingPlanet soughtLongitude@(Longitude lng) soughtTime' = do
   results <-
     query conn [sql|
         select julian_time from ecliptic_longitude_ephemeris
@@ -101,16 +102,17 @@ crossingCandidatesQuery conn crossingPlanet soughtLongitude@(Longitude lng) (Jul
     -- due to retrograde motion,) which is enough to have begun its approach to the position.
     lowerLongitudeBound = eclipticVal $ lng - maxSpeed crossingPlanet
     upperLongitudeBound = soughtLongitude
-    lowerTimeBound      = soughtTime - (maxDayDelta crossingPlanet)
-    upperTimeBound      = soughtTime + (maxDayDelta crossingPlanet)
+    soughtTime = getJulianDay soughtTime'
+    lowerTimeBound      = soughtTime - maxDayDelta crossingPlanet
+    upperTimeBound      = soughtTime + maxDayDelta crossingPlanet
 
 -- | Given a transiting planet, a longitude it transits and a reference time,
 -- find when the planet started approaching the longitude, and when it will stop
 -- doing so. Notice that within an activity period, there can be several crossings
 -- for planets that exhibit retrograde motion.
 -- TODO: ensure that the bounds can account for 0/360 jumps
-activityPeriodQuery :: Connection -> Planet -> Longitude -> JulianTime -> IO (Maybe JulianTime, Maybe JulianTime)
-activityPeriodQuery conn crossingPlanet soughtLongitude (JulianTime soughtTime) = do
+activityPeriodQuery :: Connection -> Planet -> Longitude -> JulianDayUT1 -> IO (Maybe JulianDayUT1, Maybe JulianDayUT1)
+activityPeriodQuery conn crossingPlanet soughtLongitude soughtTime' = do
   results <-
     queryNamed conn [sql|
       select t from (
@@ -133,11 +135,13 @@ activityPeriodQuery conn crossingPlanet soughtLongitude (JulianTime soughtTime) 
        ]
   case results of
     [] -> pure (Nothing, Nothing)
-    (Only s):(Only e):_ -> pure (JulianTime <$> s, JulianTime <$> e)
-    [(Only s)] -> pure (JulianTime <$> s, JulianTime <$> s)
+    (Only s):(Only e):_ -> pure (mkJD <$> s, mkJD <$> e)
+    [Only s] -> pure (mkJD <$> s, mkJD <$> s)
   where
-    lowerTimeBound = soughtTime - (maxDayDelta crossingPlanet)
-    upperTimeBound = soughtTime + (maxDayDelta crossingPlanet)
+    mkJD = mkJulianDay SUT1
+    soughtTime = getJulianDay soughtTime'
+    lowerTimeBound = soughtTime - maxDayDelta crossingPlanet
+    upperTimeBound = soughtTime + maxDayDelta crossingPlanet
     lowerLongitudeBound = orbBefore crossingPlanet soughtLongitude 1
     upperLongitudeBound = orbAfter crossingPlanet soughtLongitude 1
 
@@ -191,14 +195,16 @@ eclipticVal v | v >= 360 = Longitude 360
 devConnection :: IO Connection
 devConnection = open "./config/precalculated_ephemeris.db"
 
-ephemeridesFor :: Planet -> (JulianTime, JulianTime) -> Double -> IO [Either String EclipticLongitudeEphemeris]
-ephemeridesFor planet (JulianTime start, JulianTime end) step =
+ephemeridesFor :: Planet -> (JulianDayUT1, JulianDayUT1) -> Double -> IO [Either String EclipticLongitudeEphemeris]
+ephemeridesFor planet (start', end') step =
   mapM (planetPositionAt planet) [start, (start + step) .. end]
   where
+    start = getJulianDay start'
+    end = getJulianDay  end'
     planetPositionAt p t =
       fmap (toEphemeris p t') <$> calculateEclipticPosition t' p
       where
-        t' = JulianTime t
+        t' = mkJulianDay SUT1  t
 
 insertEphemeris :: Connection -> Either String EclipticLongitudeEphemeris -> IO ()
 insertEphemeris _ (Left _) = pure ()
@@ -209,12 +215,12 @@ insertEphemeris conn (Right EclipticLongitudeEphemeris {..}) = do
     (planet, julianTime, longitude, longitudinalSpeed)
 
 
-populateEphemeris :: (JulianTime, JulianTime) -> IO ()
+populateEphemeris :: (JulianDayUT1, JulianDayUT1) -> IO ()
 populateEphemeris range = do
   conn <- open "./config/precalculated_ephemeris.db"
   forM_ defaultPlanets $ \p -> do
     ephe <- ephemeridesFor p range 1.0
-    forM_ (ephe) $ \e -> do
+    forM_ ephe $ \e -> do
       insertEphemeris conn e
 
   close conn
@@ -224,7 +230,7 @@ populateEphemeris range = do
 populateEphemeris2020 :: IO ()
 populateEphemeris2020 =
   withEphemerides "./config" $
-    populateEphemeris (JulianTime 2458849.5, JulianTime 2459215.5)
+    populateEphemeris (mkJulianDay SUT1 2458849.5, mkJulianDay SUT1 2459215.5)
 
 -- | Pre-populate 16 years of ephemeris, between 1/1/2015 and 1/1/2032.
 -- takes about 53 seconds and occupies 13Mb on disk; 80730 rows.
@@ -235,7 +241,7 @@ populateEphemeris2020 =
 prepopulateEphemeris :: IO ()
 prepopulateEphemeris =
   withEphemerides "./config" $
-    populateEphemeris (JulianTime 2457023.5, JulianTime 2463232.5) 
+    populateEphemeris (mkJulianDay SUT1 2457023.5, mkJulianDay SUT1 2463232.5)
 
 {-
 Further notes at: https://gist.github.com/lfborjas/ce12f992d64096b4b87b936a9868ae49

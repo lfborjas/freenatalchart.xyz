@@ -40,12 +40,12 @@ aspectsForTransits = defaultAspects-- map (\a -> a{maxOrb = 5.0}) majorAspects
 
 aspects' :: (HasLongitude a, HasLongitude b) => [Aspect] -> [a] -> [b] -> [HoroscopeAspect a b]
 aspects' possibleAspects bodiesA bodiesB =
-  (concatMap aspectsBetween pairs) & catMaybes
+  concatMap aspectsBetween pairs & catMaybes
   where
     pairs = [(x, y) | x <- bodiesA, y <- bodiesB]
     aspectsBetween bodyPair = map (haveAspect bodyPair) possibleAspects
-    haveAspect (a, b) asp@Aspect {..} =
-      (findAspectAngle asp a b) <&> HoroscopeAspect asp (a,b)
+    haveAspect (a, b) asp@Aspect {} =
+      findAspectAngle asp a b <&> HoroscopeAspect asp (a,b)
 
 
 aspects :: (HasLongitude a, HasLongitude b) => [a] -> [b] -> [HoroscopeAspect a b]
@@ -54,7 +54,7 @@ aspects = aspects' defaultAspects
 -- | calculate aspects between the same set of planets. Unlike `transitingAspects`, don't
 -- keep aspects of a planet with itself.
 planetaryAspects :: [PlanetPosition] -> [HoroscopeAspect PlanetPosition PlanetPosition]
-planetaryAspects ps = filter (\a -> (a & bodies & fst) /= (a & bodies & snd)) $ aspects ps $ rotateList 1 ps
+planetaryAspects ps = filter (\a -> uncurry (/=) (a & bodies)) $ aspects ps $ rotateList 1 ps
 
 celestialAspects :: [PlanetPosition] -> Angles -> [HoroscopeAspect PlanetPosition House]
 celestialAspects ps as = aspects ps (aspectableAngles as)
@@ -91,19 +91,19 @@ selectSignificantAspects = selectExactAspects
 findAspectBetweenPlanets :: [HoroscopeAspect PlanetPosition PlanetPosition] -> Planet -> Planet -> Maybe (HoroscopeAspect PlanetPosition PlanetPosition)
 findAspectBetweenPlanets aspectList pa pb =
   aspectList
-    & filter (\HoroscopeAspect {..} -> (planetName . fst $ bodies, planetName . snd $ bodies) `elem` [(pa, pb), (pb, pa)])
+    & filter (\HoroscopeAspect {..} -> bimap planetName planetName bodies `elem` [(pa, pb), (pb, pa)])
     & headMaybe
 
-findAspectWithPlanet :: [PlanetaryAspect] -> Planet -> Planet -> Maybe PlanetaryAspect 
+findAspectWithPlanet :: [PlanetaryAspect] -> Planet -> Planet -> Maybe PlanetaryAspect
 findAspectWithPlanet aspectList aspecting aspected =
   aspectList
-    & filter (\HoroscopeAspect {..} -> (planetName . fst $ bodies, planetName . snd $ bodies) == (aspecting, aspected))
+    & filter (\HoroscopeAspect {..} -> bimap planetName planetName bodies == (aspecting, aspected))
     & headMaybe
 
 findAspectWithAngle :: [HoroscopeAspect PlanetPosition House] -> Planet -> HouseNumber -> Maybe (HoroscopeAspect PlanetPosition House)
 findAspectWithAngle aspectList pa hb =
   aspectList
-    & filter (\HoroscopeAspect {..} -> (planetName . fst $ bodies, houseNumber . snd $ bodies) == (pa, hb))
+    & filter (\HoroscopeAspect {..} -> bimap planetName houseNumber bodies == (pa, hb))
     & headMaybe
 
 findAspectsByName :: [HoroscopeAspect a b] -> AspectName -> [HoroscopeAspect a b]
@@ -111,16 +111,16 @@ findAspectsByName aspectList name =
   aspectList
     & filter (\HoroscopeAspect {..} -> (aspect & aspectName) == name)
 
-findAspectAngle :: (HasLongitude a, HasLongitude b) => Aspect -> a -> b -> Maybe AspectAngle 
+findAspectAngle :: (HasLongitude a, HasLongitude b) => Aspect -> a -> b -> Maybe AspectAngle
 findAspectAngle aspect aspecting aspected =
-  (aspectAngle' aspect aspecting                        aspected) <|> 
-  (aspectAngle' aspect (aspecting `addLongitude` 360)   aspected) <|>
-  (aspectAngle' aspect aspecting                        (aspected `addLongitude` 360))
+  aspectAngle' aspect aspecting                        aspected <|>
+  aspectAngle' aspect (aspecting `addLongitude` 360)   aspected <|>
+  aspectAngle' aspect aspecting                        (aspected `addLongitude` 360)
 
-aspectAngle' :: (HasLongitude a, HasLongitude b) => Aspect -> a -> b -> Maybe AspectAngle 
+aspectAngle' :: (HasLongitude a, HasLongitude b) => Aspect -> a -> b -> Maybe AspectAngle
 aspectAngle' Aspect{..} aspecting aspected =
   if inOrb then
-    case ((compare (getLongitude aspecting) (getLongitude aspected)), (compare angleDiff angle)) of
+    case (compare (getLongitude aspecting) (getLongitude aspected), compare angleDiff angle) of
       (LT, GT) -> mkAngle Applying
       (LT, LT) -> mkAngle Separating
       (_, EQ)  -> mkAngle Exact
@@ -130,10 +130,10 @@ aspectAngle' Aspect{..} aspecting aspected =
   else
     Nothing
   where
-    mkAngle    = Just . (\phase -> AspectAngle aspecting' aspected' phase orb') 
+    mkAngle    = Just . (\phase -> AspectAngle aspecting' aspected' phase orb')
     aspecting' = EclipticAngle $ getLongitudeRaw aspecting
     aspected'  = EclipticAngle $ getLongitudeRaw aspected
-    angleDiff = abs $ (getLongitudeRaw aspecting) - (getLongitudeRaw aspected)
+    angleDiff = abs $ getLongitudeRaw aspecting - getLongitudeRaw aspected
     orb' = abs $ angle - angleDiff
     inOrb = orb' <= maxOrb
 
@@ -146,9 +146,9 @@ toLongitude (EclipticAngle e)
 
 exactAngle :: HoroscopeAspect a b -> Longitude
 exactAngle aspect' =
-  case (aspectAngleApparentPhase angle') of
-    Applying   -> (EclipticAngle $ aspecting' + orb') & toLongitude
-    Separating -> (EclipticAngle $ aspecting' - orb') & toLongitude
+  case aspectAngleApparentPhase angle' of
+    Applying   -> EclipticAngle (aspecting' + orb') & toLongitude
+    Separating -> EclipticAngle (aspecting' - orb') & toLongitude
     Exact      -> a & toLongitude
   where
     angle' = aspectAngle aspect'
@@ -164,7 +164,7 @@ orb :: HoroscopeAspect a b -> Double
 orb  = aspectAngleOrb . aspectAngle
 
 aspectPhase :: TransitAspect a -> AspectPhase
-aspectPhase asp = 
+aspectPhase asp =
   if aspectingIsRetrograde then
     flipPhase $ aspectAngleApparentPhase angle'
   else

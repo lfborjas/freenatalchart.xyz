@@ -9,7 +9,7 @@ import Numeric.RootFinding
     Tolerance (RelTol),
     ridders,
   )
-import SwissEphemeris (calculateEclipticPosition)
+import SwissEphemeris (calculateEclipticPosition, mkJulianDay, SingTimeStandard (SUT1), JulianDay (getJulianDay), FromJulianDay (fromJulianDay))
 import System.IO.Unsafe (unsafePerformIO)
 import Import
 import Ephemeris.Types
@@ -20,21 +20,20 @@ import Database.SQLite.Simple (withConnection)
 import Database.SQLite.Simple.Internal (Connection)
 import Ephemeris.Aspect (exactAngle)
 import Ephemeris.Internal.Database (crossingCandidatesQuery, activityPeriodQuery)
-import Ephemeris.Utils (julianToUTC)
-import RIO.List (sortBy)
+import RIO.List (sortOn)
 import RIO.Time (UTCTime)
 
 -- | Given aspects (in which it's always "transiting aspects transited",)
 -- and a reference time, derive transit activity: when does it begin and end, and is it exact
 -- within a day of the reference time?
-transits :: EphemerisDatabase -> JulianTime -> [TransitAspect a] -> IO [(TransitAspect a, Transit a)]
-transits epheDB momentOfTransit aspects' = 
+transits :: EphemerisDatabase -> JulianDayUT1 -> [TransitAspect a] -> IO [(TransitAspect a, Transit a)]
+transits epheDB momentOfTransit aspects' =
   withConnection epheDB $ \conn -> do
     allTransits <- mapM (transit conn momentOfTransit) aspects'
-    pure $ zipWith (,) aspects' allTransits
+    pure $ zip aspects' allTransits
 
 transitActivityAround :: UTCTime -> [(TransitAspect a, Transit a)] -> [(TransitAspect a, Transit a)]
-transitActivityAround moment = (filter ((isActiveTransit moment) . snd))
+transitActivityAround moment = filter (isActiveTransit moment . snd)
 
 transitAspects :: [(TransitAspect a, Transit a)] -> [TransitAspect a]
 transitAspects = map fst
@@ -46,30 +45,45 @@ triggeredTransits =
   filter (not . null . immediateTriggers . snd)
 
 isActiveTransit :: UTCTime -> Transit a -> Bool
-isActiveTransit moment Transit {..} = 
-  (maybe True (<= moment) transitStarts) &&
-  (maybe True (>= moment) transitEnds)
+isActiveTransit moment Transit {..} =
+  maybe True (<= moment) transitStarts &&
+  maybe True (>= moment) transitEnds
 
-transit :: Connection -> JulianTime -> TransitAspect a -> IO (Transit a)
-transit conn momentOfTransit a@(HoroscopeAspect _aspect' (transiting', transited') _angle') = 
+toUTC :: Maybe JulianDayUT1 -> IO (Maybe UTCTime)
+toUTC (Just ut1) = do
+  t <- fromJulianDay ut1
+  pure . Just $ t
+toUTC Nothing = pure Nothing
+
+transit :: Connection -> JulianDayUT1 -> TransitAspect a -> IO (Transit a)
+transit conn momentOfTransit a@(HoroscopeAspect _aspect' (transiting', transited') _angle') =
   do
     let transitAspectLongitude = a & exactAngle
         transitingPlanet = transiting' & planetName
     (activityStarts, activityEnds) <- activityPeriodQuery conn transitingPlanet transitAspectLongitude momentOfTransit
     crossingCandidates <- crossingCandidatesQuery conn transitingPlanet transitAspectLongitude momentOfTransit
-
     -- only consider crossing candidates that are at most day before or after the reference date.
-    let immediateCrossings = filter ((<= 1) . abs . (subtract momentOfTransit)) crossingCandidates
+    -- NOTE(luis) this is ugly, but it's going away very soon.
+    let immediateCrossings =
+          crossingCandidates
+          & map getJulianDay
+          & filter ((<= 1) . abs . (subtract . getJulianDay $ momentOfTransit))
+          & map (mkJulianDay SUT1)
     -- this is the only moment where we actually touch swiss ephemeris:
         exactImmediateCrossings =  [x | ExactAt x <- map (findExactTransitAround transitingPlanet transitAspectLongitude) immediateCrossings]
+
+    transitStarts' <- toUTC activityStarts
+    transitEnds'   <- toUTC activityEnds
+    triggers <- traverse fromJulianDay exactImmediateCrossings
+
     pure $
       Transit {
         transiting = transiting'
       , transited  = transited'
-      , transitStarts = julianToUTC <$> activityStarts 
-      , transitEnds   = julianToUTC <$> activityEnds
+      , transitStarts = transitStarts'
+      , transitEnds   = transitEnds'
       -- triggers within a day of the reference moment, sorted from latest to earliest.
-      , immediateTriggers = map julianToUTC exactImmediateCrossings & (sortBy (comparing Down))
+      , immediateTriggers = triggers & sortOn Down
       }
 
 data ExactTransit a
@@ -111,10 +125,10 @@ unsafeCalculateEclipticLongitude
       Right ep -> lng ep
       Left e -> error e
     where
-      pos = unsafePerformIO $ calculateEclipticPosition (JulianTime time) planet
+      pos = unsafePerformIO $ calculateEclipticPosition (mkJulianDay SUT1 time) planet
 
 -- | Given a transiting `Planet`, a @Longitude@ (`Double`) we're interested in
--- and a @JulianTime@, return 0 if the given planet is found to cross
+-- and a @JulianDayUT1@, return 0 if the given planet is found to cross
 -- the given longitude at the given time. Note that, due to detection of
 -- 0/360 jumps, this function only works for positions at most 10 days
 -- apart (which means interpolation can't be done at a coarser level.)
@@ -124,8 +138,8 @@ unsafeCalculateEclipticLongitude
 -- so we flip the operands to reflect that the position is actually
 -- "on the other side" of the sought longitude.
 longitudeIntersects :: Planet -> Double -> Double -> Double
-longitudeIntersects p soughtLongitude t = 
-  if ((abs difference) >= maxDayStep * (maxSpeed p)) then
+longitudeIntersects p soughtLongitude t =
+  if abs difference >= maxDayStep * maxSpeed p then
     position - soughtLongitude
   else
     difference
@@ -153,18 +167,22 @@ root :: (Double -> Double) -> Double -> Double -> Root Double
 root f start end =
   ridders RiddersParam {riddersMaxIter = 50, riddersTol = RelTol (4 * m_epsilon)} (start, end) f
 
-findExactTransit :: Planet -> Longitude -> JulianTime -> JulianTime -> ExactTransit JulianTime
-findExactTransit p (Longitude pos) (JulianTime start) (JulianTime end) =
+findExactTransit :: Planet -> Longitude -> JulianDayUT1 -> JulianDayUT1 -> ExactTransit JulianDayUT1
+findExactTransit p (Longitude pos) start' end' =
   case root' of
-    Root t -> ExactAt . JulianTime $ t
+    Root t -> ExactAt . mkJulianDay SUT1 $ t
     NotBracketed -> OutsideBounds -- the given start/end won't converge
     SearchFailed -> NoCrossing -- we looked, but didn't find
   where
+    start = getJulianDay start'
+    end   = getJulianDay end'
     root' = root (longitudeIntersects p pos) start end
 
-findExactTransitAround :: Planet -> Longitude -> JulianTime -> ExactTransit JulianTime
-findExactTransitAround p pos (JulianTime start) =
+findExactTransitAround :: Planet -> Longitude -> JulianDayUT1 -> ExactTransit JulianDayUT1
+findExactTransitAround p pos start' =
   transitBefore <|> transitAfter
   where
-    transitBefore = findExactTransit p pos (JulianTime start) (JulianTime $ start + 1)
-    transitAfter = findExactTransit p pos (JulianTime $ start -1) (JulianTime start)
+    start = getJulianDay start'
+    mkJD = mkJulianDay SUT1
+    transitBefore = findExactTransit p pos (mkJD start) (mkJD $ start + 1)
+    transitAfter = findExactTransit p pos (mkJD $ start -1) (mkJD start)
