@@ -17,13 +17,14 @@ Create a `.env` file with the following entries
 I personally use [haskell-language-server](https://github.com/haskell/haskell-language-server) in VS Code. The `haskell` extension should
 be able to download the right binaries, and use `hie.yaml` to configure the project. 
 
-To get everything going the first time, you can run `stack build` (look into [`ghcup`](https://www.haskell.org/ghcup/) to install all the haskell stuffs.)
+This project uses `nix`, you can enter a `nix-shell` to get everything going, and preview anything that needs to be built
+with `nix-build --dry-run ./nix/release.nix`
 
-Working locally should be rather painless, it's a simple `stack` project; you can run the server with:
+Working locally should be rather painless, from a `nix-shell`:
 
-    stack run
+    cabal run
 
-(You'll need to set `ALGOLIA_APP_ID` and `ALGOLIA_APP_KEY` as env vars for geolocation to work locally. See the Docker instructions for running with a `.env` file.)
+(You'll need to set `ALGOLIA_APP_ID` and `ALGOLIA_APP_KEY` as env vars for geolocation to work locally.)
 
 ### With Docker:
 
@@ -40,17 +41,11 @@ and our own files, it comes to about 160 MB.
 
 ## Deployment to Heroku
 
-The examples here use my own deployment pipeline, to which you won't have access. You can create your own
-heroku app for free (with `heroku create your-app-name`) and replace `freenatalchart-staging` with your app's name.
-
-    heroku container:push web -a freenatalchart-staging # (or freenatalchart-prod)
-    heroku container:release web -a freenatalchart-staging # (or freenatalchart-prod)
-    heroku open # to see it in the local browser
+See `.github/workflows/heroku.yml` (and its staging variant) for how deployment is automated. Any merges into `develop` will deploy to staging,
+`master` deploys to production. These workflows **will not work** if you fork this repository, since they depend on my heroku key being available;
+but you should be able to re-use them by substituting `freenatalchart-` in both files with your own app name.
 
 (More info at [heroku's guide to docker deployments](https://devcenter.heroku.com/articles/container-registry-and-runtime))
-
-**Note:** `heroku container:push ... ` will build the docker image if it hasn't been built yet; this can take up to 30 mins,
-depending on your hardware.
 
 ### Testing
 
@@ -59,4 +54,4 @@ For rendering HTML and SVG, we use [golden tests](https://ro-che.info/articles/2
 If you've updated the `Views` and the tests now fail because of the changes, but you've verified that they're working as expected (perhaps by manually producing the files for static inspection, see for example `renderTestIndex` in `Dev.hs`,) you can have hspec-golden replace
 the `golden` files with the current copy of the `actual` file (produced by running the now-failing test,) by running
 
-    stack exec hgold -- -u test/files    
+    cabal exec hgold -- -u test/files    
