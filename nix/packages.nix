@@ -15,7 +15,8 @@ let
           overrides = self: super: (
             (extra-deps super) // {
               # automatically create a derivation based on the cabal file present in ../.
-              freenatalchart=(super.callCabal2nix "freenatalchart" (gitignoreSource ../.) {});
+              # don't run tests: GH runners don't have tz data by default
+              freenatalchart = pkgs.haskell.lib.dontCheck (super.callCabal2nix "freenatalchart" (gitignoreSource ../.) {});
             }
           );
         };
