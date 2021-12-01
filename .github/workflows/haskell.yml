@@ -10,4 +10,4 @@ jobs:
     - uses: cachix/install-nix-action@v13
       with:
         nix_path: nixpkgs=channel:nixos-21.05
-    - run: nix-build ./nix/release.nix
+    - run: nix-shell --run "cabal new-test --enable-tests --test-show-details=streaming --test-option=--color"
