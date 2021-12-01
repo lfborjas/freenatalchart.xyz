@@ -1,7 +1,7 @@
 { pkgs ? import ./packages.nix { system = "x86_64-linux"; } }:
 
 let
-  bin = (pkgs.haskell.lib.justStaticExecutables pkgs.haskellPackages.freenatalchart);
+  bin = (pkgs.haskell.lib.justStaticExecutables (pkgs.haskell.lib.dontCheck pkgs.haskellPackages.freenatalchart));
   migrations = ../migrations;
   config = ../config;
   static = ../static;
