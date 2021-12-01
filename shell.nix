@@ -9,5 +9,6 @@ in
         buildInputs = [
             nixpkgs.haskellPackages.cabal-install
             nixpkgs.haskellPackages.haskell-language-server
+            nixpkgs.tzdata
         ];
     }

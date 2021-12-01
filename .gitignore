@@ -9,3 +9,5 @@ dist-newstyle
 # only golden files are preserved
 test/files/**/actual
 dev/files
+
+result
