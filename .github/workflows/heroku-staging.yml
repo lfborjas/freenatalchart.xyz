@@ -22,8 +22,8 @@ jobs:
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       run: |
-        docker tag freenatalchart:latest registry.heroku.com/freenatalchart/web
-        docker push registry.heroku.com/freenatalchart/web
+        docker tag freenatalchart:latest registry.heroku.com/freenatalchart-staging/web
+        docker push registry.heroku.com/freenatalchart-staging/web
     - name:  Release
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
