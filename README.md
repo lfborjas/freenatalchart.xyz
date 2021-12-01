@@ -1,6 +1,6 @@
 # freenatalchart.xyz
 
-![build](https://github.com/lfborjas/freenatalchart.xyz/workflows/Haskell%20CI/badge.svg)
+![build](https://github.com/lfborjas/freenatalchart.xyz/workflows/Build%20and%20Test/badge.svg)
 
 
 ## Setup
