@@ -186,38 +186,16 @@ correctCollisions scale' planets' houses =
     Right glyphs ->
       zipWith
         (curry $ first Just)
-        (sortOn extraData $ map recenterGlyph glyphs)
+        (sortOn extraData glyphs)
         (sortOn planetName planets')
   where
-    firstCusp = getLongitude . head $ houses
-    relativeToFirstCusp pos =
-      let corrected = pos - firstCusp
-      in if corrected < 0 then
-        corrected + 360
-      else
-        corrected
-    recenterGlyph g@GlyphInfo{originalPosition, placedPosition} =
-      g{
-        originalPosition = unrelativeToFirstCusp originalPosition,
-        placedPosition = unrelativeToFirstCusp placedPosition
-      }
-    unrelativeToFirstCusp :: Double -> Double
-    unrelativeToFirstCusp pos =
-      let undone = pos + (getLongitudeRaw firstCusp)
-      in if undone >= 360 then
-        undone - 360
-      else
-        undone
     correctedPositions =
-      gravGroup
-        (scale'/2, scale'/2)
+      gravGroupEasy
+        scale'
         transformedPlanets
-        (transformedHouses <> [head transformedHouses + 360])
-    -- make all the houses relative to the first cusp
-    transformedHouses = map (getLongitudeRaw . relativeToFirstCusp . houseCusp) houses
+        (map (getLongitudeRaw . houseCusp) houses)
     transformedPlanets =
-      -- make all the planets relative to the first cusp, too
-      map (\pos@PlanetPosition{planetName, planetLng} -> (planetName, pos{planetLng = relativeToFirstCusp planetLng})) planets'
+      map (\pos@PlanetPosition{planetName} -> (planetName, pos)) planets'
 
 containerCircle :: Double -> Diagram B
 containerCircle r = circle r # lw thin # svgClass "container-circle"
@@ -268,7 +246,7 @@ transitChart env TransitData {..} =
     <> (planets env natalPlanetPositions natalHouses)
     <> (cuspsCircle env{chartZodiacCircleRadius = 0.6} natalHouses)
     -- <> (quadrants env natalAngles)
-    <> (Debug.trace (show transitingPlanetPositions <> " - " <> show transitingHouses ) $ planets env{chartPlanetCircleRadius = 0.7, chartPlanetClassPrefix = "transiting-planet"} transitingPlanetPositions transitingHouses)
+    <> (planets env{chartPlanetCircleRadius = 0.7, chartPlanetClassPrefix = "transiting-planet"} transitingPlanetPositions transitingHouses)
     <> (cuspsCircle env{chartAspectCircleRadius = 0.6, chartHouseClassPrefix = "transiting-house"} transitingHouses)
     -- Only draw aspects that become active in the investigated period:
     <> ((aspects env) . transitAspects . triggeredTransits $ planetaryTransits)
