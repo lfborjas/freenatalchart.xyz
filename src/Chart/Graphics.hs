@@ -140,7 +140,7 @@ aspects env pAspects = do
 planets :: ChartContext -> [PlanetPosition] -> [House] -> Diagram B
 planets env planetPositions houses =
   -- multiply the scale to obtain "degrees"
-  Debug.trace (show correctedPositions) $ mconcat $ map drawPlanet correctedPositions
+  mconcat $ map drawPlanet correctedPositions
   where
     correctedPositions = correctCollisions (originalScale * 100) planetPositions houses
     onAspects = env ^. aspectCircleRadiusL
@@ -182,11 +182,11 @@ planets env planetPositions houses =
 correctCollisions :: Double -> [PlanetPosition] -> [House] -> [(Maybe (GlyphInfo Planet), PlanetPosition)]
 correctCollisions scale' planets' houses =
   case correctedPositions of
-    Left er -> Debug.trace ("BIG OL ERROR" <> er) $ map (Nothing,) planets'
+    Left _e -> map (Nothing,) planets'
     Right glyphs ->
       zipWith
         (curry $ first Just)
-        (sortOn extraData $ Debug.trace (show firstCusp <> " - " <> show glyphs) $ map recenterGlyph glyphs)
+        (sortOn extraData $ map recenterGlyph glyphs)
         (sortOn planetName planets')
   where
     firstCusp = getLongitude . head $ houses
@@ -209,11 +209,10 @@ correctCollisions scale' planets' houses =
       else
         undone
     correctedPositions =
-      gravGroup2
+      gravGroup
         (scale'/2, scale'/2)
-        (Debug.trace (show (map (\(_,p)-> (planetName p, planetLng p)) transformedPlanets)) $ transformedPlanets)
-        (Debug.trace (show transformedHouses) $ transformedHouses <> [head transformedHouses + 360])
-        True
+        transformedPlanets
+        (transformedHouses <> [head transformedHouses + 360])
     -- make all the houses relative to the first cusp
     transformedHouses = map (getLongitudeRaw . relativeToFirstCusp . houseCusp) houses
     transformedPlanets =
@@ -266,10 +265,10 @@ transitChart :: ChartContext -> TransitData -> Diagram B
 transitChart env TransitData {..} =
   do
     (zodiacCircle env)
-    -- <> (planets env natalPlanetPositions natalHouses)
+    <> (planets env natalPlanetPositions natalHouses)
     <> (cuspsCircle env{chartZodiacCircleRadius = 0.6} natalHouses)
     -- <> (quadrants env natalAngles)
-    <> (planets env{chartPlanetCircleRadius = 0.7, chartPlanetClassPrefix = "transiting-planet"} transitingPlanetPositions transitingHouses)
+    <> (Debug.trace (show transitingPlanetPositions <> " - " <> show transitingHouses ) $ planets env{chartPlanetCircleRadius = 0.7, chartPlanetClassPrefix = "transiting-planet"} transitingPlanetPositions transitingHouses)
     <> (cuspsCircle env{chartAspectCircleRadius = 0.6, chartHouseClassPrefix = "transiting-house"} transitingHouses)
     -- Only draw aspects that become active in the investigated period:
     <> ((aspects env) . transitAspects . triggeredTransits $ planetaryTransits)
@@ -279,45 +278,6 @@ transitChart env TransitData {..} =
     <> (containerCircle $ env ^. aspectCircleRadiusL)
     <> (degreeMarkers False $ env ^. zodiacCircleRadiusL)
     <> (degreeMarkers True $ env ^. aspectCircleRadiusL)
-
-{-
-[(Sun,138.26732378987305),
-(Moon,120.87873215931633),
-(Mercury,140.4385755626626),
-(Venus,178.8158217539658),
-(Mars,119.97018451187218),
-(Jupiter,212.81203024930488),
-(Saturn,196.28016073400948),
-(Uranus,288.8339869274421),
-(Neptune,237.54824447901484),(Pluto,182.2338301441692),(MeanNode,308.2058767838678),(MeanApog,322.4011695350471),(Chiron,255.70743011754547)]
-[0.0,
-26.305297898436706,
-55.59570096128938,
-87.71343819007201,
-120.14798419210295,
-150.84021142213925,
-180.0,206.30529789843672,
-235.59570096128942,267.713438190072,300.14798419210297,330.8402114221392]
-[(Just (GlyphInfo {originalPosition = 251.12225364423455, glyphSize = (3.0, 3.0), placedPosition = 251.12225364423455, sectorNumber = 4, sequenceNumber = 0, , extraData = Sun}), 
-PlanetPosition {planetName = Sun, planetLat = -7.711757762744395e-5, planetLng = 251.12225364423458, planetLngSpeed = 1.0145116477748564, planetDeclination = -22.108142816536382}),
-
-(Just (GlyphInfo {originalPosition = 233.73366201367784, glyphSize = (3.0, 3.0), placedPosition = 236.00291404646447, sectorNumber = 4, sequenceNumber = 1, levelNumber = 0, glyphScale = 1.0, extraData = Moon}), 
-PlanetPosition {planetName = Moon, planetLat = 0.7392591636486708, planetLng = 233.73366201367784, planetLngSpeed = 15.087518346061662, planetDeclination = -17.988811724613207}), 
-
-(Just (GlyphInfo {originalPosition = 253.2935054170241, glyphSize = (3.0, 3.0), placedPosition = 112.85492985436152, sectorNumber = 4, sequenceNumber = 2, levelNumber = 0, glyphScale = 1.0, extraData = Mercury}), 
-PlanetPosition {planetName = Mercury, planetLat = -1.1076841601804106, planetLng = 253.2935054170241, planetLngSpeed = 1.5684782748812118, planetDeclination = -23.492282720387138}), 
-
-(Just (GlyphInfo {originalPosition = 291.6707516083273, glyphSize = (3.0, 3.0), placedPosition = 289.8549298543615, sectorNumber = 5, sequenceNumber = 3, levelNumber = 0, glyphScale = 1.0, extraData = Venus}), 
-PlanetPosition {planetName = Venus, planetLat = -2.7452692768473175, planetLng = 291.6707516083273, planetLngSpeed = 0.5425476510755264, planetDeclination = -24.403277890920503}),
-
- (Just (GlyphInfo {originalPosition = 232.8251143662337, glyphSize = (3.0, 3.0), placedPosition = 242.00291404646447, sectorNumber = 3, sequenceNumber = 4, levelNumber = 0, glyphScale = 1.0, extraData = Mars}), 
- PlanetPosition {planetName = Mars, planetLat = 0.16826337416975135, planetLng = 232.8251143662337, planetLngSpeed = 0.6922247135016955, planetDeclination = -18.314257279775564}), 
- 
- (Just (GlyphInfo {originalPosition = 325.6669601036664, glyphSize = (3.0, 3.0), placedPosition = 325.6669601036664, sectorNumber = 7, sequenceNumber = 5, levelNumber = 0, glyphScale = 1.0, extraData = Jupiter}), 
- PlanetPosition {planetName = Jupiter, planetLat = -1.0435382752690145, planetLng = 325.6669601036664, planetLngSpeed = 0.1380179613314278, planetDeclination = -13.94579462391789}), 
- 
- (Just (GlyphInfo {originalPosition = 309.135090588371, glyphSize = (3.0, 3.0), placedPosition = 309.135090588371, sectorNumber = 6, sequenceNumber = 6, levelNumber = 0, glyphScale = 1.0, extraData = Saturn}), PlanetPosition {planetName = Saturn, planetLat = -0.8157859002733764, planetLng = 309.135090588371, planetLngSpeed = 8.083326894244558e-2, planetDeclination = -18.756679145028677}), (Just (GlyphInfo {originalPosition = 41.688916781803584, glyphSize = (3.0, 3.0), placedPosition = 41.688916781803584, sectorNumber = 9, sequenceNumber = 7, levelNumber = 0, glyphScale = 1.0, extraData = Uranus}), PlanetPosition {planetName = Uranus, planetLat = -0.4164318409983254, planetLng = 41.68891678180356, planetLngSpeed = -3.4338362181592245e-2, planetDeclination = 14.943239258816819}), (Just (GlyphInfo {originalPosition = 350.40317433337634, glyphSize = (3.0, 3.0), placedPosition = 351.4506308156509, sectorNumber = 8, sequenceNumber = 8, levelNumber = 0, glyphScale = 1.0, extraData = Neptune}), PlanetPosition {planetName = Neptune, planetLat = -1.1494502391759427, planetLng = 350.40317433337634, planetLngSpeed = 9.221639697004721e-4, planetDeclination = -4.858906967241313}), (Just (GlyphInfo {originalPosition = 295.0887599985307, glyphSize = (3.0, 3.0), placedPosition = 295.8549298543615, sectorNumber = 6, sequenceNumber = 9, levelNumber = 0, glyphScale = 1.0, extraData = Pluto}), PlanetPosition {planetName = Pluto, planetLat = -1.6978750311943902, planetLng = 295.0887599985307, planetLngSpeed = 2.5455979151782895e-2, planetDeclination = -22.783419326272032}), (Just (GlyphInfo {originalPosition = 61.06080663822928, glyphSize = (3.0, 3.0), placedPosition = 61.06080663822928, sectorNumber = 10, sequenceNumber = 10, levelNumber = 0, glyphScale = 1.0, extraData = MeanNode}), PlanetPosition {planetName = MeanNode, planetLat = 0.0, planetLng = 61.060806638229316, planetLngSpeed = -5.2927120164918615e-2, planetDeclination = 20.370152610767}), (Just (GlyphInfo {originalPosition = 75.25609938940858, glyphSize = (3.0, 3.0), placedPosition = 75.25609938940858, sectorNumber = 10, sequenceNumber = 11, levelNumber = 0, glyphScale = 1.0, extraData = MeanApog}), PlanetPosition {planetName = MeanApog, planetLat = 1.264991349508381, planetLng = 75.25609938940862, planetLngSpeed = 0.11084766917715703, planetDeclination = 23.87945999896589}), (Just (GlyphInfo {originalPosition = 8.562359971906972, glyphSize = (3.0, 3.0), placedPosition = 8.562359971906972, sectorNumber = 8, sequenceNumber = 12, levelNumber = 0, glyphScale = 1.0, extraData = Chiron}), PlanetPosition {planetName = Chiron, planetLat = 2.2496231065188264, planetLng = 8.562359971906991, planetLngSpeed = -1.5011310915184279e-2, planetDeclination = 5.46215027730398})]
--}
 
 --
 
