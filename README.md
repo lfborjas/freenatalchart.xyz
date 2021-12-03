@@ -3,47 +3,27 @@
 ![build](https://github.com/lfborjas/freenatalchart.xyz/workflows/Build%20and%20Test/badge.svg)
 
 
-## Setup
-
-Create a `.env` file with the following entries
-
-    ALGOLIA_APP_ID=<ALGOLIA>
-    ALGOLIA_APP_KEY=<ALGOLIA-PUBLIC-SEARCH-KEY>
-    PORT=3030
-    DEPLOY_ENV=Development
-
 ## Development
 
 I personally use [haskell-language-server](https://github.com/haskell/haskell-language-server) in VS Code. The `haskell` extension should
 be able to download the right binaries, and use `hie.yaml` to configure the project. 
 
-This project uses `nix`, you can enter a `nix-shell` to get everything going, and preview anything that needs to be built
-with `nix-build --dry-run ./nix/release.nix`
+This project uses `nix`, you can enter a `nix-shell` to get everything going, or you can preview anything that needs to be built
+with `nix-build --dry-run ./nix/release.nix`. Ideally, _most_ of our dependencies are in the Nix cache, and you only need to build
+`swiss-ephemeris`, `timezone-detect`, `almanac` and this project.
 
 Working locally should be rather painless, from a `nix-shell`:
 
-    cabal run
+    cabal run freenatalchart-exe
 
 (You'll need to set `ALGOLIA_APP_ID` and `ALGOLIA_APP_KEY` as env vars for geolocation to work locally.)
-
-### With Docker:
-
-#### Build docker image
-
-    docker build -t freenatalchart .
-
-Should take about 25 mins if doing it from scratch. The final image uses Debian, so between the base
-and our own files, it comes to about 160 MB.
-
-#### Testing docker image locally
-
-    docker run -p 3030:3030 --env-file .env freenatalchart
 
 ## Deployment to Heroku
 
 See `.github/workflows/heroku.yml` (and its staging variant) for how deployment is automated. Any merges into `develop` will deploy to staging,
 `master` deploys to production. These workflows **will not work** if you fork this repository, since they depend on my heroku key being available;
-but you should be able to re-use them by substituting `freenatalchart-` in both files with your own app name.
+but you should be able to re-use them by substituting `freenatalchart-` in both files with your own app name (run `heroku authorizations:create`
+to generate an API token that you can put in your GH secrets, too.)
 
 (More info at [heroku's guide to docker deployments](https://devcenter.heroku.com/articles/container-registry-and-runtime))
 
