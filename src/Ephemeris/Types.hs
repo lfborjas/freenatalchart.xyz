@@ -64,7 +64,7 @@ import SwissEphemeris
       ObliquityInformation(..),
       Planet(..),
       SplitDegreesOption(..),
-      ZodiacSignName(..) )
+      ZodiacSignName(..), HasEclipticLongitude (..) )
 import Utils ( maybeBetween )
 import RIO.Time (UTCTime(..))
 
@@ -254,6 +254,10 @@ data PlanetPosition = PlanetPosition
 instance HasLongitude PlanetPosition where
     getLongitude = planetLng
     addLongitude p l =  p{planetLng = planetLng p + l}
+    
+instance HasEclipticLongitude PlanetPosition where
+  getEclipticLongitude = getLongitudeRaw . planetLng
+  setEclipticLongitude p l' = p{planetLng = Longitude l'}
 
 instance HasLabel PlanetPosition where
   label = label . planetName

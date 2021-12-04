@@ -5,6 +5,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE NamedFieldPuns #-}
 module Chart.Graphics where
 
 import Ephemeris
@@ -13,7 +15,7 @@ import Ephemeris
       Element(Water, Earth, Air, Fire),
       HasLabel(label),
       HasLongitude(..),
-      House(House),
+      House(House, houseCusp),
       HouseNumber,
       Aspect(temperament),
       AspectTemperament(Neutral, Analytical, Synthetic),
@@ -24,7 +26,7 @@ import Ephemeris
       HoroscopeData(..),
       TransitData(..),
       PlanetPosition(..),
-      triggeredTransits)
+      triggeredTransits, Planet)
 import Chart.Prerendered as P
     ( prerenderedPlanet, prerenderedSign )
 import Diagrams.Backend.SVG (svgClass,  Options(SVGOptions), SVG(SVG), B )
@@ -33,8 +35,11 @@ import Diagrams.Prelude hiding (aspect)
 import Diagrams.TwoD.Vector (e)
 import qualified Graphics.Svg as Svg
 import Import hiding ((^.), local)
-import RIO.List (groupBy, sortBy)
+import RIO.List (groupBy, sortBy, sortOn)
 import Utils (rotateList)
+import SwissEphemeris.ChartUtils
+import qualified Debug.Trace as Debug
+import Data.List (head)
 
 zodiacCircle :: ChartContext -> Diagram B
 zodiacCircle env =
@@ -132,17 +137,20 @@ aspects env pAspects = do
             Synthetic -> "synthetic-aspect"
             Neutral -> "neutral-aspect"
 
-planets :: ChartContext -> [PlanetPosition] -> Diagram B
-planets env planetPositions =
-  mconcat $ map drawPlanet (correctCollisions 3 planetPositions)
+planets :: ChartContext -> [PlanetPosition] -> [House] -> Diagram B
+planets env planetPositions houses =
+  -- multiply the scale to obtain "degrees"
+  mconcat $ map drawPlanet correctedPositions
   where
+    correctedPositions = correctCollisions (originalScale * 100) planetPositions houses
     onAspects = env ^. aspectCircleRadiusL
     onZodiacs = env ^. zodiacCircleRadiusL
     onPlanets = env ^. planetCircleRadiusL
     classPrefix = env & chartPlanetClassPrefix
+    originalScale = 0.06
     drawPlanet (corrected, pos@PlanetPosition {..}) =
       (stroke $ P.prerenderedPlanet planetName)
-        # scale 0.06
+        # scale (maybe originalScale ((originalScale*) . glyphScale) corrected)
         # moveTo correctedPosition
         # rectifyAround correctedPosition env
         # fc black
@@ -151,10 +159,9 @@ planets env planetPositions =
         # (href $ "#" <> (label planetName))
         # svgClass classPrefix
         <> (guideLines # svgClass (classPrefix <> "-lines"))
-        <> (correctionLine # lw thin # lc black # svgClass (classPrefix <> "-lines"))
-        <> (retrogradeMark # svgClass classPrefix) 
+        <> (retrogradeMark # svgClass classPrefix)
       where
-        drawPlanetAt = maybe (getLongitude pos) id corrected
+        drawPlanetAt = maybe (getLongitude pos) (Longitude . placedPosition) corrected
         atCorrectedPosition = flip longitudeToPoint $ drawPlanetAt
         correctedPosition = atCorrectedPosition onPlanets
         atEclipticPosition = flip longitudeToPoint $ getLongitude pos
@@ -162,10 +169,6 @@ planets env planetPositions =
         aspectCircleLine = atEclipticPosition onAspects ~~ atEclipticPosition (onAspects + 0.045)
         zodiacCircleLine = atEclipticPosition onZodiacs ~~ atEclipticPosition (onZodiacs - 0.045)
         guideLines = (aspectCircleLine <> zodiacCircleLine) # lw thin
-        correctionLine =
-          case corrected of
-            Nothing -> mempty
-            Just _ -> (atCorrectedPosition (onPlanets + 0.02)) ~~ (atEclipticPosition (onZodiacs - 0.037))
         retrogradeMark =
           if (isRetrograde pos)
             then
@@ -175,24 +178,43 @@ planets env planetPositions =
                 # fontSize (local 0.05)
             else mempty
 
+
+correctCollisions :: Double -> [PlanetPosition] -> [House] -> [(Maybe (GlyphInfo Planet), PlanetPosition)]
+correctCollisions scale' planets' houses =
+  case correctedPositions of
+    Left _e -> map (Nothing,) planets'
+    Right glyphs ->
+      zipWith
+        (curry $ first Just)
+        (sortOn extraData glyphs)
+        (sortOn planetName planets')
+  where
+    correctedPositions =
+      gravGroupEasy
+        scale'
+        transformedPlanets
+        (map (getLongitudeRaw . houseCusp) houses)
+    transformedPlanets =
+      map (\pos@PlanetPosition{planetName} -> (planetName, pos)) planets'
+
 containerCircle :: Double -> Diagram B
 containerCircle r = circle r # lw thin # svgClass "container-circle"
 
-degreeMarkers :: Bool -> Double -> Diagram B 
+degreeMarkers :: Bool -> Double -> Diagram B
 degreeMarkers radiatesOut r =
   mconcat . map degreeLine $ [0..360]
   where
     degreeLine :: Int -> Diagram B
-    degreeLine degree = 
+    degreeLine degree =
       (longitudeToPoint startingPoint $ fromIntegral degree) ~~ (longitudeToPoint endingPoint $ fromIntegral degree)
       # lw lineThickness
       where
-        startingPoint = 
+        startingPoint =
           if radiatesOut then
             r + lineLength
           else
             r
-        endingPoint = 
+        endingPoint =
           if radiatesOut then
             r
           else
@@ -200,13 +222,13 @@ degreeMarkers radiatesOut r =
         lineLength =
           if (degree `mod` 5 == 0) then 0.025 else 0.02
         lineThickness =
-          if (degree `mod` 5 == 0) then thin else ultraThin 
+          if (degree `mod` 5 == 0) then thin else ultraThin
 
 chart :: ChartContext -> HoroscopeData -> Diagram B
 chart env HoroscopeData {..} =
   do
     (zodiacCircle env)
-    <> (planets env horoscopePlanetPositions)
+    <> (planets env horoscopePlanetPositions horoscopeHouses)
     <> (cuspsCircle env horoscopeHouses)
     <> (quadrants env horoscopeAngles)
     <> (aspects env horoscopePlanetaryAspects)
@@ -218,13 +240,13 @@ chart env HoroscopeData {..} =
     <> (degreeMarkers True $ env ^. aspectCircleRadiusL)
 
 transitChart :: ChartContext -> TransitData -> Diagram B
-transitChart env TransitData {..} = 
+transitChart env TransitData {..} =
   do
     (zodiacCircle env)
-    <> (planets env natalPlanetPositions)
+    <> (planets env natalPlanetPositions natalHouses)
     <> (cuspsCircle env{chartZodiacCircleRadius = 0.6} natalHouses)
     -- <> (quadrants env natalAngles)
-    <> (planets env{chartPlanetCircleRadius = 0.7, chartPlanetClassPrefix = "transiting-planet"} transitingPlanetPositions)
+    <> (planets env{chartPlanetCircleRadius = 0.7, chartPlanetClassPrefix = "transiting-planet"} transitingPlanetPositions transitingHouses)
     <> (cuspsCircle env{chartAspectCircleRadius = 0.6, chartHouseClassPrefix = "transiting-house"} transitingHouses)
     -- Only draw aspects that become active in the investigated period:
     <> ((aspects env) . transitAspects . triggeredTransits $ planetaryTransits)
@@ -235,8 +257,9 @@ transitChart env TransitData {..} =
     <> (degreeMarkers False $ env ^. zodiacCircleRadiusL)
     <> (degreeMarkers True $ env ^. aspectCircleRadiusL)
 
-
 --
+
+
 -- CHART UTILS
 --
 
@@ -259,32 +282,6 @@ longitudeToPoint magnitude longitude =
   where
     theta = (getLongitudeRaw longitude) @@ deg
     v = magnitude *^ e theta
-
--- TODO(luis) if the tolerance is too high (about 5 degrees,) these "corrections" may create further
--- collisions! We could do several passes before giving up... or come up with a fancier algorithm.
--- this is okay for my personal horoscopy, happy to revisit!
-correctCollisions :: HasLongitude a => Double -> [a] -> [(Maybe Longitude, a)]
-correctCollisions tolerance originalPositions =
-  sorted
-    & groupBy proximity
-    & concatMap correctCollisions'
-    & (flip zip) sorted
-    & map (\(corrected, original) -> if corrected == (getLongitude original) then (Nothing, original) else (Just corrected, original))
-  where
-    correction = Longitude $ tolerance / 2
-    sorted = sortBy (\a b -> compare (getLongitudeRaw a) (getLongitudeRaw b)) originalPositions
-    proximity x y = abs (getLongitudeRaw y - getLongitudeRaw x) <= tolerance
-    -- TODO: this is naïve: it's only somewhat elegant for pairs,
-    -- and for bigger clusters it just pushes them away... but it works?
-    -- also, what happens when we end up negative angles?
-    -- and, what if a correction pushes a planet past another one and the guidelines are now
-    -- confusing (this happens when I put the tolerance all the way up to 5 degrees in my test data!)
-    -- this is a more fastidious approach:
-    -- https://github.com/Kibo/AstroChart/blob/8615cccdc7dbec52b8ba3bdf5f28c0ad8b09691f/project/src/utils.js
-    correctCollisions' :: HasLongitude b => [b] -> [Longitude]
-    correctCollisions' [] = []
-    correctCollisions' [x, y] = [(getLongitude x) - correction, (getLongitude y) + correction]
-    correctCollisions' (x : xs) = (getLongitude x) : map (\y -> (getLongitude y) + correction) xs
 
 renderChart :: [Svg.Attribute] -> Double -> HoroscopeData -> Svg.Element
 renderChart attrs width' z@HoroscopeData {..} =
