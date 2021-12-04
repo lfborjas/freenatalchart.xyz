@@ -3,11 +3,11 @@
 }:
 mkDerivation {
   pname = "swiss-ephemeris";
-  version = "1.4.1.0";
+  version = "1.4.2.0";
   src = fetchgit {
     url = "https://github.com/lfborjas/swiss-ephemeris";
-    sha256 = "1m5194rdqra9rmglqd5zxa91kih5hnj239bs7nfksj276qszp7la";
-    rev = "17ad66f7d0884ccc17aeb9a559ef4335032e2ee0";
+    sha256 = "1xf4l65jd7wg9kqdj6y4byqfbxd7iif79ia6j5fnsyi02zdbwhfi";
+    rev = "5c70c162ac6a0005a74ab6c7b04c06cf8da91adb";
     fetchSubmodules = true;
   };
   libraryHaskellDepends = [ base time vector ];
