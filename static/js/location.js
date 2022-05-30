@@ -1,3 +1,24 @@
+// From: https://stackoverflow.com/questions/5525071/how-to-wait-until-an-element-exists
+function waitForElm(selector) {
+    return new Promise(resolve => {
+        if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
+        }
+
+        const observer = new MutationObserver(mutations => {
+            if (document.querySelector(selector)) {
+                resolve(document.querySelector(selector));
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    });
+}
+
 function initGeolocation() {
   let el  = document.getElementById('geocode-city-autocomplete');
   let lat = document.getElementById('lat');
@@ -6,21 +27,44 @@ function initGeolocation() {
   let errMsg = document.getElementById('errMsg');
   let btn = document.querySelector(".btn-primary");
 
+  // an error hint might be populated right below the autocomplete div
+  let locationError = document.querySelector('#geocode-city-autocomplete + p.text-error');
+  let clearError = function(){
+    if(locationError){
+      locationError.classList.add("d-none");
+    }
+  };
+
+
+  let clearCoordinates = function(){
+    clearError();
+    lat.value = '';
+    lng.value = '';
+  };
+
   el.addEventListener('citySelected', function (e) {
+    clearError();
     lat.value = e.detail.latitude;
     lng.value = e.detail.longitude;
   });
 
-  // TODO: capture the input event for the autocomplete's input?
-  /*placesAutocomplete.on('clear', function () {
-    lat.value = '';
-    lng.value = '';
-  });*/
-
   el.addEventListener('lookupError', function (e) {
+    clearCoordinates();
     err.classList.remove("d-none");
     errMsg.textContent = "Looks like our location service is temporarily unavailable. Please try again in a little bit. If the problem persists, please submit an issue."
     btn.setAttribute("disabled", true);
+  });
+
+  // NOTE: both of the below HACK annotations should be something we configure in the plugin
+  // itself, but I don't feel like setting up a purescript env right now lol
+  // HACK: treat both result events as a "clear" event:
+  el.addEventListener('citiesFound', clearCoordinates);
+  el.addEventListener('noCitiesFound', clearCoordinates);
+
+  // HACK: whenever the input exists, attach the missing attributes
+  waitForElm('#geocode-city-autocomplete input').then(function(elm){
+    elm.setAttribute("id", "location");
+    elm.setAttribute("required", true);
   });
 }
 
