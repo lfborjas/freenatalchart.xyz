@@ -18,10 +18,7 @@ render ctx maybeForm = do
         head_ $ do
             title_ "Free Natal Chart"
             metaCeremony ctx
-            style_ $ do
-                ".ap-dropdown-menu{ color: #333; }\
-                \.multiline-p{ white-space: pre-line; hyphens: auto; word-break: break-word; overflow-wrap: anywhere;}\
-                \"
+            geocodeCityStyle
 
         body_ $ do
             div_ [id_ "main", class_ "container grid-sm"] $ do
@@ -135,6 +132,21 @@ geocodeCityAutocomplete ctx =
     in
         div_ props mempty
 
+-- See:
+-- https://github.com/natal-chart/firmament/blob/3458af40324c285cd8fec72e85bc09167e13ffc3/src/_variables.scss
+-- https://github.com/geocode-city/autocomplete/blob/130046d2cd8731a258bf926bddd18092ad9c919e/src/Autocomplete/Component.purs
+-- https://github.com/geocode-city/web/blob/82b8c50b2d7c30193bf3b3fe0eecfafcbc71294d/src/_autocomplete.scss
+geocodeCityStyle :: Html ()
+geocodeCityStyle = let prefix = ("geocode-city__" :: String) in style_ $ do
+  [i|
+    .multiline-p{ white-space: pre-line; hyphens: auto; word-break: break-word; overflow-wrap: anywhere;}
+
+   .#{prefix}autocomplete-container { background-color: #fff; border-radius: 5px; margin-top: 5px; color: #000950; }
+   .#{prefix}autocomplete-item-highlighted { background-color: #3c4feb; }
+   .#{prefix}autocomplete-item { cursor: pointer; padding: 5px; }
+   .#{prefix}city-location { color: #bcc3ce; }
+   .#{prefix}powered-by { color: #000063; }
+  |]
 
 isEmpty :: Text -> Bool
 isEmpty = RIO.Text.null
