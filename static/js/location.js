@@ -1,36 +1,23 @@
-function initGeolocation(appId, appKey) {
-  let placesAutocomplete = places({
-    appId: appId,
-    apiKey: appKey,
-    container: document.getElementById('location')
-  }).configure({
-    type: 'city',
-    aroundLatLngViaIP: false,
-  });
-
+function initGeolocation() {
+  let el  = document.getElementById('geocode-city-autocomplete');
   let lat = document.getElementById('lat');
   let lng = document.getElementById('lng');
   let err = document.getElementById('err');
   let errMsg = document.getElementById('errMsg');
   let btn = document.querySelector(".btn-primary");
 
-  placesAutocomplete.on('change', function (e) {
-    lat.value = e.suggestion.latlng.lat;
-    lng.value = e.suggestion.latlng.lng;
+  el.addEventListener('citySelected', function (e) {
+    lat.value = e.detail.latitude;
+    lng.value = e.detail.longitude;
   });
 
-  placesAutocomplete.on('clear', function () {
+  // TODO: capture the input event for the autocomplete's input?
+  /*placesAutocomplete.on('clear', function () {
     lat.value = '';
     lng.value = '';
-  });
+  });*/
 
-  placesAutocomplete.on('error', function (e) {
-    err.classList.remove("d-none");
-    errMsg.textContent = "Looks like our location service is currently unreachable.";
-    btn.setAttribute("disabled", true);
-  });
-
-  placesAutocomplete.on('limit', function (e) {
+  el.addEventListener('lookupError', function (e) {
     err.classList.remove("d-none");
     errMsg.textContent = "Looks like our location service is temporarily unavailable. Please try again in a little bit. If the problem persists, please submit an issue."
     btn.setAttribute("disabled", true);

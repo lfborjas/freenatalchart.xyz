@@ -44,14 +44,7 @@ render ctx maybeForm = do
                 form_ [action_ "/full-chart", method_ "get", style_ "min-height: 50vh;"] $ do
                     div_ [class_ (formGroupClass (val formLocation) (err InvalidLocation))] $ do
                         label_ [class_ "form-label", for_ "location"] "Born in"
-                        input_ [ class_ "form-input input-transparent"
-                               , type_ "search"
-                               , id_ "location"
-                               , name_ "location"
-                               , placeholder_ "City or town"
-                               , required_ ""
-                               , value_ (val formLocation)
-                               ]
+                        geocodeCityAutocomplete ctx
                         errorHint (err InvalidLocation)
                         noscript_ [class_ "bg-warning"]
                                   "You seem to have disabled JavaScript. We use a little bit of scripting to determine your birth location based on what you type in this box, without scripting, we're unable to!"
@@ -105,9 +98,9 @@ render ctx maybeForm = do
 
                 footerNav
             -- TODO: host this ourselves.
-            script_ [src_ "https://cdn.jsdelivr.net/npm/places.js@1.19.0"] (""::Text)
+            script_ [src_ "https://cdn.jsdelivr.net/gh/geocode-city/autocomplete@0.1.0.1/dist/geocode_city.min.js"] (""::Text)
             script_ [src_ . pack $ assetPath <> "js/location.js"] (""::Text)
-            geolocationInit ctx
+            geolocationInit
     where
         assetPath = ctx ^. staticRootL
         isDateInvalidClass =
@@ -124,20 +117,24 @@ render ctx maybeForm = do
             | (isEmpty $ val formDayPart) && dayP == "am" = [checked_]
             | otherwise = []
 
-geolocationInit :: HasGeocodeApiKey ctx => ctx -> Html ()
-geolocationInit ctx =
+geolocationInit :: Html ()
+geolocationInit =
+    script_ $ do
+           [i|
+               initGeolocation();
+           |]
+
+geocodeCityAutocomplete :: HasGeocodeApiKey ctx => ctx -> Html ()
+geocodeCityAutocomplete ctx =
     let appKey = ctx ^. geocodeApiKeyL
-        empty = Import.null
+        props' = [ id_ "geocode-city-autocomplete"
+                 , data_ "input-name" "location"
+                 , data_ "input-class" "form-input input-transparent"
+                 ]
+        props = if Import.null appKey then props' else props' <> [data_ "api-key" (pack appKey)]
     in
-        if empty appKey then
-            return mempty
-        else do
-            script_ $ do
-                [i|
-                    initGeolocation(
-                        '#{appKey}'
-                    );
-                |]
+        div_ props mempty
+
 
 isEmpty :: Text -> Bool
 isEmpty = RIO.Text.null
