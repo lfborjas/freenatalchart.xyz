@@ -14,11 +14,8 @@ data RenderContext = RenderContext
 instance HasStaticRoot RenderContext where
     staticRootL = lens staticRoot (\x y -> x {staticRoot = y})
 
-instance HasAlgoliaAppId RenderContext where
-    algoliaAppIdL = lens (const "") (const . id)
-
-instance HasAlgoliaAppKey RenderContext where
-    algoliaAppKeyL = lens (const "") (const . id)
+instance HasGeocodeApiKey RenderContext where
+    geocodeApiKeyL = lens (const "") (const . id)
 
 fixtureRenderContext :: RenderContext
 fixtureRenderContext = RenderContext "../../static/"

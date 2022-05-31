@@ -31,8 +31,7 @@ data AppContext = AppContext
   { appLogFunc :: !LogFunc
   , appPort :: !Int
   , appEphePath :: !EphemeridesPath
-  , appAlgoliaAppId :: !String
-  , appAlgoliaAppKey :: !String
+  , appGeocodeApiKey :: !String
   , appTimeZoneDatabase :: !TimeZoneDatabase
   , appEnvironment :: !Environment
   , appStaticRoot :: !FilePath
@@ -53,15 +52,10 @@ class HasPort env where
 instance HasPort AppContext where
   portL = lens appPort (\x y -> x { appPort = y})
 
-class HasAlgoliaAppId env where
-  algoliaAppIdL :: Lens' env String
-instance HasAlgoliaAppId AppContext where
-  algoliaAppIdL = lens appAlgoliaAppId (\x y -> x { appAlgoliaAppId = y})
-
-class HasAlgoliaAppKey env where
-  algoliaAppKeyL :: Lens' env String
-instance HasAlgoliaAppKey AppContext where
-  algoliaAppKeyL = lens appAlgoliaAppKey (\x y -> x { appAlgoliaAppKey = y})
+class HasGeocodeApiKey env where
+  geocodeApiKeyL :: Lens' env String
+instance HasGeocodeApiKey AppContext where
+  geocodeApiKeyL = lens appGeocodeApiKey (\x y -> x { appGeocodeApiKey = y})
 
 class HasTimeZoneDatabase env where
   timeZoneDatabaseL :: Lens' env TimeZoneDatabase
@@ -88,8 +82,7 @@ data AppOptions = AppOptions
   {
     port :: Int
   , ephePath :: FilePath
-  , algoliaAppId :: String
-  , algoliaAppKey :: String
+  , geocodeApiKey :: String
   , timezoneDatabaseFile :: FilePath
   , epheDbFile :: FilePath
   , deployEnv :: Environment
@@ -99,8 +92,7 @@ defaultConfig :: AppOptions
 defaultConfig = AppOptions { 
   port = 3000,
   ephePath = "./config", 
-  algoliaAppId = "", 
-  algoliaAppKey = "", 
+  geocodeApiKey = "",
   timezoneDatabaseFile = "./config/timezone21.bin",
   epheDbFile = "./config/precalculated_ephemeris.db",
   deployEnv = Development

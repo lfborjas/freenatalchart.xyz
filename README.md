@@ -16,7 +16,7 @@ Working locally should be rather painless, from a `nix-shell`:
 
     cabal run freenatalchart-exe
 
-(You'll need to set `ALGOLIA_APP_ID` and `ALGOLIA_APP_KEY` as env vars for geolocation to work locally.)
+(You'll need to set `GEOCODE_API_KEY` as env vars for geolocation to work locally.)
 
 ## Deployment to Heroku
 
