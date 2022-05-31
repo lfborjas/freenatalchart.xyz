@@ -58,6 +58,5 @@ I wrote [a little library](https://github.com/lfborjas/swiss-ephemeris) to inter
 [the fantastic Swiss Ephemeris library made available by the scientists behind astro.com](https://www.astro.com/swisseph/swephinfo_e.htm).
 * For Timezone detection, I wrote [another little library](https://github.com/lfborjas/timezone-detect) to interface with
   [the also fantastic ZoneDetect library](https://github.com/BertoldVdb/ZoneDetect). Thanks to the author for making available the timezone geography files!
-* For geolocation, I use [Algolia](https://community.algolia.com/places/). If you want to run a copy of this website, you'll have to go setup your developer
-  account with them!
+* For geolocation, I use [Geocode.city](https://geocode.city/). If you want to run a copy of this website, follow the setup instructions there. Contact me if you need more than 1000 request/browser per day
 |]
