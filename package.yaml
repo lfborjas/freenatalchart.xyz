@@ -21,6 +21,8 @@ dependencies:
 - base >= 4.11 && < 10
 - rio >= 0.1.12.0
 - swiss-ephemeris >= 1.4.2.0
+- almanac
+- microlens
 - diagrams
 - diagrams-core
 - diagrams-lib
